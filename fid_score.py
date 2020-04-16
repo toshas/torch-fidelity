@@ -34,46 +34,68 @@ limitations under the License.
 """
 import os
 import pathlib
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import argparse
+import multiprocessing
 
 import numpy as np
+import scipy
 import torch
+import torchvision
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
 from scipy import linalg
-from torch.nn.functional import adaptive_avg_pool2d
-
 from PIL import Image
 
 try:
     from tqdm import tqdm
 except ImportError:
     # If not tqdm is not available, provide a mock version of it
-    def tqdm(x): return x
+    def tqdm(x, *args, **kwargs): return x
 
 from inception import InceptionV3
 
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+
+class ImagesPathDataset(Dataset):
+    def __init__(self, files):
+        self.files = files
+        self.transforms = torchvision.transforms.ToTensor()
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, i):
+        path = self.files[i]
+        img = Image.open(path).convert('RGB')
+        img = self.transforms(img)
+        return img
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('path', type=str, nargs=2,
-                    help=('Path to the generated images or '
-                          'to .npz statistic files'))
+                    help='Path to the generated images or to .npz statistic files')
 parser.add_argument('--batch-size', type=int, default=50,
                     help='Batch size to use')
 parser.add_argument('--dims', type=int, default=2048,
                     choices=list(InceptionV3.BLOCK_INDEX_BY_DIM),
-                    help=('Dimensionality of Inception features to use. '
-                          'By default, uses pool3 features'))
+                    help='Dimensionality of Inception features to use. By default, uses pool3 features')
 parser.add_argument('-c', '--gpu', default='', type=str,
                     help='GPU to use (leave blank for CPU only)')
+parser.add_argument('-v', '--verbose', default=True, type=str2bool,
+                    help='Verbose or silent progress bar')
 
 
-def imread(filename):
-    """
-    Loads an image file into a (height, width, 3) uint8 ndarray.
-    """
-    return np.asarray(Image.open(filename), dtype=np.uint8)[..., :3]
-
-
-def get_activations(files, model, batch_size=50, dims=2048,
-                    cuda=False, verbose=False):
+def get_activations(files, model, batch_size=50, dims=2048, cuda=False, verbose=False):
     """Calculates the activations of the pool_3 layer for all images.
 
     Params:
@@ -96,46 +118,45 @@ def get_activations(files, model, batch_size=50, dims=2048,
     model.eval()
 
     if batch_size > len(files):
-        print(('Warning: batch size is bigger than the data size. '
-               'Setting batch size to data size'))
+        if verbose:
+            print('WARNING: Batch size is bigger than the data size. Setting batch size to data size')
         batch_size = len(files)
 
-    pred_arr = np.empty((len(files), dims))
+    dataset = ImagesPathDataset(files)
 
-    for i in tqdm(range(0, len(files), batch_size)):
-        if verbose:
-            print('\rPropagating batch %d/%d' % (i + 1, n_batches),
-                  end='', flush=True)
-        start = i
-        end = i + batch_size
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        drop_last=False,
+        num_workers=min(4, 2 * multiprocessing.cpu_count()),
+        pin_memory=cuda,
+    )
 
-        images = np.array([imread(str(f)).astype(np.float32)
-                           for f in files[start:end]])
+    pred_arr = []
 
-        # Reshape to (n_images, 3, height, width)
-        images = images.transpose((0, 3, 1, 2))
-        images /= 255
-
-        batch = torch.from_numpy(images).type(torch.FloatTensor)
+    for batch in tqdm(dataloader, disable=not verbose):
         if cuda:
-            batch = batch.cuda()
+            batch = batch.cuda(non_blocking=True)
 
-        pred = model(batch)[0]
+        with torch.no_grad():
+            pred = model(batch)[0]
 
         # If model output is not scalar, apply global spatial average pooling.
         # This happens if you choose a dimensionality not equal 2048.
         if pred.size(2) != 1 or pred.size(3) != 1:
-            pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
+            assert dims != 2048
+            pred = F.adaptive_avg_pool2d(pred, output_size=(1, 1))
 
-        pred_arr[start:end] = pred.cpu().data.numpy().reshape(pred.size(0), -1)
+        pred = pred.squeeze(3).squeeze(2)
 
-    if verbose:
-        print(' done')
+        pred_arr.append(pred.cpu())
+
+    pred_arr = torch.cat(pred_arr, dim=0).numpy()
 
     return pred_arr
 
 
-def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
+def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, verbose=True):
     """Numpy implementation of the Frechet Distance.
     The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
     and X_2 ~ N(mu_2, C_2) is
@@ -173,9 +194,11 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     # Product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = ('fid calculation produces singular product; '
-               'adding %s to diagonal of cov estimates') % eps
-        print(msg)
+        if verbose:
+            print(
+                f'WARNING: fid calculation produces singular product; '
+                f'adding {eps} to diagonal of cov estimates'
+            )
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
@@ -192,8 +215,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
             np.trace(sigma2) - 2 * tr_covmean)
 
 
-def calculate_activation_statistics(files, model, batch_size=50,
-                                    dims=2048, cuda=False, verbose=False):
+def calculate_activation_statistics(files, model, batch_size=50, dims=2048, cuda=False, verbose=True):
     """Calculation of the statistics used by the FID.
     Params:
     -- files       : List of image files paths
@@ -217,7 +239,7 @@ def calculate_activation_statistics(files, model, batch_size=50,
     return mu, sigma
 
 
-def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
+def _compute_statistics_of_path(path, model, batch_size, dims, cuda, verbose):
     if path.endswith('.npz'):
         f = np.load(path)
         m, s = f['mu'][:], f['sigma'][:]
@@ -225,13 +247,12 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
     else:
         path = pathlib.Path(path)
         files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
-        m, s = calculate_activation_statistics(files, model, batch_size,
-                                               dims, cuda)
+        m, s = calculate_activation_statistics(files, model, batch_size, dims, cuda, verbose)
 
     return m, s
 
 
-def calculate_fid_given_paths(paths, batch_size, cuda, dims):
+def calculate_fid_given_paths(paths, batch_size, cuda, dims, verbose):
     """Calculates the FID of two paths"""
     for p in paths:
         if not os.path.exists(p):
@@ -243,11 +264,9 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
     if cuda:
         model.cuda()
 
-    m1, s1 = _compute_statistics_of_path(paths[0], model, batch_size,
-                                         dims, cuda)
-    m2, s2 = _compute_statistics_of_path(paths[1], model, batch_size,
-                                         dims, cuda)
-    fid_value = calculate_frechet_distance(m1, s1, m2, s2)
+    m1, s1 = _compute_statistics_of_path(paths[0], model, batch_size, dims, cuda, verbose)
+    m2, s2 = _compute_statistics_of_path(paths[1], model, batch_size, dims, cuda, verbose)
+    fid_value = calculate_frechet_distance(m1, s1, m2, s2, verbose)
 
     return fid_value
 
@@ -256,8 +275,21 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
-    fid_value = calculate_fid_given_paths(args.path,
-                                          args.batch_size,
-                                          args.gpu != '',
-                                          args.dims)
-    print('FID: ', fid_value)
+    if args.verbose and scipy.__version__ == '1.4.1':
+        print(
+            'WARNING: SciPy version 1.4.1 found, it exhibits a severe performance regression. '
+            'Consider either upgrading, or downgrading to 1.3.3',
+        )
+
+    fid_value = calculate_fid_given_paths(
+        args.path,
+        args.batch_size,
+        args.gpu != '',
+        args.dims,
+        args.verbose,
+    )
+
+    if args.verbose:
+        print(f'FID: {fid_value}')
+    else:
+        print(fid_value)
