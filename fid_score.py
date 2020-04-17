@@ -40,7 +40,6 @@ import multiprocessing
 import numpy as np
 import scipy
 import torch
-import torchvision
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from scipy import linalg
@@ -52,13 +51,12 @@ except ImportError:
     # If not tqdm is not available, provide a mock version of it
     def tqdm(x, *args, **kwargs): return x
 
-from inception import InceptionV3
+from inception_features import InceptionV3Features
 
 
 class ImagesPathDataset(Dataset):
     def __init__(self, files):
         self.files = files
-        self.transforms = torchvision.transforms.ToTensor()
 
     def __len__(self):
         return len(self.files)
@@ -66,33 +64,11 @@ class ImagesPathDataset(Dataset):
     def __getitem__(self, i):
         path = self.files[i]
         img = Image.open(path).convert('RGB')
-        img = self.transforms(img)
+        width, height = img.size
+        img = torch.ByteTensor(torch.ByteStorage.from_buffer(img.tobytes())).view(height, width, 3)
+        img = img.permute(2, 0, 1).float()
+        img = (img - 128) / 128
         return img
-
-
-def str2bool(v):
-    if isinstance(v, bool):
-       return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('path', type=str, nargs=2,
-                    help='Path to the generated images or to .npz statistic files')
-parser.add_argument('--batch-size', type=int, default=50,
-                    help='Batch size to use')
-parser.add_argument('--dims', type=int, default=2048,
-                    choices=list(InceptionV3.BLOCK_INDEX_BY_DIM),
-                    help='Dimensionality of Inception features to use. By default, uses pool3 features')
-parser.add_argument('-c', '--gpu', default='', type=str,
-                    help='GPU to use (leave blank for CPU only)')
-parser.add_argument('-v', '--verbose', default=True, type=str2bool,
-                    help='Verbose or silent progress bar')
 
 
 def get_activations(files, model, batch_size=50, dims=2048, cuda=False, verbose=False):
@@ -246,21 +222,25 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda, verbose):
         f.close()
     else:
         path = pathlib.Path(path)
-        files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
+        files_png = list(sorted(path.glob('*.png')))
+        files_jpg = list(sorted(path.glob('*.jpg')))
+        if verbose and len(files_jpg) > 0:
+            print(f'WARNING: path "{path}" contains JPEG images; lossy compression may affect the metric value')
+        files = files_png + files_jpg
         m, s = calculate_activation_statistics(files, model, batch_size, dims, cuda, verbose)
 
     return m, s
 
 
-def calculate_fid_given_paths(paths, batch_size, cuda, dims, verbose):
+def calculate_fid_given_paths(paths, batch_size, cuda, dims, model_path, verbose):
     """Calculates the FID of two paths"""
     for p in paths:
         if not os.path.exists(p):
             raise RuntimeError('Invalid path: %s' % p)
 
-    block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
+    block_idx = InceptionV3Features.BLOCK_INDEX_BY_DIM[dims]
 
-    model = InceptionV3([block_idx])
+    model = InceptionV3Features([block_idx], normalize_input=False, inception_weights_path=model_path)
     if cuda:
         model.cuda()
 
@@ -272,12 +252,27 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims, verbose):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('path', type=str, nargs=2,
+                        help='Path to the generated images or to .npz statistic files')
+    parser.add_argument('--batch-size', type=int, default=50,
+                        help='Batch size to use')
+    parser.add_argument('--dims', type=int, default=2048,
+                        choices=list(InceptionV3Features.BLOCK_INDEX_BY_DIM),
+                        help='Dimensionality of Inception features to use. By default, uses pool3 features')
+    parser.add_argument('-c', '--gpu', default='', type=str,
+                        help='GPU to use (leave blank for CPU only)')
+    parser.add_argument('-m', '--model', default=None, type=str,
+                        help='Path to Inception model weights, if downloading needs to be skipped')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='Verbose or silent progress bar')
+
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
-    if args.verbose and scipy.__version__ == '1.4.1':
+    if (not args.silent) and scipy.__version__ == '1.4.1':
         print(
-            'WARNING: SciPy version 1.4.1 found, it exhibits a severe performance regression. '
+            'WARNING: SciPy version 1.4.1 found, it contains a severe performance regression. '
             'Consider either upgrading, or downgrading to 1.3.3',
         )
 
@@ -286,10 +281,11 @@ if __name__ == '__main__':
         args.batch_size,
         args.gpu != '',
         args.dims,
-        args.verbose,
+        args.model,
+        not args.silent,
     )
 
-    if args.verbose:
-        print(f'FID: {fid_value}')
-    else:
+    if args.silent:
         print(fid_value)
+    else:
+        print(f'FID: {fid_value}')
