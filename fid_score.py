@@ -91,8 +91,6 @@ def get_activations(files, model, batch_size=50, dims=2048, cuda=False, verbose=
        activations of the given tensor when feeding inception with the
        query tensor.
     """
-    model.eval()
-
     if batch_size > len(files):
         if verbose:
             print('WARNING: Batch size is bigger than the data size. Setting batch size to data size')
@@ -241,6 +239,7 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims, model_path, verbose
     block_idx = InceptionV3Features.BLOCK_INDEX_BY_DIM[dims]
 
     model = InceptionV3Features([block_idx], normalize_input=False, inception_weights_path=model_path)
+    model.eval()
     if cuda:
         model.cuda()
 

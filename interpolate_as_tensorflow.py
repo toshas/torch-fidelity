@@ -44,15 +44,20 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
             raise ValueError('scale_factor shape must match input shape. '
                              'Input is {}D, scale_factor size is {}'.format(dim, len(scale_factor)))
 
+    is_tracing = torch._C._get_tracing_state()
+
     def _output_size(dim):
         _check_size_scale_factor(dim)
         if size is not None:
-            return size
+            if is_tracing:
+                return [torch.tensor(i) for i in size]
+            else:
+                return size
         scale_factors = _ntuple(dim)(scale_factor)
         # math.floor might return float in py2.7
 
         # make scale_factor a tensor in tracing so constant doesn't get baked in
-        if torch._C._get_tracing_state():
+        if is_tracing:
             return [
                 (torch.floor((input.size(i + 2).float() * torch.tensor(scale_factors[i], dtype=torch.float32)).float()))
                 for i in range(dim)
@@ -62,39 +67,29 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
 
     def _tf_calculate_resize_scale(in_size, out_size):
         if align_corners:
-            if torch._C._get_tracing_state():
-                return (in_size - 1) / (out_size - 1).clamp(min=1)
+            if is_tracing:
+                return (in_size - 1) / (out_size.float() - 1).clamp(min=1)
             else:
                 return (in_size - 1) / max(1, out_size - 1)
         else:
-            return in_size / out_size
+            if is_tracing:
+                return in_size / out_size.float()
+            else:
+                return in_size / out_size
 
     out_size = _output_size(2)
     scale_x = _tf_calculate_resize_scale(input.shape[3], out_size[1])
     scale_y = _tf_calculate_resize_scale(input.shape[2], out_size[0])
 
-    # grid_x = torch.arange(0, out_size[1], 1, dtype=torch.float32, device=input.device)
-    # grid_x = grid_x * (2 * scale_x / (input.shape[3] - 1)) - 1
-    grid_x = torch.arange(
-        -1,
-        out_size[1] * (2 * scale_x / (input.shape[3] - 1)) - 1,
-        (2 * scale_x / (input.shape[3] - 1)),
-        dtype=torch.float32,
-        device=input.device
-    )
+    grid_x = torch.arange(0, out_size[1], 1, dtype=torch.float32, device=input.device)
+    grid_x = grid_x * (2 * scale_x / (input.shape[3] - 1)) - 1
 
-    # grid_y = torch.arange(0, out_size[0], 1, dtype=torch.float32, device=input.device)
-    # grid_y = grid_y * (2 * scale_y / (input.shape[2] - 1)) - 1
-    grid_y = torch.arange(
-        -1,
-        out_size[0] * (2 * scale_y / (input.shape[2] - 1)) - 1,
-        (2 * scale_y / (input.shape[2] - 1)),
-        dtype=torch.float32,
-        device=input.device
-    )
+    grid_y = torch.arange(0, out_size[0], 1, dtype=torch.float32, device=input.device)
+    grid_y = grid_y * (2 * scale_y / (input.shape[2] - 1)) - 1
 
     grid_x = grid_x.view(1, out_size[1]).repeat(out_size[0], 1)
     grid_y = grid_y.view(out_size[0], 1).repeat(1, out_size[1])
+
     grid_xy = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=2).unsqueeze(0)
     grid_xy = grid_xy.repeat(input.shape[0], 1, 1, 1)
 

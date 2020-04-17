@@ -177,7 +177,7 @@ class InceptionV3Features(nn.Module):
             if idx == self.last_needed_block:
                 break
 
-        return outp
+        return tuple(outp)
 
 
 def fid_inception_v3(path):
@@ -558,8 +558,7 @@ def convert_tensorflow_graphdef_to_pytorch_checkpoint(path_out=None):
 
     weights_tf = load_weights_from_graphdef()
 
-    from collections import OrderedDict
-    weights_pt = OrderedDict()
+    weights_pt = {}
     for k_tf, k_pt in map_tf_to_pt.items():
         if k_tf.endswith('conv2d_params'):
             weight_tf = torch.from_numpy(weights_tf.pop(k_tf))
