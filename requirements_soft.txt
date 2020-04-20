@@ -1,6 +1,0 @@
-numpy
-Pillow
-scipy==1.3.3
-torch
-torchvision
-tqdm
