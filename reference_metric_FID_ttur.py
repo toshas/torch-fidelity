@@ -13,6 +13,7 @@ import numpy as np
 import tensorflow as tf
 from imageio import imread
 from scipy import linalg
+from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
 
 KEY_FID = 'frechet_inception_distance'
@@ -301,6 +302,10 @@ if __name__ == "__main__":
                         help='GPU to use (leave blank for CPU only)')
     parser.add_argument('--json', action='store_true',
                         help='Print scores in JSON')
+    parser.add_argument('--determinism', action='store_true',
+                        help='Enforce determinism in TensorFlow to remove variance when running with the same inputs. '
+                             'Without it inception score varies between different runs on the same data (e.g. 18.11 +/- '
+                             '0.02). More information: https://github.com/NVIDIA/tensorflow-determinism')
     parser.add_argument("--lowprofile", action="store_true",
                         help='Keep only one batch of images in memory at a time. '
                              'This reduces memory footprint, but may decrease speed slightly.')
@@ -309,6 +314,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+
+    if args.determinism:
+        patch_tensorflow_for_determinism()
 
     metrics = calculate_fid_given_paths(args.path, low_profile=args.lowprofile, verbose=not args.silent)
 
