@@ -422,8 +422,8 @@ def main():
     if args.determinism:
         patch_tensorflow_for_determinism()
 
-    if args.do_fid and args.reference_feats is None:
-        parser.error("Need REFERENCE_FEATS if you're doing FID")
+    if (args.do_fid or args.do_mmd) and args.reference_feats is None:
+        parser.error("Need REFERENCE_FEATS if you're doing FID or MMD")
 
     def check_path(pth):
         if os.path.exists(pth):

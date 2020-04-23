@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.nn.modules.utils import _ntuple
 
 
-def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None):
+def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None, how_exact='bit'):
     r"""Down/up samples the input to either the given :attr:`size` or the given :attr:`scale_factor`
 
     Epsilon-exact bilinear interpolation as it is implemented in TensorFlow 1.x:
@@ -29,7 +29,12 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
         size (Tuple[int, int]): output spatial size.
         scale_factor (float or Tuple[float]): multiplier for spatial size. Has to match input size if it is a tuple.
         align_corners (bool, optional): Same meaning as in TensorFlow 1.x.
+        how_exact (str, optional): Can be 'bit' (slower, but bit-exact), or 'eps' (faster, but with relative error on
+                                   the scale of floating point type precision).
     """
+    if how_exact not in ('bit', 'eps'):
+        raise ValueError('how_exact can only be one of "bit", "eps"')
+
     if input.dim() != 4:
         raise ValueError('input must be a 4-D tensor')
 
@@ -66,7 +71,7 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
         else:
             return [int(math.floor(float(input.size(i + 2)) * scale_factors[i])) for i in range(dim)]
 
-    def _tf_calculate_resize_scale(in_size, out_size):
+    def tf_calculate_resize_scale(in_size, out_size):
         if align_corners:
             if is_tracing:
                 return (in_size - 1) / (out_size.float() - 1).clamp(min=1)
@@ -79,21 +84,52 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
                 return in_size / out_size
 
     out_size = _output_size(2)
-    scale_x = _tf_calculate_resize_scale(input.shape[3], out_size[1])
-    scale_y = _tf_calculate_resize_scale(input.shape[2], out_size[0])
+    scale_x = tf_calculate_resize_scale(input.shape[3], out_size[1])
+    scale_y = tf_calculate_resize_scale(input.shape[2], out_size[0])
 
-    grid_x = torch.arange(0, out_size[1], 1, dtype=input.dtype, device=input.device)
-    grid_x = grid_x * (2 * scale_x / (input.shape[3] - 1)) - 1
+    def resample_using_grid_sample():
+        grid_x = torch.arange(0, out_size[1], 1, dtype=input.dtype, device=input.device)
+        grid_x = grid_x * (2 * scale_x / (input.shape[3] - 1)) - 1
 
-    grid_y = torch.arange(0, out_size[0], 1, dtype=input.dtype, device=input.device)
-    grid_y = grid_y * (2 * scale_y / (input.shape[2] - 1)) - 1
+        grid_y = torch.arange(0, out_size[0], 1, dtype=input.dtype, device=input.device)
+        grid_y = grid_y * (2 * scale_y / (input.shape[2] - 1)) - 1
 
-    grid_x = grid_x.view(1, out_size[1]).repeat(out_size[0], 1)
-    grid_y = grid_y.view(out_size[0], 1).repeat(1, out_size[1])
+        grid_x = grid_x.view(1, out_size[1]).repeat(out_size[0], 1)
+        grid_y = grid_y.view(out_size[0], 1).repeat(1, out_size[1])
 
-    grid_xy = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=2).unsqueeze(0)
-    grid_xy = grid_xy.repeat(input.shape[0], 1, 1, 1)
+        grid_xy = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=2).unsqueeze(0)
+        grid_xy = grid_xy.repeat(input.shape[0], 1, 1, 1)
 
-    out = F.grid_sample(input, grid_xy, mode='bilinear', padding_mode='border', align_corners=True)
+        out = F.grid_sample(input, grid_xy, mode='bilinear', padding_mode='border', align_corners=True)
+        return out
+
+    def resample_manually():
+        grid_x = torch.arange(0, out_size[1], 1, dtype=input.dtype, device=input.device)
+        grid_x = grid_x * torch.tensor(scale_x, dtype=torch.float32)
+        grid_x_lo = grid_x.long()
+        grid_x_hi = (grid_x_lo + 1).clamp_max(input.shape[3] - 1)
+        grid_dx = grid_x - grid_x_lo.float()
+
+        grid_y = torch.arange(0, out_size[0], 1, dtype=input.dtype, device=input.device)
+        grid_y = grid_y * torch.tensor(scale_y, dtype=torch.float32)
+        grid_y_lo = grid_y.long()
+        grid_y_hi = (grid_y_lo + 1).clamp_max(input.shape[2] - 1)
+        grid_dy = grid_y - grid_y_lo.float()
+
+        in_00 = input[:, :, grid_y_lo, :][:, :, :, grid_x_lo]
+        in_01 = input[:, :, grid_y_lo, :][:, :, :, grid_x_hi]
+        in_10 = input[:, :, grid_y_hi, :][:, :, :, grid_x_lo]
+        in_11 = input[:, :, grid_y_hi, :][:, :, :, grid_x_hi]
+
+        in_0 = in_00 + (in_01 - in_00) * grid_dx.view(1, 1, 1, out_size[1])
+        in_1 = in_10 + (in_11 - in_10) * grid_dx.view(1, 1, 1, out_size[1])
+        out = in_0 + (in_1 - in_0) * grid_dy.view(1, 1, out_size[0], 1)
+
+        return out
+
+    if how_exact == 'bit':
+        out = resample_manually()
+    else:
+        out = resample_using_grid_sample()
 
     return out
