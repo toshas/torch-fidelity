@@ -43,7 +43,7 @@ def create_feature_extractor(name, list_features, **kwargs):
     return feat_extractor
 
 
-def get_features_from_dataset(input, feat_extractor, batch_size, cuda, verbose):
+def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, verbose):
     assert isinstance(input, Dataset), 'Input can only be a Dataset instance'
     assert isinstance(feat_extractor, FeatureExtractorBase), \
         'Feature extractor is not a subclass of FeatureExtractorBase'
@@ -67,13 +67,13 @@ def get_features_from_dataset(input, feat_extractor, batch_size, cuda, verbose):
 
         with torch.no_grad():
             features = feat_extractor(batch)
-        features = feat_extractor.convert_features_tuple_to_dict(features)
-        features = {k: [v.cpu()] for k, v in features.items()}
+        featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
+        featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
 
         if out is None:
-            out = features
+            out = featuresdict
         else:
-            out = {k: out[k] + features[k] for k in out.keys()}
+            out = {k: out[k] + featuresdict[k] for k in out.keys()}
 
     out = {k: torch.cat(v, dim=0) for k, v in out.items()}
 
@@ -161,7 +161,7 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     return items
 
 
-def extract_features_from_input(input, feat_extractor, **kwargs):
+def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
     input_ds = prepare_inputs_as_datasets(
         input,
         kwargs['glob_recursively'],
@@ -169,31 +169,31 @@ def extract_features_from_input(input, feat_extractor, **kwargs):
         kwargs['datasets_download_on'],
         kwargs['verbose'],
     )
-    features = get_features_from_dataset(
+    featuresdict = get_featuresdict_from_dataset(
         input_ds,
         feat_extractor,
         kwargs['batch_size'],
         kwargs['cuda'],
         kwargs['verbose'],
     )
-    return features
+    return featuresdict
 
 
-def extract_features_from_input_cached(input, feat_extractor, **kwargs):
+def extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs):
 
     def fn_recompute():
-        return extract_features_from_input(input, feat_extractor, **kwargs)
+        return extract_featuresdict_from_input(input, feat_extractor, **kwargs)
 
     input_name = get_input_cacheable_name(input)
     if input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
         cached_filename_prefix = f'{input_name}-{feat_extractor_name}-features-'
-        features = cache_lookup_group_recompute_all_on_any_miss(
+        featuresdict = cache_lookup_group_recompute_all_on_any_miss(
             cached_filename_prefix,
             feat_extractor.get_requested_features_list(),
             fn_recompute,
             **kwargs,
         )
     else:
-        features = fn_recompute()
-    return features
+        featuresdict = fn_recompute()
+    return featuresdict

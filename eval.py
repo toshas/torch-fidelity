@@ -5,6 +5,7 @@ import os
 
 from metric_fid import fid_alone
 from metric_isc import isc_alone
+from metric_kid import kid_alone
 from registry import FEATURE_EXTRACTORS_REGISTRY
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -38,6 +39,16 @@ parser.add_argument('--feature-extractor-weights-path', default=None, type=str,
                     help='Path to feature extractor weights')
 parser.add_argument('--isc-splits', default=10, type=int,
                     help='Number of splits in Inception Score')
+parser.add_argument('--kid-subsets', default=100, type=int,
+                    help='Number of subsets in KID')
+parser.add_argument('--kid-subset-size', default=1000, type=int,
+                    help='Subset size in KID')
+parser.add_argument('--kid-degree', default=3, type=int,
+                    help='')
+parser.add_argument('--kid-gamma', default=None, type=float,
+                    help='')
+parser.add_argument('--kid-coef0', default=1, type=float,
+                    help='')
 parser.add_argument('--shuffle-off', action='store_true',
                     help='Do not perform samples shuffling using RNG before computing splits')
 parser.add_argument('--glob-recursively', action='store_true',
@@ -72,6 +83,8 @@ if args.isc and not args.fid and not args.kid:
     metrics = isc_alone(args.path[0], **vars(args))
 elif not args.isc and args.fid and not args.kid:
     metrics = fid_alone(args.path[0], args.path[1], **vars(args))
+elif not args.isc and not args.fid and args.kid:
+    metrics = kid_alone(args.path[0], args.path[1], **vars(args))
 else:
     raise NotImplementedError
 

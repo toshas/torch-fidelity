@@ -1,13 +1,13 @@
 import numpy as np
 import torch
 
-from utils import extract_features_from_input, create_feature_extractor
+from utils import extract_featuresdict_from_input_cached, create_feature_extractor
 
 KEY_METRIC_ISC_MEAN = 'inception_score_mean'
 KEY_METRIC_ISC_STD = 'inception_score_std'
 
 
-def isc_feature_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
+def isc_features_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
     assert torch.is_tensor(feature) and feature.dim() == 2
     N, C = feature.shape
     if shuffle:
@@ -33,10 +33,10 @@ def isc_feature_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
     }
 
 
-def isc_features_to_metric(features, feat_layer_name, **kwargs):
-    feature = features[feat_layer_name]
-    metric = isc_feature_to_metric(
-        feature,
+def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
+    features = featuresdict[feat_layer_name]
+    metric = isc_features_to_metric(
+        features,
         kwargs['isc_splits'],
         kwargs['shuffle_on'],
         kwargs['rng_seed'],
@@ -45,8 +45,8 @@ def isc_features_to_metric(features, feat_layer_name, **kwargs):
 
 
 def isc_input_to_metric(input, feat_extractor, feat_layer_name, **kwargs):
-    features = extract_features_from_input(input, feat_extractor, **kwargs)
-    return isc_features_to_metric(features, feat_layer_name, **kwargs)
+    featuresdict = extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs)
+    return isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs)
 
 
 def isc_alone(input, **kwargs):

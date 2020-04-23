@@ -4,13 +4,13 @@ import numpy as np
 import scipy.linalg
 import torch
 
-from utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, extract_features_from_input_cached, \
-    create_feature_extractor
+from utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, \
+    extract_featuresdict_from_input_cached, create_feature_extractor
 
 KEY_METRIC_FID = 'frechet_inception_distance'
 
 
-def fid_feature_to_statistics(features):
+def fid_features_to_statistics(features):
     assert torch.is_tensor(features) and features.dim() == 2
     features = features.numpy()
     mu = np.mean(features, axis=0)
@@ -68,16 +68,16 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
     }
 
 
-def fid_features_to_statistics(features, feat_layer_name):
-    feature = features[feat_layer_name]
-    statistics = fid_feature_to_statistics(feature)
+def fid_featuresdict_to_statistics(featuresdict, feat_layer_name):
+    features = featuresdict[feat_layer_name]
+    statistics = fid_features_to_statistics(features)
     return statistics
 
 
-def fid_features_to_statistics_cached(features, input, feat_extractor, feat_layer_name, **kwargs):
+def fid_featuresdict_to_statistics_cached(featuresdict, input, feat_extractor, feat_layer_name, **kwargs):
 
     def fn_recompute():
-        return fid_features_to_statistics(features, feat_layer_name)
+        return fid_featuresdict_to_statistics(featuresdict, feat_layer_name)
 
     input_name = get_input_cacheable_name(input)
     if input_name is not None:
@@ -90,8 +90,8 @@ def fid_features_to_statistics_cached(features, input, feat_extractor, feat_laye
 
 
 def fid_input_to_statistics(input, feat_extractor, feat_layer_name, **kwargs):
-    features = extract_features_from_input_cached(input, feat_extractor, **kwargs)
-    return fid_features_to_statistics(features, feat_layer_name)
+    featuresdict = extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs)
+    return fid_featuresdict_to_statistics_cached(featuresdict, input, feat_extractor, feat_layer_name, **kwargs)
 
 
 def fid_input_to_statistics_cached(input, feat_extractor, feat_layer_name, **kwargs):

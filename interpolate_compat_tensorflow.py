@@ -1,4 +1,5 @@
 import math
+
 import torch
 import torch.nn.functional as F
 from torch.nn.modules.utils import _ntuple
@@ -81,10 +82,10 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
     scale_x = _tf_calculate_resize_scale(input.shape[3], out_size[1])
     scale_y = _tf_calculate_resize_scale(input.shape[2], out_size[0])
 
-    grid_x = torch.arange(0, out_size[1], 1, dtype=torch.float32, device=input.device)
+    grid_x = torch.arange(0, out_size[1], 1, dtype=input.dtype, device=input.device)
     grid_x = grid_x * (2 * scale_x / (input.shape[3] - 1)) - 1
 
-    grid_y = torch.arange(0, out_size[0], 1, dtype=torch.float32, device=input.device)
+    grid_y = torch.arange(0, out_size[0], 1, dtype=input.dtype, device=input.device)
     grid_y = grid_y * (2 * scale_y / (input.shape[2] - 1)) - 1
 
     grid_x = grid_x.view(1, out_size[1]).repeat(out_size[0], 1)
