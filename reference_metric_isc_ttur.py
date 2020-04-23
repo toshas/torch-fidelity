@@ -24,11 +24,11 @@ KEY_IS_MEAN = 'inception_score_mean'
 KEY_IS_STD = 'inception_score_std'
 
 
-def glob_images_path(path, recurse, verbose=False):
+def glob_images_path(path, glob_recursively, verbose=False):
     have_lossy = False
     files = []
     for r, d, ff in os.walk(path):
-        if not recurse and os.path.realpath(r) != os.path.realpath(path):
+        if not glob_recursively and os.path.realpath(r) != os.path.realpath(path):
             continue
         for f in ff:
             ext = os.path.splitext(f)[1].lower()

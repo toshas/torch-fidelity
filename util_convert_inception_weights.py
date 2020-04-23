@@ -28,7 +28,7 @@ def load_weights_from_graphdef():
         graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
         weights = {
-            w.name: tensor_util.MakeNdarray(w.attr['value'].tensor)
+            w.dataset_name: tensor_util.MakeNdarray(w.attr['value'].tensor)
             for w in graph_def.node
             if w.op == 'Const'
         }

@@ -6,7 +6,8 @@ from torch.hub import load_state_dict_from_url
 from feature_extractor_base import FeatureExtractorBase
 from interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
-PT_INCEPTION_URL = 'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'
+PT_INCEPTION_URL = \
+    'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'
 
 
 class FeatureExtractorInceptionV3(FeatureExtractorBase):
@@ -14,12 +15,10 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
     def __init__(
             self,
+            name,
             features_list,
-            resize_input=True,
-            normalize_input=True,
-            normalize_mean=128,
-            normalize_stddev=128,
-            inception_weights_path=None,
+            feature_extractor_weights_path=None,
+            **kwargs,
     ):
         """Build pretrained InceptionV3
 
@@ -28,29 +27,12 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         features_list: list
             A list of feature names from the list of provided by this extractor,
             which will be produced for each input
-        resize_input : bool
-            If true, bilinearly resizes input to width and height 299 before
-            feeding input to model. As the network without fully connected
-            layers is fully convolutional, it should be able to handle inputs
-            of arbitrary size, so resizing might not be strictly needed
-        normalize_input : bool
-            If true, scales the input range to the range the
-            pretrained Inception network expects, namely (-1, 1)
-        normalize_mean : int or float or Tensor
-            Mean of the input data (default: 128 for 24 bit RGB)
-        normalize_stddev : int or float or Tensor
-            Standard deviation of the input data (default: 128 for 24 bit RGB)
-        inception_weights_path: str
+        feature_extractor_weights_path: str
             Path to the pretrained Inception model weights in PyTorch format.
             Refer to inception_features.py:__main__ for making your own.
             By default downloads the checkpoint from internet.
         """
-        super(FeatureExtractorInceptionV3, self).__init__(features_list)
-
-        self.resize_input = resize_input
-        self.normalize_input = normalize_input
-        self.normalize_mean = normalize_mean
-        self.normalize_stddev = normalize_stddev
+        super(FeatureExtractorInceptionV3, self).__init__(name, features_list, **kwargs)
 
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
@@ -77,29 +59,28 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
         self.fc = nn.Linear(2048, 1008)
 
-        if inception_weights_path is None:
+        if feature_extractor_weights_path is None:
             state_dict = load_state_dict_from_url(PT_INCEPTION_URL, progress=True)
         else:
-            state_dict = torch.load(inception_weights_path)
+            state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
 
         for p in self.parameters():
             p.requires_grad_(False)
 
     def forward(self, x):
+        assert torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8'
         features = {}
         remaining_features = self.features_list.copy()
 
-        if self.resize_input:
-            x = interpolate_bilinear_2d_like_tensorflow1x(
-                x,
-                size=(self.INPUT_IMAGE_SIZE, self.INPUT_IMAGE_SIZE),
-                align_corners=False,
-            )
+        x = (x.float() - 128) / 128
+        # N x 3 x ? x ?
 
-        if self.normalize_input:
-            x = (x - self.normalize_mean) / self.normalize_stddev
-
+        x = interpolate_bilinear_2d_like_tensorflow1x(
+            x,
+            size=(self.INPUT_IMAGE_SIZE, self.INPUT_IMAGE_SIZE),
+            align_corners=False,
+        )
         # N x 3 x 299 x 299
 
         x = self.Conv2d_1a_3x3(x)
@@ -187,7 +168,8 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         features['logits'] = x
         return tuple(features[a] for a in self.features_list)
 
-    def get_provided_features_list(self):
+    @staticmethod
+    def get_provided_features_list():
         return '64', '192', '768', '2048', 'logits_unbiased', 'logits'
 
 
