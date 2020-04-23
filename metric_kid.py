@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from sklearn.metrics.pairwise import polynomial_kernel
 from tqdm import tqdm
 
 from utils import create_feature_extractor, extract_featuresdict_from_input_cached
@@ -52,18 +51,24 @@ def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est='unbiased'):
     return mmd2
 
 
+def polynomial_kernel(X, Y, degree=3, gamma=None, coef0=1):
+    if gamma is None:
+        gamma = 1.0 / X.shape[1]
+    K = (np.matmul(X, Y.T) * gamma + coef0) ** degree
+    return K
+
+
 def polynomial_mmd(features_1, features_2, degree, gamma, coef0):
-    X = features_1
-    Y = features_2
-    K_XX = polynomial_kernel(X, degree=degree, gamma=gamma, coef0=coef0)
-    K_YY = polynomial_kernel(Y, degree=degree, gamma=gamma, coef0=coef0)
-    K_XY = polynomial_kernel(X, Y, degree=degree, gamma=gamma, coef0=coef0)
-    return mmd2(K_XX, K_XY, K_YY)
+    k_11 = polynomial_kernel(features_1, features_1, degree=degree, gamma=gamma, coef0=coef0)
+    k_22 = polynomial_kernel(features_2, features_2, degree=degree, gamma=gamma, coef0=coef0)
+    k_12 = polynomial_kernel(features_1, features_2, degree=degree, gamma=gamma, coef0=coef0)
+    return mmd2(k_11, k_12, k_22)
 
 
 def kid_features_to_metric(features_1, features_2, **kwargs):
     assert torch.is_tensor(features_1) and features_1.dim() == 2
     assert torch.is_tensor(features_2) and features_2.dim() == 2
+    assert features_1.shape[1] == features_2.shape[1]
 
     features_1 = features_1.cpu().numpy()
     features_2 = features_2.cpu().numpy()
@@ -77,7 +82,7 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
     for i in tqdm(range(kid_subsets)):
         f1 = features_1[rng.choice(len(features_1), kid_subset_size, replace=False)]
         f2 = features_2[rng.choice(len(features_2), kid_subset_size, replace=False)]
-        o = polynomial_mmd(f1, f2, degree=kwargs['kid_degree'], gamma=kwargs['kid_gamma'], coef0=kwargs['kid_coef0'])
+        o = polynomial_mmd(f1, f2, kwargs['kid_degree'], kwargs['kid_gamma'], kwargs['kid_coef0'])
         mmds[i] = o
 
     return {

@@ -26,6 +26,8 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
 
     mu1, sigma1 = stat_1['mu'], stat_1['sigma']
     mu2, sigma2 = stat_2['mu'], stat_2['sigma']
+    assert mu1.shape == mu2.shape and mu1.dtype == mu2.dtype
+    assert sigma1.shape == sigma2.shape and sigma1.dtype == sigma2.dtype
 
     mu1 = np.atleast_1d(mu1)
     mu2 = np.atleast_1d(mu2)
