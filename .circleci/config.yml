@@ -8,7 +8,9 @@ jobs:
 #    machine:
 #      resource_class: gpu.nvidia.small
 #      image: ubuntu-1604-cuda-10.1:201909-23
-    executor: python/default
+    docker:
+      - image: circleci/python:3.6.4
+#    executor: python/default
     steps:
       - checkout
       - restore_cache:
