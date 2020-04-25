@@ -18,14 +18,14 @@ jobs:
           command: |
             python3 -m venv env_fidelity
             . env_fidelity/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements_test.txt
+            pip3 install --upgrade pip
+            pip3 install -r requirements_test.txt
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements_test.txt" }}
           paths:
             - "env_fidelity"
       - run:
-          command: python ./test_interpolation_cpu.py
+          command: python3 ./test_interpolation_cpu.py
           name: interpolation_cpu
 #    steps:
 #      - checkout
