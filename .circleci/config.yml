@@ -5,9 +5,9 @@ orbs:
 
 jobs:
   build-and-test:
-    machine:
-      resource_class: gpu.nvidia.small
-      image: ubuntu-1604-cuda-10.1:201909-23
+#    machine:
+#      resource_class: gpu.nvidia.small
+#      image: ubuntu-1604-cuda-10.1:201909-23
     steps:
       - checkout
       - restore_cache:
