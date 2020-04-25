@@ -73,7 +73,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         features = {}
         remaining_features = self.features_list.copy()
 
-        x = (x.float() - 128) / 128
+        x = x.float()
         # N x 3 x ? x ?
 
         x = interpolate_bilinear_2d_like_tensorflow1x(
@@ -81,6 +81,10 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             size=(self.INPUT_IMAGE_SIZE, self.INPUT_IMAGE_SIZE),
             align_corners=False,
         )
+        # N x 3 x 299 x 299
+
+        # x = (x - 128) * torch.tensor(0.0078125, dtype=torch.float32, device=x.device)  # really happening in graph
+        x = (x - 128) / 128  # but this gives bit-exact output _of this step_ too
         # N x 3 x 299 x 299
 
         x = self.Conv2d_1a_3x3(x)

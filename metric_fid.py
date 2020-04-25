@@ -122,6 +122,11 @@ def fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kw
 
 def fid_alone(input_1, input_2, **kwargs):
     feat_layer_name = kwargs['feature_layer_fid']
-    feat_extractor = create_feature_extractor(kwargs['feature_extractor'], [feat_layer_name], **kwargs)
+    feat_extractor = create_feature_extractor(
+        kwargs['feature_extractor'],
+        [feat_layer_name],
+        cuda=kwargs['cuda'],
+        **kwargs
+    )
     metric = fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs)
     return metric

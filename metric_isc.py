@@ -51,6 +51,11 @@ def isc_input_to_metric(input, feat_extractor, feat_layer_name, **kwargs):
 
 def isc_alone(input, **kwargs):
     feat_layer_name = kwargs['feature_layer_isc']
-    feat_extractor = create_feature_extractor(kwargs['feature_extractor'], [feat_layer_name], **kwargs)
+    feat_extractor = create_feature_extractor(
+        kwargs['feature_extractor'],
+        [feat_layer_name],
+        cuda=kwargs['cuda'],
+        **kwargs
+    )
     metric = isc_input_to_metric(input, feat_extractor, feat_layer_name, **kwargs)
     return metric

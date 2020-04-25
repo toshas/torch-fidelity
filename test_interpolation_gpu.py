@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import numpy as np
@@ -77,4 +78,5 @@ class TestInterpolation(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    assert os.environ['CUDA_VISIBLE_DEVICES'] != ''
     unittest.main()

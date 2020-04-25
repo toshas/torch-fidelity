@@ -33,12 +33,12 @@ def glob_image_paths(path, glob_recursively, verbose):
     return files
 
 
-def create_feature_extractor(name, list_features, **kwargs):
+def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     assert name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered'
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.eval()
-    if kwargs['cuda']:
+    if cuda:
         feat_extractor.cuda()
     return feat_extractor
 
@@ -101,7 +101,9 @@ def get_input_cacheable_name(input):
         return getattr(input, 'name')
 
 
-def prepare_inputs_as_datasets(input, glob_recursively, datasets_root, datasets_download_on, verbose):
+def prepare_inputs_as_datasets(
+        input, glob_recursively=False, datasets_root=None, datasets_download_on=True, verbose=True
+):
     check_input(input)
     if type(input) is str:
         if input in DATASETS_REGISTRY:
@@ -164,10 +166,10 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
 def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
     input_ds = prepare_inputs_as_datasets(
         input,
-        kwargs['glob_recursively'],
-        kwargs['datasets_root'],
-        kwargs['datasets_download_on'],
-        kwargs['verbose'],
+        glob_recursively=kwargs['glob_recursively'],
+        datasets_root=kwargs['datasets_root'],
+        datasets_download_on=kwargs['datasets_download_on'],
+        verbose=kwargs['verbose'],
     )
     featuresdict = get_featuresdict_from_dataset(
         input_ds,
