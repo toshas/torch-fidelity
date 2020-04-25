@@ -10,7 +10,6 @@ jobs:
 #      image: ubuntu-1604-cuda-10.1:201909-23
     docker:
       - image: circleci/python:3.6.4
-#    executor: python/default
     steps:
       - checkout
       - restore_cache:
@@ -27,16 +26,10 @@ jobs:
           paths:
             - "env_fidelity"
       - run:
-          command: python3 ./test_interpolation_cpu.py
+          command: |
+            . env_fidelity/bin/activate
+            python3 ./test_interpolation_cpu.py
           name: interpolation_cpu
-#    steps:
-#      - checkout
-#      - python/load-cache
-#      - python/install-deps
-#      - python/save-cache
-#      - run:
-#          command: python ./test_interpolation_cpu.py
-#          name: interpolation_cpu
 
 workflows:
   main:
