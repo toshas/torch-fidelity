@@ -1,0 +1,12 @@
+numpy
+Pillow
+scipy
+torch
+torchvision
+tqdm
+
+imageio
+six
+sklearn
+tensorflow-gpu==1.14.0
+tensorflow-determinism
