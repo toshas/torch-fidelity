@@ -107,12 +107,6 @@ class TestConvolution(unittest.TestCase):
         out_pt_manualchw = self.forward_pt_manualchw(conv_pt, x_pt)
         out_pt_manualhwc = self.forward_pt_manualhwc(conv_pt, x_pt)
 
-        ## would not be needed if we could set keep_filters=1 for this reprocase
-        # out_tf = out_tf[:, 0, :, :].unsqueeze(1)
-        # out_pt_builtin = out_pt_builtin[:, 0, :, :].unsqueeze(1)
-        # out_pt_manualchw = out_pt_manualchw[:, 0, :, :].unsqueeze(1)
-        # out_pt_manualhwc = out_pt_manualhwc[:, 0, :, :].unsqueeze(1)
-
         residual_tf_pt_builtin = (out_tf - out_pt_builtin).abs()
         residual_tf_pt_manualchw = (out_tf - out_pt_manualchw).abs()
         residual_tf_pt_manualhwc = (out_tf - out_pt_manualhwc).abs()
@@ -144,7 +138,8 @@ class TestConvolution(unittest.TestCase):
         if cuda:
             self.assertEqual(residual, 0)
         else:
-            self.assertGreater(residual, 0)
+            self.assertGreaterEqual(residual, 0)
+            self.assertLess(residual, 1e-6)
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
@@ -154,7 +149,8 @@ class TestConvolution(unittest.TestCase):
             if cuda:
                 self.assertEqual(residual, 0)
             else:
-                self.assertGreater(residual, 0)
+                self.assertGreaterEqual(residual, 0)
+                self.assertLess(residual, 1e-6)
 
 
 if __name__ == '__main__':
