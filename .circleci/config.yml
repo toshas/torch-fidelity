@@ -29,6 +29,18 @@ jobs:
 #            export CUDA_VISIBLE_DEVICES=0
 #            python3 ./test_interpolation.py
       - run:
+          name: test_convolution_cpu
+          command: |
+            . env_fidelity/bin/activate
+            export CUDA_VISIBLE_DEVICES=""
+            python3 ./test_convolution.py
+#      - run:
+#          name: test_convolution_gpu
+#          command: |
+#            . env_fidelity/bin/activate
+#            export CUDA_VISIBLE_DEVICES=0
+#            python3 ./test_convolution.py
+      - run:
           name: test_inception_cpu
           command: |
             . env_fidelity/bin/activate

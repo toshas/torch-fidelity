@@ -144,6 +144,7 @@ class TestInception(unittest.TestCase):
                     raise ValueError(f'Unknown statistic name {sname}')
 
         if cuda:
+            print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
             patch_tensorflow_for_determinism()
 
             fstats = get_statistics()

@@ -65,10 +65,10 @@ class TestInterpolation(unittest.TestCase):
         residual = np.abs(img_299_pt - img_299_tf)
         if visualize:
             residual_img = 255 * residual / max(np.max(residual), 1e-6)
-            self.save(img_032, '' + suffix + '032.png')
-            self.save(img_299_pt, 'resize_' + suffix + '299_pt.png')
-            self.save(img_299_tf, 'resize_' + suffix + '299_tf.png')
-            self.save(residual_img, 'resize_' + suffix + 'residual.png')
+            self.save(img_032, suffix + '032.png')
+            self.save(img_299_pt, suffix + '299_pt.png')
+            self.save(img_299_tf, suffix + '299_tf.png')
+            self.save(residual_img, suffix + 'residual.png')
         return np.max(residual)
 
     def test_resize_eps(self):
