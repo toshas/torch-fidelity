@@ -10,7 +10,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Python deps in a venv
+          name: Create virtual environment and install test dependencies
           command: |
             python3 -m venv env_fidelity
             . env_fidelity/bin/activate
@@ -18,35 +18,43 @@ jobs:
             pip3 install -r tests/requirements_test.txt
             echo "export PYTHONPATH=.:$PYTHONPATH" >> $BASH_ENV
       - run:
-          name: test_interpolation_cpu
+          name: Test interpolation on cpu
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
 #      - run:
-#          name: test_interpolation_gpu
+#          name: Test interpolation on gpu
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_interpolation.py
       - run:
-          name: test_convolution_cpu
+          name: Test convolution on cpu
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_convolution.py
 #      - run:
-#          name: test_convolution_gpu
+#          name: Test convolution on gpu
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_convolution.py
       - run:
-          name: test_inception_cpu
+          name: Test inception on cpu
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_inception.py
 #      - run:
-#          name: test_inception_gpu
+#          name: Test inception on gpu
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_inception.py
+      - run:
+          name: Organize artifacts
+          command: |
+            mkdir -p artifacts
+            mv *.png artifacts/
+      - store_artifacts:
+          path: artifacts
+          destination: test_images
 
 workflows:
   main:
