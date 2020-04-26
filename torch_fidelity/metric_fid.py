@@ -49,7 +49,7 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
             print(
                 f'WARNING: fid calculation produces singular product; '
                 f'adding {eps} to diagonal of cov estimates',
-                sys.stderr
+                file=sys.stderr
             )
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = scipy.linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset), disp=verbose)
@@ -93,7 +93,7 @@ def fid_featuresdict_to_statistics_cached(featuresdict, input, feat_extractor, f
 
 def fid_input_to_statistics(input, feat_extractor, feat_layer_name, **kwargs):
     featuresdict = extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs)
-    return fid_featuresdict_to_statistics_cached(featuresdict, input, feat_extractor, feat_layer_name, **kwargs)
+    return fid_featuresdict_to_statistics(featuresdict, feat_layer_name)
 
 
 def fid_input_to_statistics_cached(input, feat_extractor, feat_layer_name, **kwargs):
@@ -120,12 +120,11 @@ def fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kw
     return metric
 
 
-def fid_alone(input_1, input_2, **kwargs):
+def calculate_fid(input_1, input_2, **kwargs):
     feat_layer_name = kwargs['feature_layer_fid']
     feat_extractor = create_feature_extractor(
         kwargs['feature_extractor'],
         [feat_layer_name],
-        cuda=kwargs['cuda'],
         **kwargs
     )
     metric = fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs)

@@ -24,7 +24,7 @@ class TestInception(unittest.TestCase):
         if not os.path.exists(filepath):
             filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath)
             statinfo = os.stat(filepath)
-            print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', sys.stderr)
+            print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', file=sys.stderr)
         tarfile.open(filepath, 'r:gz').extractall(model_dir)
         with tf.gfile.FastGFile(os.path.join(model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
             graph_def = tf.GraphDef()

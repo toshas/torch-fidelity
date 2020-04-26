@@ -91,20 +91,23 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
     }
 
 
-def kid_alone(input_1, input_2, **kwargs):
+def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs):
+    features_1 = featuresdict_1[feat_layer_name]
+    features_2 = featuresdict_2[feat_layer_name]
+    metric = kid_features_to_metric(features_1, features_2, **kwargs)
+    return metric
+
+
+def calculate_kid(input_1, input_2, **kwargs):
     feat_layer_name = kwargs['feature_layer_kid']
     feat_extractor = create_feature_extractor(
         kwargs['feature_extractor'],
         [feat_layer_name],
-        cuda=kwargs['cuda'],
         **kwargs
     )
 
     featuresdict_1 = extract_featuresdict_from_input_cached(input_1, feat_extractor, **kwargs)
     featuresdict_2 = extract_featuresdict_from_input_cached(input_2, feat_extractor, **kwargs)
 
-    features_1 = featuresdict_1[feat_layer_name]
-    features_2 = featuresdict_2[feat_layer_name]
-
-    metric = kid_features_to_metric(features_1, features_2, **kwargs)
+    metric = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs)
     return metric

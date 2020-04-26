@@ -3,19 +3,23 @@ import argparse
 import json
 import os
 
-from torch_fidelity.metric_fid import fid_alone
-from torch_fidelity.metric_isc import isc_alone
-from torch_fidelity.metric_kid import kid_alone
-from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY
+from torch_fidelity.metric_fid import calculate_fid
+from torch_fidelity.metric_isc import calculate_isc
+from torch_fidelity.metric_kid import calculate_kid
+from torch_fidelity.metrics import calculate_metrics
+from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('path', type=str, nargs=2,
-                    help='Path to the generated images or to .npz statistic files')
+parser.add_argument('input1', type=str,
+                    help=f'First path to images or a registered input source (one of {DATASETS_REGISTRY.keys()})')
+parser.add_argument('input2', type=str, nargs='?', default=None,
+                    help=f'Second (optional) path to images or a registered input source (one of '
+                         f'{DATASETS_REGISTRY.keys()})')
 parser.add_argument('-b', '--batch-size', type=int, default=64,
                     help='Batch size to use')
 pgroup = parser.add_mutually_exclusive_group()
 pgroup.add_argument('-g', '--gpu', default=None, type=str,
-                    help='Use CUDA and override CUDA_VISIBLE_DEVICES')
+                    help='Use CUDA (overrides CUDA_VISIBLE_DEVICES)')
 pgroup.add_argument('-c', '--cpu', action='store_true',
                     help='Use CPU despite capabilities')
 parser.add_argument('-j', '--json', action='store_true',
@@ -80,13 +84,13 @@ if args.gpu is not None:
 args.cuda = not args.cpu and os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
 if args.isc and not args.fid and not args.kid:
-    metrics = isc_alone(args.path[0], **vars(args))
+    metrics = calculate_isc(args.input1, **vars(args))
 elif not args.isc and args.fid and not args.kid:
-    metrics = fid_alone(args.path[0], args.path[1], **vars(args))
+    metrics = calculate_fid(args.input1, args.input2, **vars(args))
 elif not args.isc and not args.fid and args.kid:
-    metrics = kid_alone(args.path[0], args.path[1], **vars(args))
+    metrics = calculate_kid(args.input1, args.input2, **vars(args))
 else:
-    raise NotImplementedError
+    metrics = calculate_metrics(args.input1, input_2=args.input2, **vars(args))
 
 if args.json:
     print(json.dumps(metrics, indent=4))

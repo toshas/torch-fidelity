@@ -1,6 +1,8 @@
+import json
 import multiprocessing
 import os
 import sys
+from json.decoder import JSONDecodeError
 
 import torch
 import torch.hub
@@ -10,6 +12,15 @@ from tqdm import tqdm
 from torch_fidelity.datasets import ImagesPathDataset
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
+
+
+def json_decode_string(s):
+    try:
+        out = json.loads(s)
+    except JSONDecodeError as e:
+        print(f'Failed to decode JSON string: {s}', file=sys.stderr)
+        raise
+    return out
 
 
 def glob_image_paths(path, glob_recursively, verbose):

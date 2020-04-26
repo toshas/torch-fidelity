@@ -18,35 +18,95 @@ jobs:
             pip3 install -r tests/requirements_test.txt
             echo "export PYTHONPATH=.:$PYTHONPATH" >> $BASH_ENV
       - run:
-          name: Test interpolation on cpu
+          name: Test interpolation on CPU
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
 #      - run:
-#          name: Test interpolation on gpu
+#          name: Test interpolation on GPU
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_interpolation.py
       - run:
-          name: Test convolution on cpu
+          name: Test convolution on CPU
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_convolution.py
 #      - run:
-#          name: Test convolution on gpu
+#          name: Test convolution on GPU
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_convolution.py
       - run:
-          name: Test inception on cpu
+          name: Test feature extractor (inception) on CPU
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_inception.py
 #      - run:
-#          name: Test inception on gpu
+#          name: Test feature extractor (inception) on GPU
 #          command: |
 #            . env_fidelity/bin/activate
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_inception.py
+      - run:
+          name: Test metric (Inception Score) determinism on CPU
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_determinism.py
+#      - run:
+#          name: Test metric (Inception Score) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_isc_determinism.py
+      - run:
+          name: Test metric (Inception Score) fidelity on CPU
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_fidelity.py
+#      - run:
+#          name: Test metric (Inception Score) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_isc_fidelity.py
+      - run:
+          name: Test metric (Frechet Inception Distance) determinism on CPU
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_determinism.py
+#      - run:
+#          name: Test metric (Frechet Inception Distance) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_determinism.py
+      - run:
+          name: Test metric (Frechet Inception Distance) fidelity on CPU
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
+#      - run:
+#          name: Test metric (Frechet Inception Distance) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_fidelity.py
+      - run:
+          name: Test metric (Kernel Inception Distance) determinism on CPU
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_determinism.py
+#      - run:
+#          name: Test metric (Kernel Inception Distance) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_kid_determinism.py
+#      - run:
+#          name: Test metric (Kernel Inception Distance) fidelity on CPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_fidelity.py
+#      - run:
+#          name: Test metric (Kernel Inception Distance) determinism on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_kid_fidelity.py
       - run:
           name: Organize artifacts
           command: |

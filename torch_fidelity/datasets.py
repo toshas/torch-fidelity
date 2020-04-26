@@ -1,7 +1,10 @@
+import sys
+
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10
+from torchvision.datasets.utils import download_and_extract_archive
 
 
 class TransformPILtoRGBTensor:
@@ -32,3 +35,9 @@ class Cifar10_RGB(CIFAR10):
     def __getitem__(self, index):
         img, target = super().__getitem__(index)
         return img
+
+    def download(self):
+        if self._check_integrity():
+            print('CIFAR10 dataset already downloaded and verified', file=sys.stderr)
+            return
+        download_and_extract_archive(self.url, self.root, filename=self.filename, md5=self.tgz_md5)
