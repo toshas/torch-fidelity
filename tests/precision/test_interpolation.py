@@ -7,7 +7,7 @@ import tensorflow as tf
 import torch
 from PIL import Image
 
-from interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 
 class TestInterpolation(unittest.TestCase):

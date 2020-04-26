@@ -15,43 +15,38 @@ jobs:
             python3 -m venv env_fidelity
             . env_fidelity/bin/activate
             pip3 install --upgrade pip
-            pip3 install -r requirements_test.txt
+            pip3 install -r tests/requirements_test.txt
+            echo "export PYTHONPATH=.:$PYTHONPATH" >> $BASH_ENV
       - run:
           name: test_interpolation_cpu
           command: |
             . env_fidelity/bin/activate
-            export CUDA_VISIBLE_DEVICES=""
-            python3 ./test_interpolation.py
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
 #      - run:
 #          name: test_interpolation_gpu
 #          command: |
 #            . env_fidelity/bin/activate
-#            export CUDA_VISIBLE_DEVICES=0
-#            python3 ./test_interpolation.py
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_interpolation.py
       - run:
           name: test_convolution_cpu
           command: |
             . env_fidelity/bin/activate
-            export CUDA_VISIBLE_DEVICES=""
-            python3 ./test_convolution.py
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_convolution.py
 #      - run:
 #          name: test_convolution_gpu
 #          command: |
 #            . env_fidelity/bin/activate
-#            export CUDA_VISIBLE_DEVICES=0
-#            python3 ./test_convolution.py
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_convolution.py
       - run:
           name: test_inception_cpu
           command: |
             . env_fidelity/bin/activate
-            export CUDA_VISIBLE_DEVICES=""
-            python3 ./test_inception.py
+            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_inception.py
 #      - run:
 #          name: test_inception_gpu
 #          command: |
 #            . env_fidelity/bin/activate
-#            export CUDA_VISIBLE_DEVICES=0
-#            python3 ./test_inception.py
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_inception.py
 
 workflows:
   main:

@@ -3,10 +3,10 @@ import argparse
 import json
 import os
 
-from metric_fid import fid_alone
-from metric_isc import isc_alone
-from metric_kid import kid_alone
-from registry import FEATURE_EXTRACTORS_REGISTRY
+from torch_fidelity.metric_fid import fid_alone
+from torch_fidelity.metric_isc import isc_alone
+from torch_fidelity.metric_kid import kid_alone
+from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('path', type=str, nargs=2,

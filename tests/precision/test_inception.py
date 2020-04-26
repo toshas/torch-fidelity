@@ -10,7 +10,7 @@ import tensorflow as tf
 import torch
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
-from utils import prepare_inputs_as_datasets, create_feature_extractor
+from torch_fidelity.utils import prepare_inputs_as_datasets, create_feature_extractor
 
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 

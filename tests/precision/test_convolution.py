@@ -10,8 +10,8 @@ import torch.nn.functional as F
 from PIL import Image
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
-from interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
-from utils import prepare_inputs_as_datasets, create_feature_extractor
+from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+from torch_fidelity.utils import prepare_inputs_as_datasets, create_feature_extractor
 
 
 class TestConvolution(unittest.TestCase):

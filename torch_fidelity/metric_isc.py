@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from utils import extract_featuresdict_from_input_cached, create_feature_extractor
+from torch_fidelity.utils import extract_featuresdict_from_input_cached, create_feature_extractor
 
 KEY_METRIC_ISC_MEAN = 'inception_score_mean'
 KEY_METRIC_ISC_STD = 'inception_score_std'

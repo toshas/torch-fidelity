@@ -7,9 +7,9 @@ import torch.hub
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from datasets import ImagesPathDataset
-from feature_extractor_base import FeatureExtractorBase
-from registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
+from torch_fidelity.datasets import ImagesPathDataset
+from torch_fidelity.feature_extractor_base import FeatureExtractorBase
+from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
 
 
 def glob_image_paths(path, glob_recursively, verbose):

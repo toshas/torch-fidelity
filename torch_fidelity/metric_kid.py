@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from utils import create_feature_extractor, extract_featuresdict_from_input_cached
+from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached
 
 KEY_METRIC_KID_MEAN = 'kernel_inception_distance_mean'
 KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
