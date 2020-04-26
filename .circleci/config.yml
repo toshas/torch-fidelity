@@ -1,10 +1,7 @@
 version: 2.1
 
-#orbs:
-#  python: circleci/python@0.2.1
-
 jobs:
-  build-and-test:
+  venv-and-test:
 #    machine:
 #      resource_class: gpu.nvidia.small
 #      image: ubuntu-1604-cuda-10.1:201909-23
@@ -12,8 +9,6 @@ jobs:
       - image: circleci/python:3.6.4
     steps:
       - checkout
-#      - restore_cache:
-#          key: deps1-{{ .Branch }}-{{ checksum "requirements_test.txt" }}
       - run:
           name: Install Python deps in a venv
           command: |
@@ -21,10 +16,6 @@ jobs:
             . env_fidelity/bin/activate
             pip3 install --upgrade pip
             pip3 install -r requirements_test.txt
-#      - save_cache:
-#          key: deps1-{{ .Branch }}-{{ checksum "requirements_test.txt" }}
-#          paths:
-#            - "env_fidelity"
       - run:
           name: test_interpolation_cpu
           command: |
@@ -37,8 +28,20 @@ jobs:
 #            . env_fidelity/bin/activate
 #            export CUDA_VISIBLE_DEVICES=0
 #            python3 ./test_interpolation.py
+      - run:
+          name: test_inception_cpu
+          command: |
+            . env_fidelity/bin/activate
+            export CUDA_VISIBLE_DEVICES=""
+            python3 ./test_inception.py
+#      - run:
+#          name: test_inception_gpu
+#          command: |
+#            . env_fidelity/bin/activate
+#            export CUDA_VISIBLE_DEVICES=0
+#            python3 ./test_inception.py
 
 workflows:
   main:
     jobs:
-      - build-and-test
+      - venv-and-test

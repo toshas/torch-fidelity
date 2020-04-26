@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.nn.modules.utils import _ntuple
 
 
-def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None, how_exact='bit'):
+def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None, method='slow'):
     r"""Down/up samples the input to either the given :attr:`size` or the given :attr:`scale_factor`
 
     Epsilon-exact bilinear interpolation as it is implemented in TensorFlow 1.x:
@@ -29,11 +29,12 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
         size (Tuple[int, int]): output spatial size.
         scale_factor (float or Tuple[float]): multiplier for spatial size. Has to match input size if it is a tuple.
         align_corners (bool, optional): Same meaning as in TensorFlow 1.x.
-        how_exact (str, optional): Can be 'bit' (slower, but bit-exact), or 'eps' (faster, but with relative error on
-                                   the scale of floating point type precision).
+        method (str, optional):
+            'slow' (1e-4 L_inf error on GPU, bit-exact on CPU, with checkerboard 32x32->299x299), or
+            'fast' (1e-3 L_inf error on GPU and CPU, with checkerboard 32x32->299x299)
     """
-    if how_exact not in ('bit', 'eps'):
-        raise ValueError('how_exact can only be one of "bit", "eps"')
+    if method not in ('slow', 'fast'):
+        raise ValueError('how_exact can only be one of "slow", "fast"')
 
     if input.dim() != 4:
         raise ValueError('input must be a 4-D tensor')
@@ -116,6 +117,7 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
         grid_y_hi = (grid_y_lo + 1).clamp_max(input.shape[2] - 1)
         grid_dy = grid_y - grid_y_lo.float()
 
+        # could be improved with index_select
         in_00 = input[:, :, grid_y_lo, :][:, :, :, grid_x_lo]
         in_01 = input[:, :, grid_y_lo, :][:, :, :, grid_x_hi]
         in_10 = input[:, :, grid_y_hi, :][:, :, :, grid_x_lo]
@@ -127,7 +129,7 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
 
         return out
 
-    if how_exact == 'bit':
+    if method == 'slow':
         out = resample_manually()
     else:
         out = resample_using_grid_sample()

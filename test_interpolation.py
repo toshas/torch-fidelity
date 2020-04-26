@@ -1,3 +1,5 @@
+import os
+import sys
 import unittest
 
 import numpy as np
@@ -29,11 +31,13 @@ class TestInterpolation(unittest.TestCase):
         Image.fromarray(img).save(name)
 
     @staticmethod
-    def resize_pt(img, size, cast_back_uint=True, how_exact=None):
+    def resize_pt(img, size, cuda, cast_back_uint=True, method=None):
         assert type(img) is np.ndarray and img.dtype == np.uint8
         img_in = torch.from_numpy(img).float().unsqueeze(0).unsqueeze(0)
-        img_out = interpolate_bilinear_2d_like_tensorflow1x(img_in, size, align_corners=False, how_exact=how_exact)
-        img_out = img_out.squeeze().numpy()
+        if cuda:
+            img_in = img_in.cuda()
+        img_out = interpolate_bilinear_2d_like_tensorflow1x(img_in, size, align_corners=False, method=method)
+        img_out = img_out.squeeze().cpu().numpy()
         if cast_back_uint:
             img_out = img_out.astype(np.uint8)
         return img_out
@@ -54,26 +58,35 @@ class TestInterpolation(unittest.TestCase):
             y = y.astype(np.uint8)
         return y
 
-    def _test_resize(self, how_exact, threshold, visualize=None):
+    def _max_resize_residual(self, cuda, method, visualize=None, suffix=''):
         img_032 = self.checkerboard(32)
-        img_299_pt = self.resize_pt(img_032, (299, 299), cast_back_uint=False, how_exact=how_exact)
+        img_299_pt = self.resize_pt(img_032, (299, 299), cuda, cast_back_uint=False, method=method)
         img_299_tf = self.resize_tf(img_032, (299, 299), cast_back_uint=False)
         residual = np.abs(img_299_pt - img_299_tf)
         if visualize:
-            print(np.histogram(residual))
             residual_img = 255 * residual / max(np.max(residual), 1e-6)
-            self.save(img_032, 'img_032.png')
-            self.save(img_299_pt, 'img_299_pt.png')
-            self.save(img_299_tf, 'img_299_tf.png')
-            self.save(residual_img, 'img_residual.png')
-        L_inf = np.max(residual)
-        self.assertLessEqual(L_inf, threshold)
+            self.save(img_032, '' + suffix + '032.png')
+            self.save(img_299_pt, 'resize_' + suffix + '299_pt.png')
+            self.save(img_299_tf, 'resize_' + suffix + '299_tf.png')
+            self.save(residual_img, 'resize_' + suffix + 'residual.png')
+        return np.max(residual)
 
     def test_resize_eps(self):
-        self._test_resize('eps', 0.001, visualize=False)
+        cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
+        suffix = f'interpolate_eps_{"gpu" if cuda else "cpu"}_'
+        L_inf = self._max_resize_residual(cuda, 'fast', visualize=True, suffix=suffix)
+        print(f'{suffix}residual={L_inf}', file=sys.stderr)
+        self.assertLessEqual(L_inf, 1e-3)
 
     def test_resize_bit(self):
-        self._test_resize('bit', 0, visualize=False)
+        cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
+        suffix = f'interpolate_bit_{"gpu" if cuda else "cpu"}_'
+        L_inf = self._max_resize_residual(cuda, 'slow', visualize=True, suffix=suffix)
+        print(f'{suffix}residual={L_inf}', file=sys.stderr)
+        if cuda:
+            self.assertLessEqual(L_inf, 1e-4)
+        else:
+            self.assertLessEqual(L_inf, 0)
 
 
 if __name__ == '__main__':
