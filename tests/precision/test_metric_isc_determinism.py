@@ -4,8 +4,6 @@ import sys
 import tempfile
 import unittest
 
-from tfdeterminism import patch as patch_tensorflow_for_determinism
-
 from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
 from torch_fidelity.utils import json_decode_string
 
@@ -31,7 +29,7 @@ class TestMetricIscDeterminism(unittest.TestCase):
         cifar10_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
 
         res = subprocess.run(
-            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10_root, str(limit)),
+            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10_root, '-l', str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
 
@@ -39,28 +37,27 @@ class TestMetricIscDeterminism(unittest.TestCase):
         isc_mean_nondet, isc_std_nondet = [], []
         isc_mean_det, isc_std_det = [], []
 
-        def sample_runs(isc_mean, isc_std, prefix):
+        def sample_runs(isc_mean, isc_std, prefix, determinism):
             for i in range(num_sample_runs):
                 print(f'{prefix} run {i+1} of {num_sample_runs}...', file=sys.stderr)
-                res = self.call_ref_isc(cifar10_root, cuda, determinism=False)
+                res = self.call_ref_isc(cifar10_root, cuda, determinism)
                 self.assertEqual(res.returncode, 0, msg=res)
                 out = json_decode_string(res.stdout.decode())
                 isc_mean.append(out[KEY_METRIC_ISC_MEAN])
                 isc_std.append(out[KEY_METRIC_ISC_STD])
 
-        sample_runs(isc_mean_nondet, isc_std_nondet, 'Non-deterministic')
-
-        print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
-        patch_tensorflow_for_determinism()
-
-        sample_runs(isc_mean_det, isc_std_det, 'Deterministic')
+        sample_runs(isc_mean_nondet, isc_std_nondet, 'Non-deterministic', False)
+        sample_runs(isc_mean_det, isc_std_det, 'Deterministic', True)
 
         print('isc_mean_nondet', isc_mean_nondet, file=sys.stderr)
         print('isc_std_nondet', isc_std_nondet, file=sys.stderr)
         print('isc_mean_det', isc_mean_det, file=sys.stderr)
         print('isc_std_det', isc_std_det, file=sys.stderr)
 
-        self.assertGreater(max(isc_mean_nondet), min(isc_mean_nondet))
+        if cuda:
+            self.assertGreater(max(isc_mean_nondet), min(isc_mean_nondet))
+        else:
+            self.assertGreaterEqual(max(isc_mean_nondet), min(isc_mean_nondet))
         self.assertEqual(max(isc_mean_det), min(isc_mean_det))
 
 

@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
+import argparse
 import math
 import os
-import sys
 import tempfile
 
+import numpy as np
 import torchvision
+from PIL import Image
 from tqdm import tqdm
 
-dataset_name, path = sys.argv[1], sys.argv[2]
-limit = int(sys.argv[3]) if len(sys.argv) > 3 else None
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('dataset_name', type=str, help=f'Dataset name')
+parser.add_argument('dataset_dst_path', type=str, help='Where to dump dataset')
+parser.add_argument('-l', '--limit', default=None, type=int, help='Random subset of dataset of this size')
+parser.add_argument('-n', '--noise', action='store_true', help='Add image noise')
+args = parser.parse_args()
 
-os.makedirs(path, exist_ok=True)
+rng = np.random.RandomState(2020)
+os.makedirs(args.dataset_dst_path, exist_ok=True)
 
-if dataset_name == 'cifar10-train':
+if args.dataset_name == 'cifar10-train':
     dataset = torchvision.datasets.CIFAR10(tempfile.gettempdir(), train=True, download=True)
-elif dataset_name == 'cifar10-valid':
+elif args.dataset_name == 'cifar10-valid':
     dataset = torchvision.datasets.CIFAR10(tempfile.gettempdir(), train=False, download=True)
 else:
     raise NotImplementedError
@@ -22,9 +29,16 @@ else:
 nsamples = len(dataset)
 decimal_pts = int(math.log10(nsamples)) + 1
 
-for i, sample in tqdm(enumerate(dataset)):
-    if limit is not None and i == limit:
-        break
+indices = range(nsamples)
+if args.limit is not None:
+    indices = rng.choice(len(dataset), min(args.limit, nsamples), replace=False)
+
+for i in tqdm(indices):
+    sample = dataset[i]
     img = sample[0]
-    sample_name = os.path.join(path, f'{i:0{decimal_pts}d}.png')
+    if args.noise:
+        img = np.array(img).astype(np.float32)
+        img += rng.randn(*img.shape) * 64
+        img = Image.fromarray(img.astype(np.uint8))
+    sample_name = os.path.join(args.dataset_dst_path, f'{i:0{decimal_pts}d}.png')
     img.save(sample_name)
