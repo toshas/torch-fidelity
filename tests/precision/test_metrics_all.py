@@ -31,11 +31,14 @@ class TestMetricsAll(unittest.TestCase):
 
         kwargs = default_kwargs()
         kwargs['cuda'] = cuda
+        kwargs['isc'] = True
+        kwargs['fid'] = True
+        kwargs['kid'] = True
 
         isc = calculate_isc(input_1, **kwargs)
         fid = calculate_fid(input_1, input_2, **kwargs)
         kid = calculate_kid(input_1, input_2, **kwargs)
-        all = calculate_metrics(input_1, input_2, isc=True, fid=True, kid=True, **kwargs)
+        all = calculate_metrics(input_1, input_2, **kwargs)
 
         self.assertEqual(isc[KEY_METRIC_ISC_MEAN], all[KEY_METRIC_ISC_MEAN])
         self.assertEqual(fid[KEY_METRIC_FID], all[KEY_METRIC_FID])
