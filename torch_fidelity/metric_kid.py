@@ -91,7 +91,13 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
     ):
         f1 = features_1[rng.choice(len(features_1), kid_subset_size, replace=False)]
         f2 = features_2[rng.choice(len(features_2), kid_subset_size, replace=False)]
-        o = polynomial_mmd(f1, f2, get_kwarg('kid_degree', kwargs), get_kwarg('kid_gamma', kwargs), kwargs['kid_coef0'])
+        o = polynomial_mmd(
+            f1,
+            f2,
+            get_kwarg('kid_degree', kwargs),
+            get_kwarg('kid_gamma', kwargs),
+            get_kwarg('kid_coef0', kwargs),
+        )
         mmds[i] = o
 
     if verbose:

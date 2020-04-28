@@ -2,7 +2,6 @@
 import argparse
 import json
 import os
-import sys
 
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metric_fid import calculate_fid
@@ -73,6 +72,10 @@ def main():
                         help='Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache')
     parser.add_argument('--no-cache', action='store_true',
                         help='Do not use file cache for features and statistics')
+    parser.add_argument('--cache-input1-name', default=DEFAULTS['cache_input1_name'], type=str,
+                        help='Assigns a cache entry to input1 (if a path) and forces caching of features on it')
+    parser.add_argument('--cache-input2-name', default=DEFAULTS['cache_input2_name'], type=str,
+                        help='Assigns a cache entry to input2 (if a path) and forces caching of features on it')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for ISC and KID splits')
     parser.add_argument('--silent', dest='silent', action='store_true',
@@ -100,9 +103,6 @@ def main():
         metrics = calculate_kid(args.input1, args.input2, **vars(args))
     else:
         metrics = calculate_metrics(args.input1, input_2=args.input2, **vars(args))
-
-    if args.verbose:
-        print(file=sys.stderr)
 
     if args.json:
         print(json.dumps(metrics, indent=4))
