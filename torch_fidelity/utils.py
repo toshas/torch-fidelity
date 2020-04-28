@@ -27,6 +27,9 @@ def json_decode_string(s):
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
     assert type(samples_find_ext) is str and samples_find_ext != '', 'Sample extensions not specified'
     assert samples_ext_lossy is None or type(samples_ext_lossy) is str, 'Lossy sample extensions can be None or string'
+    if verbose:
+        print(f'Looking for samples {"recursively" if samples_find_deep else "non-recursivelty"} in "{path}" with '
+              f'extensions {samples_find_ext}', file=sys.stderr)
     samples_find_ext = [a.strip() for a in samples_find_ext.split(',') if a.strip() != '']
     if samples_ext_lossy is not None:
         samples_ext_lossy = [a.strip() for a in samples_ext_lossy.split(',') if a.strip() != '']
@@ -46,14 +49,16 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
             files.append(os.path.realpath(os.path.join(r, f)))
     files = sorted(files)
     if verbose:
-        print(f'Found {len(files)} samples in "{path}"'
-              f'{". Some samples are lossy-compressed - this may affect metrics!" if have_lossy else ""}',
+        print(f'Found {len(files)} samples' +
+              f'{", some are lossy-compressed - this may affect metrics" if have_lossy else ""}',
               file=sys.stderr)
     return files
 
 
 def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     assert name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered'
+    if get_kwarg('verbose', kwargs):
+        print(f'Creating feature extractor "{name}" with features {list_features}', file=sys.stderr)
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.eval()
@@ -80,19 +85,24 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, verbo
 
     out = None
 
-    for batch in tqdm(dataloader, disable=not verbose):
-        if cuda:
-            batch = batch.cuda(non_blocking=True)
+    with tqdm(disable=not verbose, leave=False, unit='samples', total=len(input), desc='Processing samples') as t:
+        for bid, batch in enumerate(dataloader):
+            if cuda:
+                batch = batch.cuda(non_blocking=True)
 
-        with torch.no_grad():
-            features = feat_extractor(batch)
-        featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
-        featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
+            with torch.no_grad():
+                features = feat_extractor(batch)
+            featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
+            featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
 
-        if out is None:
-            out = featuresdict
-        else:
-            out = {k: out[k] + featuresdict[k] for k in out.keys()}
+            if out is None:
+                out = featuresdict
+            else:
+                out = {k: out[k] + featuresdict[k] for k in out.keys()}
+            t.update(batch_size)
+
+    if verbose:
+        print('Processing samples', file=sys.stderr)
 
     out = {k: torch.cat(v, dim=0) for k, v in out.items()}
 

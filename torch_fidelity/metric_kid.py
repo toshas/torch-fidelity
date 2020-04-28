@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -68,6 +70,8 @@ def polynomial_mmd(features_1, features_2, degree, gamma, coef0):
 
 
 def kid_features_to_metric(features_1, features_2, **kwargs):
+    verbose = get_kwarg('verbose', kwargs)
+
     assert torch.is_tensor(features_1) and features_1.dim() == 2
     assert torch.is_tensor(features_2) and features_2.dim() == 2
     assert features_1.shape[1] == features_2.shape[1]
@@ -81,11 +85,17 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
     mmds = np.zeros(kid_subsets)
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
 
-    for i in tqdm(range(kid_subsets)):
+    for i in tqdm(
+            range(kid_subsets), disable=not verbose, leave=False, unit='subsets',
+            desc='Computing Kernel Inception Distance'
+    ):
         f1 = features_1[rng.choice(len(features_1), kid_subset_size, replace=False)]
         f2 = features_2[rng.choice(len(features_2), kid_subset_size, replace=False)]
         o = polynomial_mmd(f1, f2, get_kwarg('kid_degree', kwargs), get_kwarg('kid_gamma', kwargs), kwargs['kid_coef0'])
         mmds[i] = o
+
+    if verbose:
+        print('Computing Kernel Inception Distance', file=sys.stderr)
 
     return {
         KEY_METRIC_KID_MEAN: float(np.mean(mmds)),

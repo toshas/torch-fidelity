@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import torch
 
@@ -36,13 +38,18 @@ def isc_features_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
 
 
 def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
+    if get_kwarg('verbose', kwargs):
+        print('Computing Inception Score', file=sys.stderr)
+
     features = featuresdict[feat_layer_name]
+
     metric = isc_features_to_metric(
         features,
         get_kwarg('isc_splits', kwargs),
         get_kwarg('samples_shuffle', kwargs),
         get_kwarg('rng_seed', kwargs),
     )
+
     return metric
 
 
@@ -51,13 +58,13 @@ def isc_input_to_metric(input, cacheable_input_name, feat_extractor, feat_layer_
     return isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs)
 
 
-def calculate_isc(input1, **kwargs):
+def calculate_isc(input_1, **kwargs):
     feat_layer_name = get_kwarg('feature_layer_isc', kwargs)
     feat_extractor = create_feature_extractor(
         get_kwarg('feature_extractor', kwargs),
         [feat_layer_name],
         **kwargs
     )
-    cacheable_input1_name = get_input_cacheable_name(input1, get_kwarg('cache_input1_name', kwargs))
-    metric = isc_input_to_metric(input1, cacheable_input1_name, feat_extractor, feat_layer_name, **kwargs)
+    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
+    metric = isc_input_to_metric(input_1, cacheable_input1_name, feat_extractor, feat_layer_name, **kwargs)
     return metric

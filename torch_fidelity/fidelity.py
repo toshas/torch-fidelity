@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metric_fid import calculate_fid
@@ -100,10 +101,13 @@ def main():
     else:
         metrics = calculate_metrics(args.input1, input_2=args.input2, **vars(args))
 
+    if args.verbose:
+        print(file=sys.stderr)
+
     if args.json:
         print(json.dumps(metrics, indent=4))
     else:
-        print('\n'.join((f'{k}: {v}' for k, v in metrics.items())))
+        print('\n'.join((f'{k}: {v:.7g}' for k, v in metrics.items())))
 
 
 if __name__ == '__main__':

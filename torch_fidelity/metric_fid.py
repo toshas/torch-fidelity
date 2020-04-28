@@ -25,6 +25,9 @@ def fid_features_to_statistics(features):
 def fid_statistics_to_metric(stat_1, stat_2, verbose):
     eps = 1e-6
 
+    if verbose:
+        print('Computing Frechet Inception Distance', file=sys.stderr)
+
     mu1, sigma1 = stat_1['mu'], stat_1['sigma']
     mu2, sigma2 = stat_2['mu'], stat_2['sigma']
     assert mu1.shape == mu2.shape and mu1.dtype == mu2.dtype
@@ -113,13 +116,20 @@ def fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, 
 
 
 def fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs):
+    verbose = get_kwarg('verbose', kwargs)
+
     cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
     cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
-    stats = [
-        fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs)
-        for input, cacheable_input_name in ((input_1, cacheable_input1_name), (input_2, cacheable_input2_name))
-    ]
-    metric = fid_statistics_to_metric(stats[0], stats[1], get_kwarg('verbose', kwargs))
+
+    if verbose:
+        print(f'Extracting statistics from input_1', file=sys.stderr)
+    stats_1 = fid_input_to_statistics_cached(input_1, cacheable_input1_name, feat_extractor, feat_layer_name, **kwargs)
+
+    if verbose:
+        print(f'Extracting statistics from input_2', file=sys.stderr)
+    stats_2 = fid_input_to_statistics_cached(input_2, cacheable_input2_name, feat_extractor, feat_layer_name, **kwargs)
+
+    metric = fid_statistics_to_metric(stats_1, stats_2, get_kwarg('verbose', kwargs))
     return metric
 
 
