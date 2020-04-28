@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import os
 
 from setuptools import setup, find_packages
 
-from torch_fidelity.version import __version__
+with open(os.path.join('torch_fidelity', 'version.py')) as f:
+    version_pycode = f.read()
+exec(version_pycode)
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -20,6 +23,7 @@ setup(
     python_requires='>=3.6',
     packages=find_packages(),
     author='Anton Obukhov',
+    license='Apache License 2.0',
     url='https://www.github.com/toshas/torch-fidelity',
     keywords=[
         'inception', 'score', 'frechet', 'distance', 'kernel', 'reproducibility', 'fidelity',
