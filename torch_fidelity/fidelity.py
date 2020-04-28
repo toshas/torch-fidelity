@@ -3,50 +3,20 @@ import argparse
 import json
 import os
 
+from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metric_fid import calculate_fid
 from torch_fidelity.metric_isc import calculate_isc
 from torch_fidelity.metric_kid import calculate_kid
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY
 
-DEFAULTS = {
-    'cuda': True,
-    'batch_size': 64,
-    'isc': False,
-    'fid': False,
-    'kid': False,
-    'feature_extractor': 'inception-v3-compat',
-    'feature_layer_isc': 'logits_unbiased',
-    'feature_layer_fid': '2048',
-    'feature_layer_kid': '2048',
-    'feature_extractor_weights_path': None,
-    'isc_splits': 10,
-    'kid_subsets': 100,
-    'kid_subset_size': 1000,
-    'kid_degree': 3,
-    'kid_gamma': None,
-    'kid_coef0': 1,
-    'shuffle_on': True,
-    'glob_recursively': False,
-    'datasets_root': None,
-    'datasets_download_on': True,
-    'cache_root': None,
-    'cache_off': False,
-    'rng_seed': 2020,
-    'verbose': True,
-}
-
-
-def default_kwargs():
-    return DEFAULTS.copy()
-
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input1', type=str,
-                        help=f'First path to images or a registered input source (one of {DATASETS_REGISTRY.keys()})')
+                        help=f'First path to samples or a registered input source (one of {DATASETS_REGISTRY.keys()})')
     parser.add_argument('input2', type=str, nargs='?', default=None,
-                        help=f'Second (optional) path to images or a registered input source (one of '
+                        help=f'Second (optional) path to samples or a registered input source (one of '
                              f'{DATASETS_REGISTRY.keys()})')
     parser.add_argument('-b', '--batch-size', type=int, default=DEFAULTS['batch_size'],
                         help='Batch size to use')
@@ -86,17 +56,21 @@ def main():
                         help='')
     parser.add_argument('--kid-coef0', default=DEFAULTS['kid_coef0'], type=float,
                         help='')
-    parser.add_argument('--shuffle-off', action='store_true',
+    parser.add_argument('--samples-alphanumeric', action='store_true',
                         help='Do not perform samples shuffling using RNG before computing splits')
-    parser.add_argument('--glob-recursively', action='store_true',
-                        help='Find all images in paths recursively')
+    parser.add_argument('--samples-find-deep', action='store_true',
+                        help='Find all samples in paths recursively')
+    parser.add_argument('--samples-find-ext', default=DEFAULTS['samples_find_ext'], type=str,
+                        help=f'List of extensions to look for when traversing input path')
+    parser.add_argument('--samples-ext-lossy', default=DEFAULTS['samples_ext_lossy'], type=str,
+                        help=f'List of extensions to produce warning for')
     parser.add_argument('--datasets-root', default=DEFAULTS['datasets_root'], type=str,
                         help='Path to built-in torchvision datasets root. Defaults to $ENV_TORCH_HOME/fidelity_datasets')
-    parser.add_argument('--datasets-download-off', action='store_true',
+    parser.add_argument('--datasets-downloaded', action='store_true',
                         help='Do not download torchvision datasets to dataset_root')
     parser.add_argument('--cache-root', default=DEFAULTS['cache_root'], type=str,
                         help='Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache')
-    parser.add_argument('--cache-off', action='store_true',
+    parser.add_argument('--no-cache', action='store_true',
                         help='Do not use file cache for features and statistics')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for ISC and KID splits')
@@ -108,8 +82,9 @@ def main():
     assert args.isc or args.fid or args.kid, 'Specify one or a few metrics: --isc, --fid, --kid'
 
     args.verbose = not args.silent
-    args.datasets_download_on = not args.datasets_download_off
-    args.shuffle_on = not args.shuffle_off
+    args.datasets_download = not args.datasets_downloaded
+    args.samples_shuffle = not args.samples_alphanumeric
+    args.cache = not args.no_cache
 
     if args.gpu is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu

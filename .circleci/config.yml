@@ -60,7 +60,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_isc_determinism.py
       - run:
           name: Test metric (Inception Score) fidelity on CPU
-          no_output_timeout: 30m
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_fidelity.py

@@ -1,7 +1,9 @@
 import numpy as np
 import torch
 
-from torch_fidelity.utils import extract_featuresdict_from_input_cached, create_feature_extractor
+from torch_fidelity.defaults import get_kwarg
+from torch_fidelity.utils import extract_featuresdict_from_input_cached, create_feature_extractor, \
+    get_input_cacheable_name
 
 KEY_METRIC_ISC_MEAN = 'inception_score_mean'
 KEY_METRIC_ISC_STD = 'inception_score_std'
@@ -37,24 +39,25 @@ def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
     features = featuresdict[feat_layer_name]
     metric = isc_features_to_metric(
         features,
-        kwargs['isc_splits'],
-        kwargs['shuffle_on'],
-        kwargs['rng_seed'],
+        get_kwarg('isc_splits', kwargs),
+        get_kwarg('samples_shuffle', kwargs),
+        get_kwarg('rng_seed', kwargs),
     )
     return metric
 
 
-def isc_input_to_metric(input, feat_extractor, feat_layer_name, **kwargs):
-    featuresdict = extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs)
+def isc_input_to_metric(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs):
+    featuresdict = extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_extractor, **kwargs)
     return isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs)
 
 
-def calculate_isc(input, **kwargs):
-    feat_layer_name = kwargs['feature_layer_isc']
+def calculate_isc(input1, **kwargs):
+    feat_layer_name = get_kwarg('feature_layer_isc', kwargs)
     feat_extractor = create_feature_extractor(
-        kwargs['feature_extractor'],
+        get_kwarg('feature_extractor', kwargs),
         [feat_layer_name],
         **kwargs
     )
-    metric = isc_input_to_metric(input, feat_extractor, feat_layer_name, **kwargs)
+    cacheable_input1_name = get_input_cacheable_name(input1, get_kwarg('cache_input1_name', kwargs))
+    metric = isc_input_to_metric(input1, cacheable_input1_name, feat_extractor, feat_layer_name, **kwargs)
     return metric

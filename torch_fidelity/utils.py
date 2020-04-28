@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from torch_fidelity.datasets import ImagesPathDataset
+from torch_fidelity.defaults import get_kwarg, DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
 
@@ -23,23 +24,30 @@ def json_decode_string(s):
     return out
 
 
-def glob_image_paths(path, glob_recursively, verbose):
+def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
+    assert type(samples_find_ext) is str and samples_find_ext != '', 'Sample extensions not specified'
+    assert samples_ext_lossy is None or type(samples_ext_lossy) is str, 'Lossy sample extensions can be None or string'
+    samples_find_ext = [a.strip() for a in samples_find_ext.split(',') if a.strip() != '']
+    if samples_ext_lossy is not None:
+        samples_ext_lossy = [a.strip() for a in samples_ext_lossy.split(',') if a.strip() != '']
     have_lossy = False
     files = []
     for r, d, ff in os.walk(path):
-        if not glob_recursively and os.path.realpath(r) != os.path.realpath(path):
+        if not samples_find_deep and os.path.realpath(r) != os.path.realpath(path):
             continue
         for f in ff:
             ext = os.path.splitext(f)[1].lower()
-            if ext not in ('.png', '.jpg', '.jpeg'):
+            if len(ext) > 0 and ext[0] == '.':
+                ext = ext[1:]
+            if ext not in samples_find_ext:
                 continue
-            if ext in ('.jpg', '.jpeg'):
+            if samples_ext_lossy is not None and ext in samples_ext_lossy:
                 have_lossy = True
             files.append(os.path.realpath(os.path.join(r, f)))
     files = sorted(files)
     if verbose:
-        print(f'Found {len(files)} images in "{path}"'
-              f'{". Some images are lossy-compressed - this may affect metrics!" if have_lossy else ""}',
+        print(f'Found {len(files)} samples in "{path}"'
+              f'{". Some samples are lossy-compressed - this may affect metrics!" if have_lossy else ""}',
               file=sys.stderr)
     return files
 
@@ -93,27 +101,26 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, verbo
 
 def check_input(input):
     assert type(input) is str or isinstance(input, Dataset), \
-        f'Input can be either a Dataset instance, or a string (path to directory with images, or one of the ' \
+        f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the ' \
         f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}'
 
 
-def get_input_cacheable_name(input):
+def get_input_cacheable_name(input, cache_input_name=None):
     check_input(input)
     if type(input) is str:
         if input in DATASETS_REGISTRY:
             return input
         elif os.path.isdir(input):
-            return None
+            return cache_input_name
         else:
             raise ValueError(f'Unknown format of input string "{input}"')
     elif isinstance(input, Dataset):
-        assert hasattr(input, 'name'), \
-            'Please use "name" attribute on your Dataset to enable statistics cachine (str) or disable it (None)'
-        return getattr(input, 'name')
+        return cache_input_name
 
 
 def prepare_inputs_as_datasets(
-        input, glob_recursively=False, datasets_root=None, datasets_download_on=True, verbose=True
+        input, samples_find_deep=False, samples_find_ext=DEFAULTS['samples_find_ext'],
+        samples_ext_lossy=DEFAULTS['samples_ext_lossy'], datasets_root=None, datasets_download=True, verbose=True
 ):
     check_input(input)
     if type(input) is str:
@@ -122,10 +129,10 @@ def prepare_inputs_as_datasets(
             if datasets_root is None:
                 datasets_root = os.path.join(torch.hub._get_torch_home(), 'fidelity_datasets')
             os.makedirs(datasets_root, exist_ok=True)
-            input = fn_instantiate(datasets_root, datasets_download_on)
+            input = fn_instantiate(datasets_root, datasets_download)
         elif os.path.isdir(input):
-            input = glob_image_paths(input, glob_recursively, verbose)
-            assert len(input) > 0, f'No images found in {input} with glob_recursively={glob_recursively}'
+            input = glob_samples_paths(input, samples_find_deep, samples_find_ext, samples_ext_lossy, verbose)
+            assert len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}'
             input = ImagesPathDataset(input)
         else:
             raise ValueError(f'Unknown format of input string "{input}"')
@@ -133,28 +140,28 @@ def prepare_inputs_as_datasets(
 
 
 def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
-    if kwargs['cache_off']:
+    if not get_kwarg('cache', kwargs):
         return fn_recompute()
-    cache_root = kwargs['cache_root']
+    cache_root = get_kwarg('cache_root', kwargs)
     if cache_root is None:
         cache_root = os.path.join(torch.hub._get_torch_home(), 'fidelity_cache')
     os.makedirs(cache_root, exist_ok=True)
     item_path = os.path.join(cache_root, cached_filename + '.pt')
     if os.path.exists(item_path):
-        if kwargs['verbose']:
+        if get_kwarg('verbose', kwargs):
             print(f'Loading cached {item_path}', file=sys.stderr)
         return torch.load(item_path, map_location='cpu')
     item = fn_recompute()
-    if kwargs['verbose']:
+    if get_kwarg('verbose', kwargs):
         print(f'Caching {item_path}', file=sys.stderr)
     torch.save(item, item_path)
     return item
 
 
 def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_names, fn_recompute, **kwargs):
-    if kwargs['cache_off']:
+    if not get_kwarg('cache', kwargs):
         return fn_recompute()
-    cache_root = kwargs['cache_root']
+    cache_root = get_kwarg('cache_root', kwargs)
     if cache_root is None:
         cache_root = os.path.join(torch.hub._get_torch_home(), 'fidelity_cache')
     os.makedirs(cache_root, exist_ok=True)
@@ -162,13 +169,13 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     if all([os.path.exists(a) for a in cached_paths]):
         out = {}
         for n, p in zip(item_names, cached_paths):
-            if kwargs['verbose']:
+            if get_kwarg('verbose', kwargs):
                 print(f'Loading cached {p}', file=sys.stderr)
             out[n] = torch.load(p, map_location='cpu')
         return out
     items = fn_recompute()
     for n, p in zip(item_names, cached_paths):
-        if kwargs['verbose']:
+        if get_kwarg('verbose', kwargs):
             print(f'Caching {p}', file=sys.stderr)
         torch.save(items[n], p)
     return items
@@ -177,30 +184,31 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
 def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
     input_ds = prepare_inputs_as_datasets(
         input,
-        glob_recursively=kwargs['glob_recursively'],
-        datasets_root=kwargs['datasets_root'],
-        datasets_download_on=kwargs['datasets_download_on'],
-        verbose=kwargs['verbose'],
+        samples_find_deep=get_kwarg('samples_find_deep', kwargs),
+        samples_find_ext=get_kwarg('samples_find_ext', kwargs),
+        samples_ext_lossy=get_kwarg('samples_ext_lossy', kwargs),
+        datasets_root=get_kwarg('datasets_root', kwargs),
+        datasets_download=get_kwarg('datasets_download', kwargs),
+        verbose=get_kwarg('verbose', kwargs),
     )
     featuresdict = get_featuresdict_from_dataset(
         input_ds,
         feat_extractor,
-        kwargs['batch_size'],
-        kwargs['cuda'],
-        kwargs['verbose'],
+        get_kwarg('batch_size', kwargs),
+        get_kwarg('cuda', kwargs),
+        get_kwarg('verbose', kwargs),
     )
     return featuresdict
 
 
-def extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs):
+def extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_extractor, **kwargs):
 
     def fn_recompute():
         return extract_featuresdict_from_input(input, feat_extractor, **kwargs)
 
-    input_name = get_input_cacheable_name(input)
-    if input_name is not None:
+    if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
-        cached_filename_prefix = f'{input_name}-{feat_extractor_name}-features-'
+        cached_filename_prefix = f'{cacheable_input_name}-{feat_extractor_name}-features-'
         featuresdict = cache_lookup_group_recompute_all_on_any_miss(
             cached_filename_prefix,
             feat_extractor.get_requested_features_list(),

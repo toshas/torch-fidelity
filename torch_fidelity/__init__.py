@@ -1,6 +1,2 @@
-from torch_fidelity.fidelity import default_kwargs
-from torch_fidelity.metric_fid import calculate_fid, KEY_METRIC_FID
-from torch_fidelity.metric_isc import calculate_isc, KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
-from torch_fidelity.metric_kid import calculate_kid, KEY_METRIC_KID_MEAN, KEY_METRIC_KID_STD
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import register_dataset, register_feature_extractor

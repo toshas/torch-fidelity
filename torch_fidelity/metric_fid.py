@@ -4,6 +4,7 @@ import numpy as np
 import scipy.linalg
 import torch
 
+from torch_fidelity.defaults import get_kwarg
 from torch_fidelity.utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, \
     extract_featuresdict_from_input_cached, create_feature_extractor
 
@@ -76,35 +77,35 @@ def fid_featuresdict_to_statistics(featuresdict, feat_layer_name):
     return statistics
 
 
-def fid_featuresdict_to_statistics_cached(featuresdict, input, feat_extractor, feat_layer_name, **kwargs):
+def fid_featuresdict_to_statistics_cached(
+        featuresdict, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs
+):
 
     def fn_recompute():
         return fid_featuresdict_to_statistics(featuresdict, feat_layer_name)
 
-    input_name = get_input_cacheable_name(input)
-    if input_name is not None:
+    if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
-        cached_name = f'{input_name}-{feat_extractor_name}-stat-fid-{feat_layer_name}'
+        cached_name = f'{cacheable_input_name}-{feat_extractor_name}-stat-fid-{feat_layer_name}'
         stat = cache_lookup_one_recompute_on_miss(cached_name, fn_recompute, **kwargs)
     else:
         stat = fn_recompute()
     return stat
 
 
-def fid_input_to_statistics(input, feat_extractor, feat_layer_name, **kwargs):
-    featuresdict = extract_featuresdict_from_input_cached(input, feat_extractor, **kwargs)
+def fid_input_to_statistics(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs):
+    featuresdict = extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_extractor, **kwargs)
     return fid_featuresdict_to_statistics(featuresdict, feat_layer_name)
 
 
-def fid_input_to_statistics_cached(input, feat_extractor, feat_layer_name, **kwargs):
+def fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs):
 
     def fn_recompute():
-        return fid_input_to_statistics(input, feat_extractor, feat_layer_name, **kwargs)
+        return fid_input_to_statistics(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs)
 
-    input_name = get_input_cacheable_name(input)
-    if input_name is not None:
+    if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
-        cached_name = f'{input_name}-{feat_extractor_name}-stat-fid-{feat_layer_name}'
+        cached_name = f'{cacheable_input_name}-{feat_extractor_name}-stat-fid-{feat_layer_name}'
         stat = cache_lookup_one_recompute_on_miss(cached_name, fn_recompute, **kwargs)
     else:
         stat = fn_recompute()
@@ -112,18 +113,20 @@ def fid_input_to_statistics_cached(input, feat_extractor, feat_layer_name, **kwa
 
 
 def fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs):
+    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
+    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
     stats = [
-        fid_input_to_statistics_cached(input, feat_extractor, feat_layer_name, **kwargs)
-        for input in (input_1, input_2)
+        fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs)
+        for input, cacheable_input_name in ((input_1, cacheable_input1_name), (input_2, cacheable_input2_name))
     ]
-    metric = fid_statistics_to_metric(stats[0], stats[1], kwargs['verbose'])
+    metric = fid_statistics_to_metric(stats[0], stats[1], get_kwarg('verbose', kwargs))
     return metric
 
 
 def calculate_fid(input_1, input_2, **kwargs):
-    feat_layer_name = kwargs['feature_layer_fid']
+    feat_layer_name = get_kwarg('feature_layer_fid', kwargs)
     feat_extractor = create_feature_extractor(
-        kwargs['feature_extractor'],
+        get_kwarg('feature_extractor', kwargs),
         [feat_layer_name],
         **kwargs
     )

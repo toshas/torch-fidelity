@@ -5,8 +5,11 @@ import unittest
 import torch
 from torchvision.transforms import Compose
 
-from torch_fidelity import *
+from torch_fidelity import calculate_metrics
 from torch_fidelity.datasets import Cifar10_RGB, TransformPILtoRGBTensor
+from torch_fidelity.metric_fid import calculate_fid, KEY_METRIC_FID
+from torch_fidelity.metric_isc import calculate_isc, KEY_METRIC_ISC_MEAN
+from torch_fidelity.metric_kid import calculate_kid, KEY_METRIC_KID_MEAN
 
 
 class TransformAddNoise:
@@ -29,16 +32,11 @@ class TestMetricsAll(unittest.TestCase):
         )), download=True)
         input_2.name = None
 
-        kwargs = default_kwargs()
-        kwargs['cuda'] = cuda
-        kwargs['isc'] = True
-        kwargs['fid'] = True
-        kwargs['kid'] = True
+        isc = calculate_isc(input_1, cuda=cuda)
+        fid = calculate_fid(input_1, input_2, cuda=cuda)
+        kid = calculate_kid(input_1, input_2, cuda=cuda)
 
-        isc = calculate_isc(input_1, **kwargs)
-        fid = calculate_fid(input_1, input_2, **kwargs)
-        kid = calculate_kid(input_1, input_2, **kwargs)
-        all = calculate_metrics(input_1, input_2, **kwargs)
+        all = calculate_metrics(input_1, input_2, cuda=cuda, isc=True, fid=True, kid=True)
 
         self.assertEqual(isc[KEY_METRIC_ISC_MEAN], all[KEY_METRIC_ISC_MEAN])
         self.assertEqual(fid[KEY_METRIC_FID], all[KEY_METRIC_FID])

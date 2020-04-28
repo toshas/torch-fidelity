@@ -1,12 +1,14 @@
+from torch_fidelity.defaults import get_kwarg
 from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_statistics_cached, \
     fid_statistics_to_metric
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached
+from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
+    get_input_cacheable_name
 
 
 def calculate_metrics(input_1, input_2=None, **kwargs):
-    have_isc, have_fid, have_kid = kwargs['isc'], kwargs['fid'], kwargs['kid']
+    have_isc, have_fid, have_kid = get_kwarg('isc', kwargs), get_kwarg('fid', kwargs), get_kwarg('kid', kwargs)
     assert have_isc or have_fid or have_kid, 'At least one of "isc", "fid", "kid" metrics must be specified'
     assert (not have_fid) and (not have_kid) or input_2 is not None, \
         'Both inputs are required for "fid" and "kid" metrics'
@@ -14,17 +16,17 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
     feature_layer_isc, feature_layer_fid, feature_layer_kid = (None,) * 3
     feature_layers = []
     if have_isc:
-        feature_layer_isc = kwargs['feature_layer_isc']
+        feature_layer_isc = get_kwarg('feature_layer_isc', kwargs)
         feature_layers.append(feature_layer_isc)
     if have_fid:
-        feature_layer_fid = kwargs['feature_layer_fid']
+        feature_layer_fid = get_kwarg('feature_layer_fid', kwargs)
         feature_layers.append(feature_layer_fid)
     if have_kid:
-        feature_layer_kid = kwargs['feature_layer_kid']
+        feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
         feature_layers.append(feature_layer_kid)
 
     feat_extractor = create_feature_extractor(
-        kwargs['feature_extractor'], feature_layers, cuda=kwargs['cuda'], **kwargs
+        get_kwarg('feature_extractor', kwargs), feature_layers, cuda=get_kwarg('cuda', kwargs), **kwargs
     )
 
     # isc: input - featuresdict(cached) - metric
@@ -39,10 +41,15 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
         metrics.update(metric_fid)
         return metrics
 
-    featuresdict_1 = extract_featuresdict_from_input_cached(input_1, feat_extractor, **kwargs)
+    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
+    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
+
+    featuresdict_1 = extract_featuresdict_from_input_cached(input_1, cacheable_input1_name, feat_extractor, **kwargs)
     featuresdict_2 = None
     if input_2 is not None:
-        featuresdict_2 = extract_featuresdict_from_input_cached(input_2, feat_extractor, **kwargs)
+        featuresdict_2 = extract_featuresdict_from_input_cached(
+            input_2, cacheable_input2_name, feat_extractor, **kwargs
+        )
 
     if have_isc:
         metric_isc = isc_featuresdict_to_metric(featuresdict_1, feature_layer_isc, **kwargs)
@@ -50,12 +57,12 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
 
     if have_fid:
         fid_stats_1 = fid_featuresdict_to_statistics_cached(
-            featuresdict_1, input, feat_extractor, feature_layer_fid, **kwargs
+            featuresdict_1, cacheable_input1_name, feat_extractor, feature_layer_fid, **kwargs
         )
         fid_stats_2 = fid_featuresdict_to_statistics_cached(
-            featuresdict_2, input, feat_extractor, feature_layer_fid, **kwargs
+            featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
         )
-        metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, kwargs['verbose'])
+        metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg('verbose', kwargs))
         metrics.update(metric_fid)
 
     if have_kid:
