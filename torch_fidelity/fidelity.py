@@ -103,7 +103,7 @@ def main():
     if args.json:
         print(json.dumps(metrics, indent=4))
     else:
-        print(', '.join((f'{k}: {v}' for k, v in metrics.items())))
+        print('\n'.join((f'{k}: {v}' for k, v in metrics.items())))
 
 
 if __name__ == '__main__':

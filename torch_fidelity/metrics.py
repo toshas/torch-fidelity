@@ -14,19 +14,19 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
         'Both inputs are required for "fid" and "kid" metrics'
 
     feature_layer_isc, feature_layer_fid, feature_layer_kid = (None,) * 3
-    feature_layers = []
+    feature_layers = set()
     if have_isc:
         feature_layer_isc = get_kwarg('feature_layer_isc', kwargs)
-        feature_layers.append(feature_layer_isc)
+        feature_layers.add(feature_layer_isc)
     if have_fid:
         feature_layer_fid = get_kwarg('feature_layer_fid', kwargs)
-        feature_layers.append(feature_layer_fid)
+        feature_layers.add(feature_layer_fid)
     if have_kid:
         feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
-        feature_layers.append(feature_layer_kid)
+        feature_layers.add(feature_layer_kid)
 
     feat_extractor = create_feature_extractor(
-        get_kwarg('feature_extractor', kwargs), feature_layers, cuda=get_kwarg('cuda', kwargs), **kwargs
+        get_kwarg('feature_extractor', kwargs), list(feature_layers), **kwargs
     )
 
     # isc: input - featuresdict(cached) - metric
