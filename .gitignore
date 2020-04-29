@@ -1,3 +1,6 @@
+__pycache__
+.DS_store
 .idea
 build
+dist
 *.egg-info
