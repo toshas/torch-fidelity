@@ -5,8 +5,8 @@ jobs:
     machine:
       resource_class: gpu.nvidia.small
       image: ubuntu-1604-cuda-10.1:201909-23
-    docker:
-      - image: circleci/python:3.6.9
+#    docker:
+#      - image: circleci/python:3.6.9
     steps:
       - checkout
       - run:
