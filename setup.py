@@ -13,7 +13,7 @@ with open('requirements.txt') as f:
 long_description = """
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: Inception Score 
-(aka IS), Fréchet Inception Distance (aka FID), and Kernel Inception Distance* (aka KID, MMD). 
+(aka IS), Fréchet Inception Distance (aka FID), and Kernel Inception Distance (aka KID, MMD).
 
 These metrics, despite having a clear mathematical and algorithmic description, were initially 
 implemented in TensorFlow, and inherited a few properties of the framework itself and the code 
