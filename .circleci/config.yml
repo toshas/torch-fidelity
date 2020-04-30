@@ -2,11 +2,11 @@ version: 2.1
 
 jobs:
   venv-and-test:
-    machine:
-      resource_class: gpu.nvidia.small
-      image: ubuntu-1604-cuda-10.1:201909-23
-#    docker:
-#      - image: circleci/python:3.6.9
+#    machine:
+#      resource_class: gpu.nvidia.small
+#      image: ubuntu-1604-cuda-10.1:201909-23
+    docker:
+      - image: circleci/python:3.6.9
     steps:
       - checkout
       - run:
@@ -22,11 +22,11 @@ jobs:
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
-      - run:
-          name: Test interpolation on GPU
-          command: |
-            . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_interpolation.py
+#      - run:
+#          name: Test interpolation on GPU
+#          command: |
+#            . env_fidelity/bin/activate
+#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_interpolation.py
       - run:
           name: Test convolution on CPU
           command: |
