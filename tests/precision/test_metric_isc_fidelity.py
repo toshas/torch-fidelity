@@ -43,7 +43,7 @@ class TestMetricIscFidelity(unittest.TestCase):
         # print('Reference ISC result:', res_ref, file=sys.stderr)
 
         print(f'Running fidelity ISC cached...', file=sys.stderr)
-        res_fidelity = self.call_fidelity_isc('cifar10-train')
+        res_fidelity = self.call_fidelity_isc(cifar10_root)
         self.assertEqual(res_fidelity.returncode, 0, msg=res_fidelity)
         res_fidelity = json_decode_string(res_fidelity.stdout.decode())
         print('Fidelity ISC result:', res_fidelity, file=sys.stderr)
