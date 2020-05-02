@@ -35,7 +35,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             Refer to inception_features.py:__main__ for making your own.
             By default downloads the checkpoint from internet.
         """
-        super(FeatureExtractorInceptionV3, self).__init__(name, features_list, **kwargs)
+        super(FeatureExtractorInceptionV3, self).__init__(name, features_list)
 
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)

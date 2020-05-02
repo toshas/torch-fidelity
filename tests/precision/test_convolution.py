@@ -107,50 +107,49 @@ class TestConvolution(unittest.TestCase):
         out_pt_manualchw = self.forward_pt_manualchw(conv_pt, x_pt)
         out_pt_manualhwc = self.forward_pt_manualhwc(conv_pt, x_pt)
 
-        residual_tf_pt_builtin = (out_tf - out_pt_builtin).abs()
-        residual_tf_pt_manualchw = (out_tf - out_pt_manualchw).abs()
-        residual_tf_pt_manualhwc = (out_tf - out_pt_manualhwc).abs()
-        residual_pt_builtin_manualchw = (out_pt_builtin - out_pt_manualchw).abs()
-        residual_pt_builtin_manualhwc = (out_pt_builtin - out_pt_manualhwc).abs()
+        err_abs_tf_pt_builtin = (out_tf - out_pt_builtin).abs()
+        err_abs_tf_pt_manualchw = (out_tf - out_pt_manualchw).abs()
+        err_abs_tf_pt_manualhwc = (out_tf - out_pt_manualhwc).abs()
+        err_abs_pt_builtin_manualchw = (out_pt_builtin - out_pt_manualchw).abs()
+        err_abs_pt_builtin_manualhwc = (out_pt_builtin - out_pt_manualhwc).abs()
 
         suffix = f'convolution_{"gpu" if cuda else "cpu"}'
 
         self.save(out_tf, f'{suffix}_conv_tf.png')
         self.save(out_pt_builtin, f'{suffix}_conv_pt_builtin.png')
-        self.save(residual_tf_pt_builtin, f'{suffix}_residual_tf_pt_builtin.png')
-        self.save(residual_tf_pt_manualchw, f'{suffix}_residual_tf_pt_manualchw.png')
-        self.save(residual_tf_pt_manualhwc, f'{suffix}_residual_tf_pt_manualhwc.png')
-        self.save(residual_pt_builtin_manualchw, f'{suffix}_residual_pt_builtin_manualchw.png')
-        self.save(residual_pt_builtin_manualhwc, f'{suffix}_residual_pt_builtin_manualhwc.png')
+        self.save(err_abs_tf_pt_builtin, f'{suffix}_err_abs_tf_pt_builtin.png')
+        self.save(err_abs_tf_pt_manualchw, f'{suffix}_err_abs_tf_pt_manualchw.png')
+        self.save(err_abs_tf_pt_manualhwc, f'{suffix}_err_abs_tf_pt_manualhwc.png')
+        self.save(err_abs_pt_builtin_manualchw, f'{suffix}_err_abs_pt_builtin_manualchw.png')
+        self.save(err_abs_pt_builtin_manualhwc, f'{suffix}_err_abs_pt_builtin_manualhwc.png')
 
-        pixel_residual = residual_tf_pt_builtin[0, 0, -1, -1].item()
-        print(f'{suffix}_bottom_right_pixel_residual={pixel_residual}', file=sys.stderr)
+        flipping_pixel_err_abs = err_abs_tf_pt_builtin[0, 0, -1, -1].item()
+        print(f'{suffix}_bottom_right_flipping_pixel_err_abs={flipping_pixel_err_abs}', file=sys.stderr)
 
-        residual = residual_tf_pt_builtin.max().item()
-        print(f'{suffix}_max_pixelwise_residual={residual}', file=sys.stderr)
+        err_abs = err_abs_tf_pt_builtin.max().item()
+        print(f'{suffix}_max_pixelwise_err_abs={err_abs}', file=sys.stderr)
 
-        return residual
+        err_rel = err_abs / out_tf.abs().max().clamp_min(1e-9).item()
+        print(f'{suffix}_max_pixelwise_err_rel={err_rel}', file=sys.stderr)
+
+        return err_rel
 
     def test_convolution(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
-        residual = self.estimate_implementation_exactness(cuda)
+        err_rel = self.estimate_implementation_exactness(cuda)
         if cuda:
-            self.assertEqual(residual, 0)
+            self.assertEqual(err_rel, 0)
         else:
-            self.assertGreaterEqual(residual, 0)
-            self.assertLess(residual, 1e-6)
+            self.assertGreaterEqual(err_rel, 0)
+            self.assertLess(err_rel, 1e-7)
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
             patch_tensorflow_for_determinism()
 
-            residual = self.estimate_implementation_exactness(cuda)
-            if cuda:
-                self.assertEqual(residual, 0)
-            else:
-                self.assertGreaterEqual(residual, 0)
-                self.assertLess(residual, 1e-6)
+            err_rel = self.estimate_implementation_exactness(cuda)
+            self.assertEqual(err_rel, 0)
 
 
 if __name__ == '__main__':

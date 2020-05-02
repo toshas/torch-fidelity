@@ -85,12 +85,12 @@ def init_inception():
     filepath = os.path.join(model_dir, filename)
     if not os.path.exists(filepath):
         def _progress(count, block_size, total_size):
-            sys.stdout.write('\r>> Downloading %s %.1f%%' % (
+            sys.stderr.write('\r>> Downloading %s %.1f%%' % (
                 filename, float(count * block_size) / float(total_size) * 100.0))
-            sys.stdout.flush()
+            sys.stderr.flush()
         filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
         statinfo = os.stat(filepath)
-        print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', sys.stderr)
+        print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', file=sys.stderr)
     tarfile.open(filepath, 'r:gz').extractall(model_dir)
     with tf.gfile.FastGFile(os.path.join(model_dir, 'classify_image_graph_def.pb'), 'rb') as f:
         graph_def = tf.GraphDef()

@@ -67,14 +67,22 @@ class TestMetricKidFidelity(unittest.TestCase):
         res_ref = json_decode_string(res_ref.stdout.decode())
         print('Reference KID result:', res_ref, file=sys.stderr)
 
-        print(f'Running fidelity KID cached...', file=sys.stderr)
+        print(f'Running fidelity KID...', file=sys.stderr)
         res_fidelity = self.call_fidelity_kid(cifar10validnoise_root, cifar10trainorig_root)
         self.assertEqual(res_fidelity.returncode, 0, msg=res_fidelity)
         res_fidelity = json_decode_string(res_fidelity.stdout.decode())
         print('Fidelity KID result:', res_fidelity, file=sys.stderr)
 
-        self.assertAlmostEqual(res_ref[KEY_METRIC_KID_MEAN], res_fidelity[KEY_METRIC_KID_MEAN], delta=1e-6)
-        self.assertAlmostEqual(res_ref[KEY_METRIC_KID_STD], res_fidelity[KEY_METRIC_KID_STD], delta=1e-6)
+        err_abs_mean = abs(res_ref[KEY_METRIC_KID_MEAN] - res_fidelity[KEY_METRIC_KID_MEAN])
+        err_abs_std = abs(res_ref[KEY_METRIC_KID_STD] - res_fidelity[KEY_METRIC_KID_STD])
+        print(f'Error absolute mean={err_abs_mean} std={err_abs_std}')
+
+        err_rel_mean = err_abs_mean / max(1e-6, abs(res_ref[KEY_METRIC_KID_MEAN]))
+        err_rel_std = err_abs_std / res_ref[KEY_METRIC_KID_STD]
+        print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
+
+        self.assertLess(err_rel_mean, 1e-7)
+        self.assertLess(err_rel_std, 1e-5)
 
         self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.470388, delta=1e-6)
 

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class FeatureExtractorBase(nn.Module):
-    def __init__(self, name, features_list, **kwargs):
+    def __init__(self, name, features_list):
         super(FeatureExtractorBase, self).__init__()
         assert type(name) is str
         assert type(features_list) in (list, tuple)

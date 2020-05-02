@@ -45,13 +45,13 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
         return metrics
 
     cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
-    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
 
     if verbose:
         print(f'Extracting features from input_1', file=sys.stderr)
     featuresdict_1 = extract_featuresdict_from_input_cached(input_1, cacheable_input1_name, feat_extractor, **kwargs)
     featuresdict_2 = None
     if input_2 is not None:
+        cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
         if verbose:
             print(f'Extracting features from input_2', file=sys.stderr)
         featuresdict_2 = extract_featuresdict_from_input_cached(
