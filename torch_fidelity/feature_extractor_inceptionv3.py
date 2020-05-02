@@ -1,3 +1,6 @@
+import sys
+from contextlib import redirect_stdout
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -60,7 +63,8 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         self.fc = nn.Linear(2048, 1008)
 
         if feature_extractor_weights_path is None:
-            state_dict = load_state_dict_from_url(PT_INCEPTION_URL, progress=True)
+            with redirect_stdout(sys.stderr):
+                state_dict = load_state_dict_from_url(PT_INCEPTION_URL, progress=True)
         else:
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
