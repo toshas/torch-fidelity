@@ -33,10 +33,10 @@ class TestMetricKidFidelity(unittest.TestCase):
 
     def test_kid_pt_tf_fidelity(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        limit = 10000
+        limit = 5000
         cifar10trainorig_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        cifar10validnoise_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise')
-        cifar10trainorig_codes = os.path.join(tempfile.gettempdir(), 'cifar10-train-codes.pth')
+        cifar10validnoise_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise-{limit}')
+        cifar10trainorig_codes = os.path.join(tempfile.gettempdir(), f'cifar10-train-codes-{limit}.pth')
 
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10trainorig_root,
@@ -82,9 +82,9 @@ class TestMetricKidFidelity(unittest.TestCase):
         print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
 
         self.assertLess(err_rel_mean, 1e-7)
-        self.assertLess(err_rel_std, 1e-5)
+        self.assertLess(err_rel_std, 1e-4)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.470388, delta=1e-6)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.4718520, delta=1e-6)
 
 
 if __name__ == '__main__':

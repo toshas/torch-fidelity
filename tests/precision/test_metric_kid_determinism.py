@@ -27,10 +27,10 @@ class TestMetricKidDeterminism(unittest.TestCase):
 
     def test_kid_reference_determinism(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        limit = 10000
+        limit = 5000
         cifar10trainorig_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        cifar10validnoise_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise')
-        cifar10trainorig_codes = os.path.join(tempfile.gettempdir(), 'cifar10-train-codes.pth')
+        cifar10validnoise_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise-{limit}')
+        cifar10trainorig_codes = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-codes-{limit}.pth')
 
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10trainorig_root,

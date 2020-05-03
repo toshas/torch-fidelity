@@ -30,9 +30,9 @@ class TestMetricFidFidelity(unittest.TestCase):
 
     def test_fid_pt_tf_fidelity(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        limit = 10000
+        limit = 5000
         cifar10train_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        cifar10valid_root = os.path.join(tempfile.gettempdir(), 'cifar10-valid-img')
+        cifar10valid_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-{limit}')
 
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10train_root,
@@ -40,7 +40,8 @@ class TestMetricFidFidelity(unittest.TestCase):
         )
         self.assertEqual(res.returncode, 0, msg=res)
         res = subprocess.run(
-            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-valid', cifar10valid_root),
+            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-valid', cifar10valid_root,
+             '-l', str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
 
@@ -51,7 +52,7 @@ class TestMetricFidFidelity(unittest.TestCase):
         print('Reference FID result:', res_ref, file=sys.stderr)
 
         print(f'Running fidelity FID...', file=sys.stderr)
-        res_fidelity = self.call_fidelity_fid(cifar10train_root, 'cifar10-val')
+        res_fidelity = self.call_fidelity_fid(cifar10train_root, cifar10valid_root)
         self.assertEqual(res_fidelity.returncode, 0, msg=res_fidelity)
         res_fidelity = json_decode_string(res_fidelity.stdout.decode())
         print('Fidelity FID result:', res_fidelity, file=sys.stderr)
@@ -64,7 +65,7 @@ class TestMetricFidFidelity(unittest.TestCase):
 
         self.assertLess(err_rel, 1e-7)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_FID], 5.215191, delta=1e-6)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_FID], 10.3233274, delta=1e-6)
 
 
 if __name__ == '__main__':
