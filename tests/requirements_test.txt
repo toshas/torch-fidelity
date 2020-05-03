@@ -6,7 +6,6 @@ torchvision
 tqdm
 
 imageio
-six
 sklearn
 tensorflow-gpu==1.15.2
 tensorflow-determinism

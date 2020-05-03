@@ -10,11 +10,11 @@ import os.path
 import sys
 import tarfile
 import tempfile
+from urllib import request
 
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-from six.moves import urllib
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
 
@@ -88,7 +88,7 @@ def init_inception():
             sys.stderr.write('\r>> Downloading %s %.1f%%' % (
                 filename, float(count * block_size) / float(total_size) * 100.0))
             sys.stderr.flush()
-        filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+        filepath, _ = request.urlretrieve(DATA_URL, filepath, _progress)
         statinfo = os.stat(filepath)
         print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', file=sys.stderr)
     tarfile.open(filepath, 'r:gz').extractall(model_dir)
