@@ -80,17 +80,17 @@ jobs:
 ##          command: |
 ##            . env_fidelity/bin/activate
 ##            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_determinism.py
-      - run:
-          name: Test metric (Frechet Inception Distance) fidelity on CPU
-          no_output_timeout: 30m
-          command: |
-            . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
 #      - run:
-#          name: Test metric (Frechet Inception Distance) fidelity on GPU
+#          name: Test metric (Frechet Inception Distance) fidelity on CPU
+#          no_output_timeout: 30m
 #          command: |
 #            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_fidelity.py
+#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
+##      - run:
+##          name: Test metric (Frechet Inception Distance) fidelity on GPU
+##          command: |
+##            . env_fidelity/bin/activate
+##            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_fidelity.py
       - run:
           name: Test metric (Kernel Inception Distance) determinism on CPU
           no_output_timeout: 30m
