@@ -62,7 +62,7 @@ class TestMetricIscFidelity(unittest.TestCase):
         self.assertLess(err_rel_mean, 1e-3)
         self.assertLess(err_rel_std, 5e-1)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 10.7504627, delta=1e-6)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 10.7504627, delta=1e-5)
 
 
 if __name__ == '__main__':
