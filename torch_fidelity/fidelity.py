@@ -75,6 +75,8 @@ def main():
                         help='Assigns a cache entry to input2 (if a path) and forces caching of features on it')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for ISC and KID splits')
+    parser.add_argument('--lean-memory', action='store_true',
+                        help='Use less RAM at the cost of speed')
     parser.add_argument('--silent', dest='silent', action='store_true',
                         help='Do not output progress information to STDERR')
 
