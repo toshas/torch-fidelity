@@ -27,7 +27,7 @@ class TestMetricKidFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_kid(input_1, input_2):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--lean-memory', input_1, input_2]
+        args = ['python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--save-cpu-ram', input_1, input_2]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 
@@ -81,7 +81,7 @@ class TestMetricKidFidelity(unittest.TestCase):
         err_rel_std = err_abs_std / res_ref[KEY_METRIC_KID_STD]
         print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
 
-        self.assertLess(err_rel_mean, 1e-7)
+        self.assertLess(err_rel_mean, 1e-6)
         self.assertLess(err_rel_std, 1e-4)
 
         self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.4718520, delta=1e-6)

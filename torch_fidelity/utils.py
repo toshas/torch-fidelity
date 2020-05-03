@@ -67,7 +67,7 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     return feat_extractor
 
 
-def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, lean_memory, verbose):
+def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
     assert isinstance(input, Dataset), 'Input can only be a Dataset instance'
     assert isinstance(feat_extractor, FeatureExtractorBase), \
         'Feature extractor is not a subclass of FeatureExtractorBase'
@@ -75,7 +75,7 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, lean_
     if batch_size > len(input):
         batch_size = len(input)
 
-    num_workers = 0 if lean_memory else min(4, 2 * multiprocessing.cpu_count())
+    num_workers = 0 if save_cpu_ram else min(4, 2 * multiprocessing.cpu_count())
 
     dataloader = DataLoader(
         input,
@@ -208,7 +208,7 @@ def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
         feat_extractor,
         get_kwarg('batch_size', kwargs),
         get_kwarg('cuda', kwargs),
-        get_kwarg('lean_memory', kwargs),
+        get_kwarg('save_cpu_ram', kwargs),
         get_kwarg('verbose', kwargs),
     )
     return featuresdict

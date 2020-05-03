@@ -24,9 +24,9 @@ class TestMetricsAll(unittest.TestCase):
     def test_all(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
-        limit = 10000
+        limit = 5000
         input_1 = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise')
+        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise-{limit}')
 
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', input_1,
@@ -43,6 +43,7 @@ class TestMetricsAll(unittest.TestCase):
             'cuda': cuda,
             'cache_input1_name': 'test_input_1',
             'cache_input2_name': 'test_input_2',
+            'save_cpu_ram': True,
         }
 
         all = calculate_metrics(input_1, input_2, isc=True, fid=True, kid=True, **kwargs)

@@ -26,7 +26,7 @@ DEFAULTS = {
     'cache_input1_name': None,
     'cache_input2_name': None,
     'rng_seed': 2020,
-    'lean_memory': False,
+    'save_cpu_ram': False,
     'verbose': True,
 }
 
