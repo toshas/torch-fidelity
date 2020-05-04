@@ -25,7 +25,7 @@ class TestMetricFidDeterminism(unittest.TestCase):
     def test_fid_reference_determinism(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
-        limit = 10000
+        limit = 5000
         cifar10train_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
         cifar10valid_root = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-{limit}')
 

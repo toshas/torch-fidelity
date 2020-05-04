@@ -75,18 +75,22 @@ class TestInterpolation(unittest.TestCase):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
         suffix = f'interpolate_eps_{"gpu" if cuda else "cpu"}_'
         L_inf = self._max_resize_residual(cuda, 'fast', visualize=True, suffix=suffix)
-        print(f'{suffix}residual={L_inf}', file=sys.stderr)
-        self.assertLessEqual(L_inf, 1e-3)
+        print(f'{suffix}err_abs={L_inf}', file=sys.stderr)
+        err_rel = L_inf / 255
+        print(f'{suffix}err_rel={err_rel}', file=sys.stderr)
+        self.assertLessEqual(err_rel, 1e-5)
 
     def test_resize_bit(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
         suffix = f'interpolate_bit_{"gpu" if cuda else "cpu"}_'
         L_inf = self._max_resize_residual(cuda, 'slow', visualize=True, suffix=suffix)
-        print(f'{suffix}residual={L_inf}', file=sys.stderr)
+        print(f'{suffix}err_abs={L_inf}', file=sys.stderr)
+        err_rel = L_inf / 255
+        print(f'{suffix}err_rel={err_rel}', file=sys.stderr)
         if cuda:
-            self.assertLessEqual(L_inf, 1e-4)
+            self.assertLessEqual(err_rel, 1e-5)
         else:
-            self.assertLessEqual(L_inf, 0)
+            self.assertLessEqual(err_rel, 0)
 
 
 if __name__ == '__main__':

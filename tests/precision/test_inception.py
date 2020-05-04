@@ -98,7 +98,8 @@ class TestInception(unittest.TestCase):
             return {
                 'max_pixelwise_difference_across_runs_pt': np.max(np.max(f_pt, axis=0) - np.min(f_pt, axis=0)),
                 'max_pixelwise_difference_across_runs_tf': np.max(np.max(f_tf, axis=0) - np.min(f_tf, axis=0)),
-                'max_pixelwise_difference_pt_tf': np.max(np.abs(f_pt - f_tf)),
+                'max_pixelwise_err_abs_pt_tf': np.max(np.abs(f_pt - f_tf)),
+                'max_pixelwise_err_rel_pt_tf': np.max(np.abs(f_pt - f_tf) / max(np.max(np.abs(f_tf)), 1e-9)),
             }
 
         def get_statistics(repeat=8):
@@ -131,15 +132,20 @@ class TestInception(unittest.TestCase):
                     self.assertEqual(sval, 0, name)
                 elif sname == 'max_pixelwise_difference_across_runs_tf':
                     if cuda:
-                        self.assertGreater(sval, 0, name)
+                        self.assertGreaterEqual(sval, 0, name)
                         self.assertLessEqual(sval, 1e-4, name)
                     else:
                         self.assertEqual(sval, 0, name)
-                elif sname == 'max_pixelwise_difference_pt_tf':
+                elif sname == 'max_pixelwise_err_abs_pt_tf':
                     if cuda:
                         self.assertLessEqual(sval, 1e-3, name)
                     else:
                         self.assertLessEqual(sval, 1e-4, name)
+                elif sname == 'max_pixelwise_err_rel_pt_tf':
+                    if cuda:
+                        self.assertLessEqual(sval, 1e-4, name)
+                    else:
+                        self.assertLessEqual(sval, 1e-5, name)
                 else:
                     raise ValueError(f'Unknown statistic name {sname}')
 
@@ -156,7 +162,9 @@ class TestInception(unittest.TestCase):
                     print(f'{name}: {sval}', file=sys.stderr)
                     if sname in ('max_pixelwise_difference_across_runs_pt', 'max_pixelwise_difference_across_runs_tf'):
                         self.assertEqual(sval, 0, name)
-                    elif sname == 'max_pixelwise_difference_pt_tf':
+                    elif sname == 'max_pixelwise_err_abs_pt_tf':
+                        self.assertLessEqual(sval, 1e-3, name)
+                    elif sname == 'max_pixelwise_err_rel_pt_tf':
                         self.assertLessEqual(sval, 1e-4, name)
                     else:
                         raise ValueError(f'Unknown statistic name {sname}')

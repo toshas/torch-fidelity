@@ -24,16 +24,18 @@ class TestMetricIscFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_isc(input):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', input]
+        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', input]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 
     def test_isc_pt_tf_fidelity(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        cifar10_root = os.path.join(tempfile.gettempdir(), 'cifar10-train-img')
+        limit = 5000
+        cifar10_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
 
         res = subprocess.run(
-            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10_root),
+            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', cifar10_root,
+             '-l', str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
 
@@ -43,17 +45,24 @@ class TestMetricIscFidelity(unittest.TestCase):
         res_ref = json_decode_string(res_ref.stdout.decode())
         print('Reference ISC result:', res_ref, file=sys.stderr)
 
-        print(f'Running fidelity ISC cached...', file=sys.stderr)
-        res_fidelity = self.call_fidelity_isc('cifar10-train')
+        print(f'Running fidelity ISC...', file=sys.stderr)
+        res_fidelity = self.call_fidelity_isc(cifar10_root)
         self.assertEqual(res_fidelity.returncode, 0, msg=res_fidelity)
         res_fidelity = json_decode_string(res_fidelity.stdout.decode())
         print('Fidelity ISC result:', res_fidelity, file=sys.stderr)
 
-        self.assertAlmostEqual(res_ref[KEY_METRIC_ISC_MEAN], res_fidelity[KEY_METRIC_ISC_MEAN], delta=1e-3)
-        self.assertAlmostEqual(res_ref[KEY_METRIC_ISC_STD], res_fidelity[KEY_METRIC_ISC_STD], delta=5e-1)
-        self.assertLess(res_fidelity[KEY_METRIC_ISC_STD], res_ref[KEY_METRIC_ISC_STD])
+        err_abs_mean = abs(res_ref[KEY_METRIC_ISC_MEAN] - res_fidelity[KEY_METRIC_ISC_MEAN])
+        err_abs_std = abs(res_ref[KEY_METRIC_ISC_STD] - res_fidelity[KEY_METRIC_ISC_STD])
+        print(f'Error absolute mean={err_abs_mean} std={err_abs_std}')
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 11.236778, delta=1e-6)
+        err_rel_mean = err_abs_mean / res_ref[KEY_METRIC_ISC_MEAN]
+        err_rel_std = err_abs_std / res_ref[KEY_METRIC_ISC_STD]
+        print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
+
+        self.assertLess(err_rel_mean, 1e-3)
+        self.assertLess(err_rel_std, 5e-1)
+
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 10.7504627, delta=1e-5)
 
 
 if __name__ == '__main__':

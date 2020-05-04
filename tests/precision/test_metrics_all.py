@@ -1,12 +1,11 @@
 import os
+import subprocess
 import tempfile
 import unittest
 
 import torch
-from torchvision.transforms import Compose
 
 from torch_fidelity import calculate_metrics
-from torch_fidelity.datasets import Cifar10_RGB, TransformPILtoRGBTensor
 from torch_fidelity.metric_fid import calculate_fid, KEY_METRIC_FID
 from torch_fidelity.metric_isc import calculate_isc, KEY_METRIC_ISC_MEAN
 from torch_fidelity.metric_kid import calculate_kid, KEY_METRIC_KID_MEAN
@@ -25,18 +24,33 @@ class TestMetricsAll(unittest.TestCase):
     def test_all(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
-        input_1 = 'cifar10-train'
-        input_2 = Cifar10_RGB(tempfile.gettempdir(), train=True, transform=Compose((
-            TransformPILtoRGBTensor(),
-            TransformAddNoise()
-        )), download=True)
-        input_2.name = None
+        limit = 5000
+        input_1 = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
+        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise-{limit}')
 
-        isc = calculate_isc(input_1, cuda=cuda)
-        fid = calculate_fid(input_1, input_2, cuda=cuda)
-        kid = calculate_kid(input_1, input_2, cuda=cuda)
+        res = subprocess.run(
+            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', input_1,
+             '-l', str(limit)),
+        )
+        self.assertEqual(res.returncode, 0, msg=res)
+        res = subprocess.run(
+            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-valid', input_2,
+             '-l', str(limit), '-n'),
+        )
+        self.assertEqual(res.returncode, 0, msg=res)
 
-        all = calculate_metrics(input_1, input_2, cuda=cuda, isc=True, fid=True, kid=True)
+        kwargs = {
+            'cuda': cuda,
+            'cache_input1_name': 'test_input_1',
+            'cache_input2_name': 'test_input_2',
+            'save_cpu_ram': True,
+        }
+
+        all = calculate_metrics(input_1, input_2, isc=True, fid=True, kid=True, **kwargs)
+
+        isc = calculate_isc(input_1, **kwargs)
+        fid = calculate_fid(input_1, input_2, **kwargs)
+        kid = calculate_kid(input_1, input_2, **kwargs)
 
         self.assertEqual(isc[KEY_METRIC_ISC_MEAN], all[KEY_METRIC_ISC_MEAN])
         self.assertEqual(fid[KEY_METRIC_FID], all[KEY_METRIC_FID])

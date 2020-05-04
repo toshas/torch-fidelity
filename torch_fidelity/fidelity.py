@@ -4,9 +4,6 @@ import json
 import os
 
 from torch_fidelity.defaults import DEFAULTS
-from torch_fidelity.metric_fid import calculate_fid
-from torch_fidelity.metric_isc import calculate_isc
-from torch_fidelity.metric_kid import calculate_kid
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY
 
@@ -78,6 +75,8 @@ def main():
                         help='Assigns a cache entry to input2 (if a path) and forces caching of features on it')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for ISC and KID splits')
+    parser.add_argument('--save-cpu-ram', action='store_true',
+                        help='Use less CPU RAM at the cost of speed')
     parser.add_argument('--silent', dest='silent', action='store_true',
                         help='Do not output progress information to STDERR')
 
@@ -95,14 +94,7 @@ def main():
 
     args.cuda = not args.cpu and os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 
-    if args.isc and not args.fid and not args.kid:
-        metrics = calculate_isc(args.input1, **vars(args))
-    elif not args.isc and args.fid and not args.kid:
-        metrics = calculate_fid(args.input1, args.input2, **vars(args))
-    elif not args.isc and not args.fid and args.kid:
-        metrics = calculate_kid(args.input1, args.input2, **vars(args))
-    else:
-        metrics = calculate_metrics(args.input1, input_2=args.input2, **vars(args))
+    metrics = calculate_metrics(args.input1, input_2=args.input2, **vars(args))
 
     if args.json:
         print(json.dumps(metrics, indent=4))

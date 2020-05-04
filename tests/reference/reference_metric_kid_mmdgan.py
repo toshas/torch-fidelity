@@ -6,12 +6,12 @@ import os.path
 import sys
 import tarfile
 import tempfile
+from urllib import request
 
 import numpy as np
 import tensorflow as tf
 from PIL import Image
 from scipy import linalg
-from six.moves import range, urllib
 from sklearn.metrics.pairwise import polynomial_kernel
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
@@ -50,9 +50,7 @@ class Inception(object):
         filepath = os.path.join(MODEL_DIR, filename)
 
         if not os.path.exists(filepath):
-            with tqdm(desc=filename) as t:
-                filepath, _ = urllib.request.urlretrieve(
-                    DATA_URL, filepath, reporthook=t.update)
+            filepath, _ = request.urlretrieve(DATA_URL)
 
         tarfile.open(filepath, 'r:gz').extractall(MODEL_DIR)
         with tf.gfile.FastGFile(os.path.join(
