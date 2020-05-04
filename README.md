@@ -1,5 +1,11 @@
 # High-fidelity performance metrics for generative models in PyTorch
 
+[![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
+[![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
+![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
+[![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pypi.org/project/torch-fidelity/)
+![License](https://img.shields.io/pypi/l/torch-fidelity)
+
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
 *Inception Score* (aka IS) [[1]](https://arxiv.org/pdf/1606.03498.pdf), *Fréchet Inception Distance* (aka FID) 
