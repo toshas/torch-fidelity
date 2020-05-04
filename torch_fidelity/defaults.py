@@ -29,7 +29,3 @@ DEFAULTS = {
     'save_cpu_ram': False,
     'verbose': True,
 }
-
-
-def get_kwarg(name, kwargs):
-    return kwargs.get(name, DEFAULTS[name])

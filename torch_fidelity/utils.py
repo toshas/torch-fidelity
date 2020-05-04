@@ -1,8 +1,6 @@
-import json
 import multiprocessing
 import os
 import sys
-from json.decoder import JSONDecodeError
 
 import torch
 import torch.hub
@@ -10,26 +8,19 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from torch_fidelity.datasets import ImagesPathDataset
-from torch_fidelity.defaults import get_kwarg, DEFAULTS
+from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
+from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
 
 
-def json_decode_string(s):
-    try:
-        out = json.loads(s)
-    except JSONDecodeError as e:
-        print(f'Failed to decode JSON string: {s}', file=sys.stderr)
-        raise
-    return out
-
-
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
-    assert type(samples_find_ext) is str and samples_find_ext != '', 'Sample extensions not specified'
-    assert samples_ext_lossy is None or type(samples_ext_lossy) is str, 'Lossy sample extensions can be None or string'
-    if verbose:
-        print(f'Looking for samples {"recursively" if samples_find_deep else "non-recursivelty"} in "{path}" with '
-              f'extensions {samples_find_ext}', file=sys.stderr)
+    vassert(type(samples_find_ext) is str and samples_find_ext != '', 'Sample extensions not specified')
+    vassert(
+        samples_ext_lossy is None or type(samples_ext_lossy) is str, 'Lossy sample extensions can be None or string'
+    )
+    vprint(verbose, f'Looking for samples {"recursively" if samples_find_deep else "non-recursivelty"} in "{path}" '
+                    f'with extensions {samples_find_ext}')
     samples_find_ext = [a.strip() for a in samples_find_ext.split(',') if a.strip() != '']
     if samples_ext_lossy is not None:
         samples_ext_lossy = [a.strip() for a in samples_ext_lossy.split(',') if a.strip() != '']
@@ -48,17 +39,14 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
                 have_lossy = True
             files.append(os.path.realpath(os.path.join(r, f)))
     files = sorted(files)
-    if verbose:
-        print(f'Found {len(files)} samples' +
-              f'{", some are lossy-compressed - this may affect metrics" if have_lossy else ""}',
-              file=sys.stderr)
+    vprint(verbose, f'Found {len(files)} samples'
+                    f'{", some are lossy-compressed - this may affect metrics" if have_lossy else ""}')
     return files
 
 
 def create_feature_extractor(name, list_features, cuda=True, **kwargs):
-    assert name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered'
-    if get_kwarg('verbose', kwargs):
-        print(f'Creating feature extractor "{name}" with features {list_features}', file=sys.stderr)
+    vassert(name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered')
+    vprint(get_kwarg('verbose', kwargs), f'Creating feature extractor "{name}" with features {list_features}')
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.eval()
@@ -68,9 +56,10 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
 
 
 def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
-    assert isinstance(input, Dataset), 'Input can only be a Dataset instance'
-    assert isinstance(feat_extractor, FeatureExtractorBase), \
-        'Feature extractor is not a subclass of FeatureExtractorBase'
+    vassert(isinstance(input, Dataset), 'Input can only be a Dataset instance')
+    vassert(
+        isinstance(feat_extractor, FeatureExtractorBase), 'Feature extractor is not a subclass of FeatureExtractorBase'
+    )
 
     if batch_size > len(input):
         batch_size = len(input)
@@ -103,8 +92,7 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
                 out = {k: out[k] + featuresdict[k] for k in out.keys()}
             t.update(batch_size)
 
-    if verbose:
-        print('Processing samples', file=sys.stderr)
+    vprint(verbose, 'Processing samples')
 
     out = {k: torch.cat(v, dim=0) for k, v in out.items()}
 
@@ -112,9 +100,11 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
 
 
 def check_input(input):
-    assert type(input) is str or isinstance(input, Dataset), \
-        f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the ' \
+    vassert(
+        type(input) is str or isinstance(input, Dataset),
+        f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the '
         f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}'
+    )
 
 
 def get_input_cacheable_name(input, cache_input_name=None):
@@ -144,7 +134,7 @@ def prepare_inputs_as_datasets(
             input = fn_instantiate(datasets_root, datasets_download)
         elif os.path.isdir(input):
             input = glob_samples_paths(input, samples_find_deep, samples_find_ext, samples_ext_lossy, verbose)
-            assert len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}'
+            vassert(len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}')
             input = ImagesPathDataset(input)
         else:
             raise ValueError(f'Unknown format of input string "{input}"')
@@ -160,8 +150,7 @@ def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     os.makedirs(cache_root, exist_ok=True)
     item_path = os.path.join(cache_root, cached_filename + '.pt')
     if os.path.exists(item_path):
-        if get_kwarg('verbose', kwargs):
-            print(f'Loading cached {item_path}', file=sys.stderr)
+        vprint(get_kwarg('verbose', kwargs), f'Loading cached {item_path}')
         return torch.load(item_path, map_location='cpu')
     item = fn_recompute()
     if get_kwarg('verbose', kwargs):
@@ -171,6 +160,7 @@ def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
 
 
 def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_names, fn_recompute, **kwargs):
+    verbose = get_kwarg('verbose', kwargs)
     if not get_kwarg('cache', kwargs):
         return fn_recompute()
     cache_root = get_kwarg('cache_root', kwargs)
@@ -181,14 +171,12 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     if all([os.path.exists(a) for a in cached_paths]):
         out = {}
         for n, p in zip(item_names, cached_paths):
-            if get_kwarg('verbose', kwargs):
-                print(f'Loading cached {p}', file=sys.stderr)
+            vprint(verbose, f'Loading cached {p}')
             out[n] = torch.load(p, map_location='cpu')
         return out
     items = fn_recompute()
     for n, p in zip(item_names, cached_paths):
-        if get_kwarg('verbose', kwargs):
-            print(f'Caching {p}', file=sys.stderr)
+        vprint(verbose, f'Caching {p}')
         torch.save(items[n], p)
     return items
 

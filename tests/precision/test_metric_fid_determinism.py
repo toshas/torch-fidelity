@@ -4,8 +4,8 @@ import sys
 import tempfile
 import unittest
 
+from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_fid import KEY_METRIC_FID
-from torch_fidelity.utils import json_decode_string
 
 
 class TestMetricFidDeterminism(unittest.TestCase):

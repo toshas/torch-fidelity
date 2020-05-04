@@ -1,10 +1,8 @@
-import sys
-
 import numpy as np
 import torch
 from tqdm import tqdm
 
-from torch_fidelity.defaults import get_kwarg
+from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
     get_input_cacheable_name
 
@@ -15,6 +13,8 @@ KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
 def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est='unbiased'):
     # based on https://github.com/dougalsutherland/opt-mmd/blob/master/two_sample/mmd.py
     # changed to not compute the full kernel matrix at once
+    vassert(mmd_est in ('biased', 'unbiased', 'u-statistic'), 'Invalid value of mmd_est')
+
     m = K_XX.shape[0]
     assert K_XX.shape == (m, m)
     assert K_XY.shape == (m, m)
@@ -45,7 +45,6 @@ def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est='unbiased'):
               + (Kt_YY_sum + sum_diag_Y) / (m * m)
               - 2 * K_XY_sum / (m * m))
     else:
-        assert mmd_est in ('unbiased', 'u-statistic')
         mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m-1))
         if mmd_est == 'unbiased':
             mmd2 -= 2 * K_XY_sum / (m * m)
@@ -100,8 +99,7 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
         )
         mmds[i] = o
 
-    if verbose:
-        print('Computing Kernel Inception Distance', file=sys.stderr)
+    vprint(verbose, 'Computing Kernel Inception Distance')
 
     return {
         KEY_METRIC_KID_MEAN: float(np.mean(mmds)),

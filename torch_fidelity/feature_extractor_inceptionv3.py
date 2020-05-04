@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
+from torch_fidelity.helpers import vassert
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 PT_INCEPTION_URL = \
@@ -73,7 +74,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             p.requires_grad_(False)
 
     def forward(self, x):
-        assert torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8'
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
         features = {}
         remaining_features = self.features_list.copy()
 

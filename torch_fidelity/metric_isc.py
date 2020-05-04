@@ -1,9 +1,7 @@
-import sys
-
 import numpy as np
 import torch
 
-from torch_fidelity.defaults import get_kwarg
+from torch_fidelity.helpers import get_kwarg, vprint
 from torch_fidelity.utils import extract_featuresdict_from_input_cached, create_feature_extractor, \
     get_input_cacheable_name
 
@@ -38,8 +36,7 @@ def isc_features_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
 
 
 def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
-    if get_kwarg('verbose', kwargs):
-        print('Computing Inception Score', file=sys.stderr)
+    vprint(get_kwarg('verbose', kwargs), 'Computing Inception Score')
 
     features = featuresdict[feat_layer_name]
 

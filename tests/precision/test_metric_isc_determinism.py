@@ -4,8 +4,8 @@ import sys
 import tempfile
 import unittest
 
+from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
-from torch_fidelity.utils import json_decode_string
 
 
 class TestMetricIscDeterminism(unittest.TestCase):

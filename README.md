@@ -1,4 +1,4 @@
-# High-fidelity performance metrics for generative models in PyTorch
+![High-fidelity performance metrics for generative models in PyTorch](doc/img/header.png)
 
 [![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
@@ -8,8 +8,8 @@
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
-*Inception Score* (aka IS) [[1]](https://arxiv.org/pdf/1606.03498.pdf), *Fréchet Inception Distance* (aka FID) 
-[[2]](https://arxiv.org/pdf/1706.08500.pdf), and *Kernel Inception Distance* (aka KID, MMD) 
+**Inception Score** (aka IS) [[1]](https://arxiv.org/pdf/1606.03498.pdf), **Fréchet Inception Distance** (aka FID) 
+[[2]](https://arxiv.org/pdf/1706.08500.pdf), and **Kernel Inception Distance** (aka KID) 
 [[3]](https://arxiv.org/pdf/1801.01401.pdf). 
 
 These metrics, despite having a clear mathematical and algorithmic description, were initially implemented in 
@@ -24,7 +24,9 @@ thus making them unsuitable for reporting results and comparing them to other me
 
 This software aims to provide epsilon-exact implementations of the said metrics in PyTorch, and thus remove
 inconveniences associated with generative models evaluation and development. All steps of the evaluation pipeline are
-correctly tested, with levels of exactness and sources of remaining non-determinism summarized in sections below.  
+correctly tested, with relative errors and sources of remaining non-determinism summarized in sections below.  
+
+**TLDR; fast and reliable GAN evaluation in PyTorch**
 
 ## Installation
 
@@ -32,13 +34,7 @@ correctly tested, with levels of exactness and sources of remaining non-determin
 pip install torch-fidelity
 ```
 
-or
-
-```shell script
-pip install git+https://github.com/toshas/torch-fidelity.git
-```
-
-## Quick Start Usage of the Command Line Tool
+## Quick Start Usage with Command Line
 
 Inception Score of CIFAR-10 training split:
 ```shell script
@@ -69,7 +65,7 @@ argument):
 > fidelity --gpu 0 --isc --fid --kid <path> cifar10-train
 ```
 
-## Quick Start Usage in Your Code
+## Quick Start Usage with Python API
 
 When it comes to tracking the performance of generative models as they train, evaluating metrics after every epoch becomes
 prohibitively expensive due to long computation times. `torch_fidelity` tackles this problem by making full use of
@@ -81,8 +77,7 @@ makes overall training time just one hour longer.
 ```python
 from torch_fidelity import calculate_metrics
 
-# Both input1 and input2 can be either a string (path 
-# to images, registered input), or a Dataset instance
+# Each input can be either a string (path to images, registered input), or a Dataset instance
 metrics_dict = calculate_metrics(input1, input2, cuda=True, isc=True, fid=True, kid=True, verbose=False)
 
 print(metrics_dict)
@@ -98,15 +93,17 @@ print(metrics_dict)
 
 ## Advanced Usage and Extensibility
 
-`fidelity` tool takes two positional arguments and several keys, having good default values. 
-Most (but not all) of the keys directly correspond to keyword arguments accepted by the `calculate_metrics` function.  
-Each positional argument can be either a path to a directory containing samples, or a _registered input_. 
+The `fidelity` command takes two positional arguments and a few optional keys (run `fidelity --help` to see reference). 
+Most of the keys directly correspond to keyword arguments accepted by the `calculate_metrics` function (see 
+[API](torch_fidelity/metrics.py)).  
+Each positional argument can be either a path to a directory containing samples, or a _registered input_.
+Registered inputs are commonly used datasets, which can be resolved by name, and are subject to caching. 
 Currently, there are just two registered inputs - `cifar10-train` and `cifar10-val`, however extending them with
-other torchvision datasets is straightforward (see Extensibility). 
+other torchvision datasets is straightforward (see [API](torch_fidelity/registry.py), Extensibility). 
 
 ### Storage, Cache, Datasets
 
-The cached items occupy quite a lot of space. The default cache root is created under `$ENV_TORCH_HOME/fidelity_cache`,
+The cached items can occupy quite a lot of space. The default cache root is created under `$ENV_TORCH_HOME/fidelity_cache`,
 which is usually under the `$HOME`. Users with limited home partition should use `--cache_root` key to change cache
 location, or specify `--no-cache` to disable it (not recommended).
 
@@ -127,7 +124,7 @@ respectively.
 1. Subclass a new Feature Extractor (e.g. `NewFeatureExtractor`) from `FeatureExtractorBase` class, implement all 
 methods, 
 2. Register it using `register_feature_extractor` method: `register_feature_extractor('new-fe', NewFeatureExtractor)`
-3. Pass `feature-extractor='new-fe'` as an argument to `calculate_metrics`.
+3. Pass `feature_extractor='new-fe'` as a keyword argument to `calculate_metrics`.
 
 #### Add a new dataset to the pool of registered inputs in three easy steps
 
@@ -139,20 +136,19 @@ into the feature extractor (refer to `Cifar10_RGB` for example),
 
 #### Working with Files
 
-By default, a path supplied as a positional argument is treated as a directory with images (jpg, png). There are a few
-ways to alter this behavior. To collect files recursively instead of just the directory pointed to by the path, add 
-`--samples-find-deep` command line key, or set `samples_find_deep` keyword argument to True. To change file extensions
-picked up when traversing the path, specify `--samples-find-ext` command line key or `samples_find_ext` keyword argument.
+If a positional argument is not a Dataset instance or a registered input, it is treated as a directory with images (jpg, png). 
+To collect files recursively under the provided path, add `--samples-find-deep` command line key, or set 
+the `samples_find_deep` keyword argument to True. 
+To change file extensions picked up when traversing the path, specify `--samples-find-ext` command line key or 
+the `samples_find_ext` keyword argument.
 After the files list is collected, it is sorted alpha-numerically, and then shuffled. If shuffling is not desired, it
 can be disabled by setting the `--samples-alphanumeric` key or using the `samples_shuffle` keyword argument.
 
 #### Other Options
 
-Both `fidelity` tool and the code provide several options to change the default behavior of the evaluation 
+Both the `fidelity` command and the API provide several options to tweak the default behavior of the evaluation 
 procedure. 
-Use `fidelity --help` to access a complete command line reference, or check `defaults.py` for available keyword 
-arguments and their default values.
-Below is a summary of use cases when changing the defaults is unavoidable:
+Below is a summary of use cases when changing the defaults is required:
 
 - *Reducing GPU RAM usage*: by default, evaluating `cifar10-train` images with all metrics takes about 2.5 GB of RAM. 
 If it is desired to reduce memory footprint, use `--batch-size` key to reduce batch size. 
@@ -169,43 +165,21 @@ One may want to change this flag to see the effect of seed on the metrics output
 and reported as a part of the evaluation protocol.  
  
 - *Changing verbosity*: verbose mode is enabled by default, so both command line and programmatic interfaces report
-progress to STDERR. It can be disabled using the `--silent` command line flag, or `verbose` keyword argument. However, it
-is useful to keep it enabled when extending the code with custom input sources or feature extractors, as it allows to
-prevent unintended usage of the cache.
+progress to `stderr`. It can be disabled using the `--silent` command line flag, or `verbose` keyword argument. 
+However, it is useful to keep it enabled when extending the code with custom input sources or feature extractors, 
+as it allows to prevent unintended usage of the cache.
 
 ## Level of Fidelity
 
-The path from inputs to metrics values contains the following steps:
+The path from inputs to metrics contains the following steps:
 1. Image interpolation (resizing) and normalization (bringing RGB values to the range acceptable by the pre-trained 
 model),
 2. Using the pre-trained model to extract features from properly sized and normalized images,
 3. Compute metrics values from the extracted features.
 
-Let's consider these steps in the reversed order:
+Let's consider how close each of these steps can be implemented in a different framework:
 
-### Computing metrics from features (Step 3)
-This step is usually performed on CPU using a math library like scipy. It is neither the bottleneck of computations,
-nor the source of precision loss or non-determinism; `torch_fidelity` uses the original features-to-metric code for this 
-step in most cases.
-
-### Pre-trained Model (Step 2)
-
-All three metrics were introduced to evaluate 2D images with Inception V3 as a feature extractor. The architecture
-of Inception V3 used in TensorFlow is slightly different from both the paper and what is implemented in 
-torchvision. 
-The author of [[4]](https://github.com/mseitzer/pytorch-fid) did the heavy lifting of porting the original architecture
-to PyTorch, as well as exporting all learnable parameters into a PyTorch checkpoint. The code attempts to download the
-checkpoint from github. However, it is also possible to perform model conversion locally and load checkpoint from a file
-(see `util_convert_inception_weights.py` and `--feature-extractor-weights-path` command line key). 
-
-As indicated by the tests (`test_convolution.py`, `test_inception.py`), the output of the pre-trained TensorFlow model
-varies from time to time given the same inputs, which can be improved using NVIDIA's `tensorflow-determinism` package. 
-PyTorch uses CuDNN as a backend, and its outputs do not vary even when determinism is not enabled. Slight differences
-between outputs of TF and PT convolutions exist even with maximum determinism, which does not allow us to claim
-bit-exactness. Further troubleshooting reasons for inexact outputs of convolution is complicated by varying behavior
-between CPU and GPU, and also between different CPUs.
-
-### Interpolation (Step 1)
+### Interpolation
 
 Bilinear interpolation is a known source of problems with determinism and reproducibility, as there are quite a few ways
 to align corners of an image, each giving a different result [[5]](https://machinethink.net/blog/coreml-upsampling/). 
@@ -215,25 +189,48 @@ exactly as in TensorFlow. The tests show that on CPU this function produces bit-
 TF implementation. However, on GPU the output is epsilon-exact, presumably due to fused-multiply-add floating-point 
 optimizations employed in gridpoint coordinates computation on the GPU hardware side.
 
-### Remaining Sources of Non-determinism
+### Pre-trained Model
 
-Observed pixel-, feature-, or metric-wise maximum absolute differences (eps) of different steps of the computational 
+All three metrics were introduced to evaluate 2D images with Inception V3 as a feature extractor. The architecture
+of Inception V3 used in TensorFlow is slightly different from both the paper and what is implemented in 
+torchvision. 
+The author of [[4]](https://github.com/mseitzer/pytorch-fid) did the heavy lifting of porting the original architecture
+to PyTorch, as well as exporting all learnable parameters into a PyTorch checkpoint. `torch_fidelity` attempts to 
+download the checkpoint from github. However, it is also possible to perform model conversion locally and load the 
+checkpoint from a file (see `util_convert_inception_weights.py` and `--feature-extractor-weights-path` command line key). 
+
+As indicated by the tests (`test_convolution.py`, `test_inception.py`), the output of the pre-trained TensorFlow model
+varies from time to time given the same inputs, which can be fixed using NVIDIA's `tensorflow-determinism` package. 
+PyTorch uses CuDNN as a backend, and its outputs do not vary even when determinism is disabled. Slight differences
+between outputs of TF and PT convolutions exist even with maximum determinism, which does not allow us to claim
+bit-exactness. Further troubleshooting reasons for inexact outputs of convolution is complicated by varying behavior
+between CPU and GPU, and also between different CPUs.
+
+### Computing metrics from features
+This step is usually performed on CPU using a math library like scipy. It is neither the bottleneck of computations,
+nor the source of precision loss or non-determinism; `torch_fidelity` uses the original features-to-metric code for this 
+step in most cases.
+
+### Relative Errors Summary
+
+The tests are performed using fixed pseudo-random subsets of 5000 CIFAR10 images (see [tests/precision](tests/precision)).  
+Below is a list of pixel-, feature-, or metric-wise relative errors of different steps of the computational 
 pipeline, between reference implementations and `torch_fidelity`:
-- Interpolation: 1e-4
-- Convolution: 1e-6
-- InceptionV3 RGB 8bpp to pool3 features: 1e-3
+- Interpolation: 1e-5
+- Convolution: 1e-7
+- InceptionV3 RGB 8bpp to pool3 features: 1e-4
 - Inception Score: 1e-3
 - Fréchet Inception Distance: 1e-6
 - Kernel Inception Distance: 1e-6
 
-## Closing Remarks
+The badge 'CircleCI: passing' means that the declared tolerances were met during the last test run, involving all the 
+latest versions of the dependencies. 
 
-* Before publishing values produced by this software, it is recommended to verify that the reported values lie in close 
-proximity to those produced by reference implementations.
+## Feedback
 
-* Feedback in the form of comments, tickets, pull requests, or stars is welcome! 
+Feedback in the form of comments, tickets, and stars is welcome!
 
-## References and Credits
+## References and Acknowledgements
 
 Original implementations:
 * Inception Score: 
