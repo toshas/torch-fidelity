@@ -4,6 +4,7 @@
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
 [![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pypi.org/project/torch-fidelity/)
+[![DOI](https://zenodo.org/badge/258172048.svg)](https://zenodo.org/badge/latestdoi/258172048)
 ![License](https://img.shields.io/pypi/l/torch-fidelity)
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
@@ -226,9 +227,28 @@ pipeline, between reference implementations and `torch_fidelity`:
 The badge 'CircleCI: passing' means that the declared tolerances were met during the last test run, involving all the 
 latest versions of the dependencies. 
 
-## Feedback
+## Feedback and Citation
 
-Feedback in the form of comments, tickets, and stars is welcome!
+* Feedback in the form of comments, tickets, and stars is welcome!
+* To cite this repository, use the BibTex below:
+
+```
+@software{anton_obukhov_2020_3786540,
+  author       = {Anton Obukhov and
+                  mseitzer and
+                  willylulu and
+                  Semen Zhydenko and
+                  Jonathan Kyl and
+                  Elvis Yu-Jing Lin},
+  title        = {toshas/torch-fidelity: Version 0.2.0},
+  month        = may,
+  year         = 2020,
+  publisher    = {Zenodo},
+  version      = {v0.2.0},
+  doi          = {10.5281/zenodo.3786540},
+  url          = {https://doi.org/10.5281/zenodo.3786540}
+}
+```
 
 ## References and Acknowledgements
 
