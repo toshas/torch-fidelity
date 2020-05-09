@@ -54,7 +54,7 @@ def main():
                         help='Polynomial kernel gamma in KID')
     parser.add_argument('--kid-coef0', default=DEFAULTS['kid_coef0'], type=float,
                         help='Polynomial kernel coef0 in KID')
-    parser.add_argument('--samples-alphanumeric', action='store_true',
+    parser.add_argument('--no-samples-shuffle', action='store_true',
                         help='Do not perform samples shuffling before computing splits')
     parser.add_argument('--samples-find-deep', action='store_true',
                         help='Find all samples in paths recursively')
@@ -64,7 +64,7 @@ def main():
                         help=f'List of extensions to warn about lossy compression')
     parser.add_argument('--datasets-root', default=DEFAULTS['datasets_root'], type=str,
                         help='Path to built-in torchvision datasets root. Defaults to $ENV_TORCH_HOME/fidelity_datasets')
-    parser.add_argument('--datasets-downloaded', action='store_true',
+    parser.add_argument('--no-datasets-download', action='store_true',
                         help='Do not download torchvision datasets to dataset_root')
     parser.add_argument('--cache-root', default=DEFAULTS['cache_root'], type=str,
                         help='Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache')
@@ -86,8 +86,8 @@ def main():
     vassert(args.isc or args.fid or args.kid, 'Specify one or a few metrics: --isc, --fid, --kid')
 
     args.verbose = not args.silent
-    args.datasets_download = not args.datasets_downloaded
-    args.samples_shuffle = not args.samples_alphanumeric
+    args.datasets_download = not args.no_datasets_download
+    args.samples_shuffle = not args.no_samples_shuffle
     args.cache = not args.no_cache
 
     if args.gpu is not None:

@@ -110,7 +110,7 @@ location, or specify `--no-cache` to disable it (not recommended).
 Likewise, torchvision datasets may not be suitable for storage under the home directory (default location is
 `$ENV_TORCH_HOME/fidelity_datasets`). It can be changed with the key `--datasets-root`. 
 If torchvision datasets do not need to be downloaded, it is possible to disable download check using the key 
-`--datasets-downloaded`.
+`--no-datasets-download`.
 
 To save time on recomputations of features and statistics of inputs that do not change often, caching is enabled
 on all registered inputs. In addition to that, one can force caching on a path input by assigning a new cache slot name
@@ -142,7 +142,7 @@ the `samples_find_deep` keyword argument to True.
 To change file extensions picked up when traversing the path, specify `--samples-find-ext` command line key or 
 the `samples_find_ext` keyword argument.
 After the files list is collected, it is sorted alpha-numerically, and then shuffled. If shuffling is not desired, it
-can be disabled by setting the `--samples-alphanumeric` key or using the `samples_shuffle` keyword argument.
+can be disabled by setting the `--no-samples-shuffle` key or using the `samples_shuffle` keyword argument.
 
 #### Other Options
 
