@@ -3,8 +3,8 @@
 [![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
-[![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pypi.org/project/torch-fidelity/)
-[![DOI](https://zenodo.org/badge/258172048.svg)](https://zenodo.org/badge/latestdoi/258172048)
+[![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pepy.tech/project/torch-fidelity)
+[![DOI](https://img.shields.io/badge/DOI-zenodo-blue)](https://zenodo.org/record/3786540)
 ![License](https://img.shields.io/pypi/l/torch-fidelity)
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
