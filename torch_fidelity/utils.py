@@ -55,7 +55,7 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     return feat_extractor
 
 
-def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
+def get_featuresdict_from_dataset(input, feat_extractor, batch_size, samples_shuffle, cuda, save_cpu_ram, verbose):
     vassert(isinstance(input, Dataset), 'Input can only be a Dataset instance')
     vassert(
         isinstance(feat_extractor, FeatureExtractorBase), 'Feature extractor is not a subclass of FeatureExtractorBase'
@@ -70,6 +70,7 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
         input,
         batch_size=batch_size,
         drop_last=False,
+        shuffle=samples_shuffle,
         num_workers=num_workers,
         pin_memory=cuda,
     )
@@ -195,6 +196,7 @@ def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
         input_ds,
         feat_extractor,
         get_kwarg('batch_size', kwargs),
+        get_kwarg('samples_shuffle', kwargs),
         get_kwarg('cuda', kwargs),
         get_kwarg('save_cpu_ram', kwargs),
         get_kwarg('verbose', kwargs),
