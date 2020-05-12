@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import sys
+import tempfile
 
 import torch
 import torch.hub
@@ -142,6 +143,20 @@ def prepare_inputs_as_datasets(
     return input
 
 
+def atomic_torch_save(what, path):
+    path = os.path.expanduser(path)
+    path_dir = os.path.dirname(path)
+    fp = tempfile.NamedTemporaryFile(delete=False, dir=path_dir)
+    try:
+        torch.save(what, fp)
+        fp.close()
+        os.rename(fp.name, path)
+    finally:
+        fp.close()
+        if os.path.exists(fp.name):
+            os.remove(fp.name)
+
+
 def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     if not get_kwarg('cache', kwargs):
         return fn_recompute()
@@ -156,7 +171,7 @@ def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     item = fn_recompute()
     if get_kwarg('verbose', kwargs):
         print(f'Caching {item_path}', file=sys.stderr)
-    torch.save(item, item_path)
+    atomic_torch_save(item, item_path)
     return item
 
 
@@ -178,7 +193,7 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     items = fn_recompute()
     for n, p in zip(item_names, cached_paths):
         vprint(verbose, f'Caching {p}')
-        torch.save(items[n], p)
+        atomic_torch_save(items[n], p)
     return items
 
 
