@@ -69,17 +69,24 @@ def polynomial_mmd(features_1, features_2, degree, gamma, coef0):
 
 
 def kid_features_to_metric(features_1, features_2, **kwargs):
-    verbose = get_kwarg('verbose', kwargs)
-
     assert torch.is_tensor(features_1) and features_1.dim() == 2
     assert torch.is_tensor(features_2) and features_2.dim() == 2
     assert features_1.shape[1] == features_2.shape[1]
 
-    features_1 = features_1.cpu().numpy()
-    features_2 = features_2.cpu().numpy()
-
     kid_subsets = get_kwarg('kid_subsets', kwargs)
     kid_subset_size = get_kwarg('kid_subset_size', kwargs)
+    verbose = get_kwarg('verbose', kwargs)
+
+    n_samples_1, n_samples_2 = len(features_1), len(features_2)
+    vassert(
+        n_samples_1 >= kid_subset_size and n_samples_2 >= kid_subset_size,
+        f'KID subset size {kid_subset_size} cannot be smaller than the number of samples (input_1: {n_samples_1}, '
+        f'input_2: {n_samples_2}). Consider using "kid_subset_size" kwarg or "--kid-subset-size" command line key to '
+        f'proceed.'
+    )
+
+    features_1 = features_1.cpu().numpy()
+    features_2 = features_2.cpu().numpy()
 
     mmds = np.zeros(kid_subsets)
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
@@ -88,8 +95,8 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
             range(kid_subsets), disable=not verbose, leave=False, unit='subsets',
             desc='Computing Kernel Inception Distance'
     ):
-        f1 = features_1[rng.choice(len(features_1), kid_subset_size, replace=False)]
-        f2 = features_2[rng.choice(len(features_2), kid_subset_size, replace=False)]
+        f1 = features_1[rng.choice(n_samples_1, kid_subset_size, replace=False)]
+        f2 = features_2[rng.choice(n_samples_2, kid_subset_size, replace=False)]
         o = polynomial_mmd(
             f1,
             f2,
