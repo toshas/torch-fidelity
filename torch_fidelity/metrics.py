@@ -1,9 +1,9 @@
-from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_statistics_cached, \
+from .helpers import get_kwarg, vassert, vprint
+from .metric_fid import fid_inputs_to_metric, fid_featuresdict_to_statistics_cached, \
     fid_statistics_to_metric
-from torch_fidelity.metric_isc import isc_featuresdict_to_metric
-from torch_fidelity.metric_kid import kid_featuresdict_to_metric
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
+from .metric_isc import isc_featuresdict_to_metric
+from .metric_kid import kid_featuresdict_to_metric
+from .utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
     get_input_cacheable_name
 
 

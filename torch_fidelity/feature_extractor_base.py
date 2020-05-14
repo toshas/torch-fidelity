@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from torch_fidelity.helpers import vassert
+from .helpers import vassert
 
 
 class FeatureExtractorBase(nn.Module):

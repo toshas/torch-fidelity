@@ -35,6 +35,11 @@ correctly tested, with relative errors and sources of remaining non-determinism 
 pip install torch-fidelity
 ```
 
+```
+cd torch_fidelity/torch_fidelity
+wget https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth
+```
+
 ## Quick Start Usage with Command Line
 
 Inception Score of CIFAR-10 training split:
@@ -78,7 +83,7 @@ makes overall training time just one hour longer.
 ```python
 from torch_fidelity import calculate_metrics
 
-# Each input can be either a string (path to images, registered input), or a Dataset instance
+# Each input can be either a string (path to images, registered input), or a Dataset instance, or a tensor of (generated) images [N,C,H,W]
 metrics_dict = calculate_metrics(input1, input2, cuda=True, isc=True, fid=True, kid=True, verbose=False)
 
 print(metrics_dict)
@@ -90,6 +95,11 @@ print(metrics_dict)
 #     'kernel_inception_distance_mean': 0.01369556, 
 #     'kernel_inception_distance_std': 0.001310059
 # }
+```
+
+```
+# CIFAR10
+{'inception_score_mean': 11.236796260055726, 'inception_score_std': 0.09514309765149269, 'frechet_inception_distance': -1.4210854715202004e-12, 'kernel_inception_distance_mean': -1.9620798298305432e-05, 'kernel_inception_distance_std': 0.00012641769641558693}
 ```
 
 ## Advanced Usage and Extensibility

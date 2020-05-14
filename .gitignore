@@ -1,3 +1,4 @@
 __pycache__
+*.pth
 .DS_store
 .idea

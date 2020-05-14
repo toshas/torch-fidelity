@@ -1,9 +1,9 @@
 import os
 
-from torch_fidelity.datasets import Cifar10_RGB, TransformPILtoRGBTensor
-from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
-from torch_fidelity.helpers import vassert
+from .datasets import Cifar10_RGB, TransformPILtoRGBTensor
+from .feature_extractor_base import FeatureExtractorBase
+from .feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
+from .helpers import vassert
 
 DATASETS_REGISTRY = dict()
 FEATURE_EXTRACTORS_REGISTRY = dict()

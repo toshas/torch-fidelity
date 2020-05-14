@@ -2,8 +2,8 @@ import numpy as np
 import scipy.linalg
 import torch
 
-from torch_fidelity.helpers import get_kwarg, vprint
-from torch_fidelity.utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, \
+from .helpers import get_kwarg, vprint
+from .utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, \
     extract_featuresdict_from_input_cached, create_feature_extractor
 
 KEY_METRIC_FID = 'frechet_inception_distance'

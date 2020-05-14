@@ -1,3 +1,5 @@
+ORIGINAL LICENSE:
+
 Copyright 2020 Anton Obukhov
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,3 +13,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+MODIFICATIONS:
+
+Copyright 2020 Vikram Voleti
+
+May 13, 2020
+- (multiple files) Modified imports from absolute 'torch_fidelity.' to relative '.', so as to be used even without installing
+- (feature_extractor_inceptionv3.py) Modified default `feature_extractor_weights_path` to `os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pt_inception-2015-12-05-6726825d.pth')`
+- (feature_extractor_inceptionv3.py, utils.py) Added support for single 4-dim uint8 tensor as input (in addition to string or Dataset)

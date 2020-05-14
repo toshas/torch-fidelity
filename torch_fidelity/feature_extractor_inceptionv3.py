@@ -1,3 +1,4 @@
+import os
 import sys
 from contextlib import redirect_stdout
 
@@ -6,9 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
-from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert
-from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+from .feature_extractor_base import FeatureExtractorBase
+from .helpers import vassert
+from .interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 PT_INCEPTION_URL = \
     'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'
@@ -67,6 +68,8 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             with redirect_stdout(sys.stderr):
                 state_dict = load_state_dict_from_url(PT_INCEPTION_URL, progress=True)
         else:
+            vassert(os.path.exists(feature_extractor_weights_path),
+                f"Feature Extractor weights path does not exist! Given: {feature_extractor_weights_path}\nDownload using `wget https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth`")
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
 
@@ -74,7 +77,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             p.requires_grad_(False)
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, f'Expecting image as torch.Tensor with dtype=torch.uint8, got {type(x)}')
         features = {}
         remaining_features = self.features_list.copy()
 

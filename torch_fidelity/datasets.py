@@ -6,7 +6,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10
 
-from torch_fidelity.helpers import vassert
+from .helpers import vassert
 
 
 class TransformPILtoRGBTensor:

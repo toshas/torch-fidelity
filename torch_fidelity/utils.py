@@ -7,11 +7,11 @@ import torch.hub
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from torch_fidelity.datasets import ImagesPathDataset
-from torch_fidelity.defaults import DEFAULTS
-from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
+from .datasets import ImagesPathDataset
+from .defaults import DEFAULTS
+from .feature_extractor_base import FeatureExtractorBase
+from .helpers import get_kwarg, vassert, vprint
+from .registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
 
 
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
@@ -56,7 +56,8 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
 
 
 def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
-    vassert(isinstance(input, Dataset), 'Input can only be a Dataset instance')
+    vassert(isinstance(input, Dataset) or (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4),
+        'Input can only be a Dataset instance, or a 4-D tensor of type torch.uint8')
     vassert(
         isinstance(feat_extractor, FeatureExtractorBase), 'Feature extractor is not a subclass of FeatureExtractorBase'
     )
@@ -101,9 +102,10 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
 
 def check_input(input):
     vassert(
-        type(input) is str or isinstance(input, Dataset),
+        type(input) is str or isinstance(input, Dataset) or \
+            (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4),
         f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the '
-        f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}'
+        f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}, or a single tensor of 4 dims NxCxHxW'
     )
 
 
