@@ -24,7 +24,7 @@ class TestMetricIscFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_isc(input):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', input]
+        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', '--input1', input]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 

@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 
+import numpy as np
 import torch
 import torch.hub
 from torch.utils.data import DataLoader, Dataset
@@ -235,3 +236,40 @@ def extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_ext
     else:
         featuresdict = fn_recompute()
     return featuresdict
+
+
+class OnnxModel(torch.nn.Module):
+    def __init__(self, path_onnx):
+        super().__init__()
+        vassert(os.path.isfile(path_onnx), f'Model file not found at "{path_onnx}"')
+        try:
+            import onnxruntime
+        except ImportError as e:
+            # This message may be removed if onnxruntime becomes a unified package with embedded CUDA dependencies,
+            # like for example pytorch
+            print(
+                '====================================================================================================\n'
+                'Loading ONNX models in PyTorch requires ONNX runtime package, which we did not want to include in\n'
+                'torch_fidelity package requirements.txt. The two relevant pip packages are:\n'
+                ' - onnxruntime       (pip install onnxruntime), or\n'
+                ' - onnxruntime-gpu   (pip install onnxruntime-gpu).\n'
+                'If you choose to install "onnxruntime", you will be able to run inference on CPU only - this may be\n'
+                'slow. With "onnxruntime-gpu" speed is not an issue, but at run time you might face CUDA toolkit\n'
+                'versions incompatibility, which can only be resolved by recompiling onnxruntime-gpu from source.\n'
+                'Alternatively, use calculate_metrics API and pass torch.nn.Module instance as a "model" kwarg.\n'
+                '===================================================================================================='
+            )
+            raise e
+        self.ort_session = onnxruntime.InferenceSession(path_onnx)
+
+    @staticmethod
+    def to_numpy(tensor):
+        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
+    def forward(self, x):
+        ort_input = {self.ort_session.get_inputs()[0].name: self.to_numpy(x)}
+        ort_output = self.ort_session.run(None, ort_input)
+        ort_output = ort_output[0]
+        vassert(isinstance(ort_output, np.ndarray), 'Invalid output of ONNX model')
+        out = torch.from_numpy(ort_output).to(device=x.device)
+        return out

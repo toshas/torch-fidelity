@@ -46,7 +46,7 @@ class TestMetricsAll(unittest.TestCase):
             'save_cpu_ram': True,
         }
 
-        all = calculate_metrics(input_1, input_2, isc=True, fid=True, kid=True, **kwargs)
+        all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, **kwargs)
 
         isc = calculate_isc(input_1, **kwargs)
         fid = calculate_fid(input_1, input_2, **kwargs)

@@ -27,7 +27,10 @@ class TestMetricKidFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_kid(input_1, input_2):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--save-cpu-ram', input_1, input_2]
+        args = [
+            'python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--save-cpu-ram',
+            '--input1', input_1, '--input2', input_2
+        ]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 
