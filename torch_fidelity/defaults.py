@@ -23,7 +23,7 @@ DEFAULTS = {
     'kid_coef0': 1,
     'ppl_num_samples': 50000,
     'ppl_epsilon': 1e-4,
-    'ppl_z_interp_mode': 'slerp',
+    'ppl_z_interp_mode': 'slerp_any',
     'samples_shuffle': True,
     'samples_find_deep': False,
     'samples_find_ext': 'png,jpg,jpeg',

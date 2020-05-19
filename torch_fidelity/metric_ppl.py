@@ -4,44 +4,9 @@ from tqdm import tqdm
 
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.lpips import LPIPS_VGG16
-from torch_fidelity.utils import OnnxModel
+from torch_fidelity.utils import OnnxModel, sample_random, batch_interp
 
 KEY_METRIC_PPL = 'perceptual_path_length'
-
-
-def batch_normalize_last_dim(v):
-    return v / (v ** 2).sum(dim=-1, keepdim=True).sqrt().clamp_min(1e-7)
-
-
-def batch_slerp(a, b, t):
-    a = batch_normalize_last_dim(a)
-    b = batch_normalize_last_dim(b)
-    d = (a * b).sum(dim=-1, keepdim=True)
-    p = t * d.acos()
-    c = batch_normalize_last_dim(b - d * a)
-    d = a * p.cos() + c * p.sin()
-    return batch_normalize_last_dim(d)
-
-
-def batch_lerp(a, b, t):
-    return a + (b - a) * t
-
-
-def batch_interp(a, b, t, method):
-    vassert(method in ('lerp', 'slerp'), f'Unknown interpolation method "{method}"')
-    return {
-        'lerp': batch_lerp,
-        'slerp': batch_slerp,
-    }[method](a, b, t)
-
-
-def sample_real(rng, shape, z_type):
-    if z_type == 'normal':
-        return torch.from_numpy(rng.randn(*shape)).float()
-    elif z_type == 'uniform_0_1':
-        return torch.from_numpy(rng.rand(*shape)).float()
-    else:
-        vassert(False, f'Sampling from "{z_type}" is not implemented')
 
 
 def ppl_model_to_metric(**kwargs):
@@ -76,11 +41,9 @@ def ppl_model_to_metric(**kwargs):
 
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
 
-    lat_t0 = sample_real(rng, (num_samples, model_z_size), model_z_type)
-    lat_t1 = sample_real(rng, (num_samples, model_z_size), model_z_type)
-    t = sample_real(rng, (num_samples, 1), 'uniform_0_1') * (1.0 - epsilon)
-    lat_e0 = batch_interp(lat_t0, lat_t1, t, interp)
-    lat_e1 = batch_interp(lat_t0, lat_t1, t + epsilon, interp)
+    lat_e0 = sample_random(rng, (num_samples, model_z_size), model_z_type)
+    lat_e1 = sample_random(rng, (num_samples, model_z_size), model_z_type)
+    lat_e1 = batch_interp(lat_e0, lat_e1, epsilon, interp)
 
     distances = []
 
@@ -88,7 +51,7 @@ def ppl_model_to_metric(**kwargs):
             torch.no_grad():
         for begin_id in range(0, num_samples, batch_size):
             end_id = min(begin_id + batch_size, num_samples)
-            nz = end_id - begin_id
+            batch_sz = end_id - begin_id
 
             batch_lat_e0 = lat_e0[begin_id:end_id]
             batch_lat_e1 = lat_e1[begin_id:end_id]
@@ -108,12 +71,12 @@ def ppl_model_to_metric(**kwargs):
 
             rgb_e01 = ((rgb_e01 + 1) * (255. / 2)).to(dtype=torch.uint8)
 
-            rgb_e0, rgb_e1 = rgb_e01[0:nz], rgb_e01[nz:]
+            rgb_e0, rgb_e1 = rgb_e01[0:batch_sz], rgb_e01[batch_sz:]
 
             dist_lat_e01 = lpips.forward(rgb_e0, rgb_e1) / (epsilon ** 2)
             distances.append(dist_lat_e01.cpu().numpy())
 
-            t.update(nz)
+            t.update(batch_sz)
 
     distances = np.concatenate(distances, axis=0)
 

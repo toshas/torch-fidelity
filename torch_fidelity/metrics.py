@@ -63,7 +63,7 @@ def calculate_metrics(**kwargs):
             Number of samples to generate using the model in PPL.
         ppl_epsilon: float (default: 1e-4)
             Interpolation step size in PPL.
-        ppl_z_interp_mode: str (default: slerp)
+        ppl_z_interp_mode: str (default: slerp_any)
             Noise interpolation mode in PPL.
         samples_shuffle: bool (default: True)
             Perform random samples shuffling before computing splits.

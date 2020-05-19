@@ -67,7 +67,7 @@ def main():
     parser.add_argument('--ppl-epsilon', default=DEFAULTS['ppl_epsilon'], type=float,
                         help='Interpolation step size in PPL')
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
-                        choices=('slerp', 'lerp'),
+                        choices=('lerp', 'slerp_any', 'slerp_unit'),
                         help='Noise interpolation mode in PPL')
     parser.add_argument('--no-samples-shuffle', action='store_true',
                         help='Do not perform samples shuffling before computing splits')
