@@ -24,7 +24,7 @@ def ppl_model_to_metric(**kwargs):
     vprint(verbose, 'Computing Perceptual Path Length')
 
     vassert(model_z_size is not None, 'Dimensionality of generator noise not specified ("model_z_size" argument)')
-    vassert(model_conditioning_num_classes > 0, 'Model can be unconditional (0 classes) or conditional (positive)')
+    vassert(model_conditioning_num_classes >= 0, 'Model can be unconditional (0 classes) or conditional (positive)')
 
     is_cond = model_conditioning_num_classes > 0
 
