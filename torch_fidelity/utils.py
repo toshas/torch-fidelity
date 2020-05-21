@@ -319,7 +319,12 @@ class OnnxModel(torch.nn.Module):
         return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
     def forward(self, x):
-        ort_input = {self.ort_session.get_inputs()[0].name: self.to_numpy(x)}
+        assert torch.is_tensor(x) or type(x) in (tuple, list) and all(torch.is_tensor(a) for a in x)
+        if type(x) in (tuple, list):
+            x = tuple(self.to_numpy(a) for a in x)
+        else:
+            x = self.to_numpy(x)
+        ort_input = {self.ort_session.get_inputs()[0].name: x}
         ort_output = self.ort_session.run(None, ort_input)
         ort_output = ort_output[0]
         vassert(isinstance(ort_output, np.ndarray), 'Invalid output of ONNX model')
