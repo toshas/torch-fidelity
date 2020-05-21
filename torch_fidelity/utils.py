@@ -313,20 +313,21 @@ class OnnxModel(torch.nn.Module):
             )
             raise e
         self.ort_session = onnxruntime.InferenceSession(path_onnx)
+        self.input_names = [a.name for a in self.ort_session.get_inputs()]
 
     @staticmethod
     def to_numpy(tensor):
         return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
-    def forward(self, x):
-        assert torch.is_tensor(x) or type(x) in (tuple, list) and all(torch.is_tensor(a) for a in x)
-        if type(x) in (tuple, list):
-            x = tuple(self.to_numpy(a) for a in x)
-        else:
-            x = self.to_numpy(x)
-        ort_input = {self.ort_session.get_inputs()[0].name: x}
+    def forward(self, *args):
+        vassert(
+            len(args) == len(self.input_names),
+            f'Number of input arguments {len(args)} does not match ONNX model: {self.input_names}'
+        )
+        vassert(all(torch.is_tensor(a) for a in args), 'All model inputs must be tensors')
+        ort_input = {self.input_names[i]: self.to_numpy(args[i]) for i in range(len(args))}
         ort_output = self.ort_session.run(None, ort_input)
         ort_output = ort_output[0]
         vassert(isinstance(ort_output, np.ndarray), 'Invalid output of ONNX model')
-        out = torch.from_numpy(ort_output).to(device=x.device)
+        out = torch.from_numpy(ort_output).to(device=args[0].device)
         return out

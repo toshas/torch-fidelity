@@ -73,14 +73,12 @@ def ppl_model_to_metric(**kwargs):
                     batch_labels = batch_labels.cuda(non_blocking=True)
 
             if is_cond:
-                model_input_0 = (batch_lat_e0, batch_labels)
-                model_input_1 = (batch_lat_e1, batch_labels)
+                rgb_e0 = model.forward(batch_lat_e0, batch_labels)
+                rgb_e1 = model.forward(batch_lat_e1, batch_labels)
             else:
-                model_input_0 = batch_lat_e0
-                model_input_1 = batch_lat_e1
+                rgb_e0 = model.forward(batch_lat_e0)
+                rgb_e1 = model.forward(batch_lat_e1)
 
-            rgb_e0 = model.forward(model_input_0)
-            rgb_e1 = model.forward(model_input_1)
             rgb_e01 = torch.cat((rgb_e0, rgb_e1), dim=0)
 
             if rgb_e01.shape[-1] > 256:
