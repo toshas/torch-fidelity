@@ -37,6 +37,8 @@ def calculate_metrics(**kwargs):
             Type of noise for generator model input.
         model_z_size: int (default: None)
             Dimensionality of generator noise.
+        model_conditioning_num_classes: int (default: 0)
+            Number of classes for conditional generation, or 0 for unconditional.
         feature_extractor: str (default: inception-v3-compat)
             Name of the feature extractor (see registry.py).
         feature_layer_isc: str (default: logits_unbiased)

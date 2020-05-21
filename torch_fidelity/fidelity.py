@@ -38,6 +38,8 @@ def main():
                         help='Type of noise for generator model input')
     parser.add_argument('--model-z-size', default=DEFAULTS['model_z_size'], type=int,
                         help='Dimensionality of generator noise')
+    parser.add_argument('--model-conditioning-num-classes', default=DEFAULTS['model_conditioning_num_classes'], type=int,
+                        help='Number of classes for conditional generation, or 0 for unconditional')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
                         choices=FEATURE_EXTRACTORS_REGISTRY.keys(),
                         help='Name of the feature extractor')

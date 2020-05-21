@@ -16,6 +16,7 @@ def ppl_model_to_metric(**kwargs):
     num_samples = get_kwarg('ppl_num_samples', kwargs)
     model_z_type = get_kwarg('model_z_type', kwargs)
     model_z_size = get_kwarg('model_z_size', kwargs)
+    model_conditioning_num_classes = get_kwarg('model_conditioning_num_classes', kwargs)
     epsilon = get_kwarg('ppl_epsilon', kwargs)
     interp = get_kwarg('ppl_z_interp_mode', kwargs)
     batch_size = get_kwarg('batch_size', kwargs)
@@ -23,6 +24,9 @@ def ppl_model_to_metric(**kwargs):
     vprint(verbose, 'Computing Perceptual Path Length')
 
     vassert(model_z_size is not None, 'Dimensionality of generator noise not specified ("model_z_size" argument)')
+    vassert(model_conditioning_num_classes > 0, 'Model can be unconditional (0 classes) or conditional (positive)')
+
+    is_cond = model_conditioning_num_classes > 0
 
     if type(model) is str:
         model = OnnxModel(model)
@@ -45,6 +49,10 @@ def ppl_model_to_metric(**kwargs):
     lat_e1 = sample_random(rng, (num_samples, model_z_size), model_z_type)
     lat_e1 = batch_interp(lat_e0, lat_e1, epsilon, interp)
 
+    labels = None
+    if is_cond:
+        labels = torch.from_numpy(rng.randint(0, model_conditioning_num_classes, (num_samples,)))
+
     distances = []
 
     with tqdm(disable=not verbose, leave=False, unit='samples', total=num_samples, desc='Processing samples') as t, \
@@ -55,13 +63,24 @@ def ppl_model_to_metric(**kwargs):
 
             batch_lat_e0 = lat_e0[begin_id:end_id]
             batch_lat_e1 = lat_e1[begin_id:end_id]
+            if is_cond:
+                batch_labels = labels[begin_id:end_id]
 
             if is_cuda:
                 batch_lat_e0 = batch_lat_e0.cuda(non_blocking=True)
                 batch_lat_e1 = batch_lat_e1.cuda(non_blocking=True)
+                if is_cond:
+                    batch_labels = batch_labels.cuda(non_blocking=True)
 
-            rgb_e0 = model.forward(batch_lat_e0)
-            rgb_e1 = model.forward(batch_lat_e1)
+            if is_cond:
+                model_input_0 = (batch_lat_e0, batch_labels)
+                model_input_1 = (batch_lat_e1, batch_labels)
+            else:
+                model_input_0 = batch_lat_e0
+                model_input_1 = batch_lat_e1
+
+            rgb_e0 = model.forward(model_input_0)
+            rgb_e1 = model.forward(model_input_1)
             rgb_e01 = torch.cat((rgb_e0, rgb_e1), dim=0)
 
             if rgb_e01.shape[-1] > 256:

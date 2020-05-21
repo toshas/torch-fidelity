@@ -10,6 +10,7 @@ DEFAULTS = {
     'model': None,
     'model_z_type': 'normal',
     'model_z_size': None,
+    'model_conditioning_num_classes': 0,
     'feature_extractor': 'inception-v3-compat',
     'feature_layer_isc': 'logits_unbiased',
     'feature_layer_fid': '2048',
