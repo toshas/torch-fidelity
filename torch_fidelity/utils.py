@@ -85,6 +85,27 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
     if extract_first_element:
         data = data[0]
 
+    # Check input range, make into uint8 if float
+    make_uint8 = False
+    if data.dtype != torch.uint8:
+        make_uint8 = True
+        # min
+        if np.isclose(data.min(), 0.0, atol=1e-1):
+            val_min = 0.0
+        elif np.isclose(data.min(), -1.0, atol=1e-1):
+            val_min = -1.0
+        else:
+            val_min = data.min()
+        # max
+        if np.isclose(data.max(), 1.0, atol=1e-1):
+            val_max = 1.0
+        else:
+            val_max = data.max()
+        data = ((data - val_min)/(val_max - val_min)*255.0).type(torch.uint8)
+
+    # Check if tensor is a uint8 image
+    vassert(torch.is_tensor(data) and (data.dtype == torch.uint8) and data.ndim == 4, f'Data must be a uint8 tensor of 4 dimensions (NxCxHxW)!')
+
     out = None
 
     with tqdm(disable=not verbose, leave=False, unit='samples', total=len(input), desc='Processing samples') as t:
@@ -94,6 +115,9 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
             # Extract images
             if extract_first_element:
                 batch = batch[0]
+
+            if make_uint8:
+                batch = ((batch - val_min)/(val_max - val_min)*255.0).type(torch.uint8)
 
             if cuda:
                 batch = batch.cuda(non_blocking=True)
