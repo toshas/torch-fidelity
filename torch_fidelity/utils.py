@@ -1,4 +1,5 @@
 import multiprocessing
+import numpy as np
 import os
 import sys
 
@@ -75,15 +76,31 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
         pin_memory=cuda,
     )
 
+    # Checking content of dataloader
+    data = next(iter(dataloader))
+
+    # Standard datasets output (images, target) as the batch
+    # If so, extract first element, i.e. images
+    extract_first_element = True if (isinstance(data, list) or isinstance(data, tuple)) else False
+    if extract_first_element:
+        data = data[0]
+
     out = None
 
     with tqdm(disable=not verbose, leave=False, unit='samples', total=len(input), desc='Processing samples') as t:
         for bid, batch in enumerate(dataloader):
+
+            # Standard datasets output (images, target) as the batch
+            # Extract images
+            if extract_first_element:
+                batch = batch[0]
+
             if cuda:
                 batch = batch.cuda(non_blocking=True)
 
             with torch.no_grad():
                 features = feat_extractor(batch)
+
             featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
             featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
 
