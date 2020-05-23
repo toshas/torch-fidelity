@@ -1,6 +1,6 @@
 from .helpers import get_kwarg, vassert, vprint
-from .metric_fid import fid_inputs_to_metric, fid_featuresdict_to_statistics_cached, \
-    fid_statistics_to_metric
+from .metric_fid import fid_input_to_statistics_cached, fid_inputs_to_metric, \
+    fid_featuresdict_to_statistics_cached, fid_statistics_to_metric
 from .metric_isc import isc_featuresdict_to_metric
 from .metric_kid import kid_featuresdict_to_metric
 from .utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
@@ -122,7 +122,7 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
     vprint(verbose, f'Extracting features from input_1')
     featuresdict_1 = extract_featuresdict_from_input_cached(input_1, cacheable_input1_name, feat_extractor, **kwargs)
     featuresdict_2 = None
-    if input_2 is not None:
+    if input_2 is not None and have_kid:
         cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
         vprint(verbose, f'Extracting features from input_2')
         featuresdict_2 = extract_featuresdict_from_input_cached(
@@ -137,9 +137,16 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
         fid_stats_1 = fid_featuresdict_to_statistics_cached(
             featuresdict_1, cacheable_input1_name, feat_extractor, feature_layer_fid, **kwargs
         )
-        fid_stats_2 = fid_featuresdict_to_statistics_cached(
-            featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
-        )
+        if have_kid:
+            fid_stats_2 = fid_featuresdict_to_statistics_cached(
+                featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
+            )
+        else:
+            vprint(verbose, f'Extracting statistics from input_2')
+            cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
+            fid_stats_2 = fid_input_to_statistics_cached(
+                input_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
+            )
         metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg('verbose', kwargs))
         metrics.update(metric_fid)
 
