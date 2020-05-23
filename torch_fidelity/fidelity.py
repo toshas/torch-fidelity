@@ -70,6 +70,8 @@ def main():
                         help='Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache')
     parser.add_argument('--no-cache', action='store_true',
                         help='Do not use file cache for features and statistics')
+    parser.add_argument('--no-cache-feaures', action='store_true',
+                        help='Do not use file cache for features (but use for statistics)')
     parser.add_argument('--cache-input1-name', default=DEFAULTS['cache_input1_name'], type=str,
                         help='Assigns a cache entry to input1 (if a path) and forces caching of features on it')
     parser.add_argument('--cache-input2-name', default=DEFAULTS['cache_input2_name'], type=str,
@@ -89,6 +91,7 @@ def main():
     args.datasets_download = not args.datasets_downloaded
     args.samples_shuffle = not args.samples_alphanumeric
     args.cache = not args.no_cache
+    args.cache_features = not args.no_cache_features
 
     if args.gpu is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
