@@ -4,7 +4,7 @@ import sys
 
 import torch
 import torch.hub
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 
 from .datasets import ImagesPathDataset
@@ -56,8 +56,8 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
 
 
 def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
-    vassert(isinstance(input, Dataset) or (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4),
-        'Input can only be a Dataset instance, or a 4-D tensor of type torch.uint8')
+    vassert(isinstance(input, Dataset) or isinstance(input, Subset) or (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4),
+        'Input can only be a Dataset/Subset instance, or a 4-D tensor of type torch.uint8')
     vassert(
         isinstance(feat_extractor, FeatureExtractorBase), 'Feature extractor is not a subclass of FeatureExtractorBase'
     )
@@ -101,11 +101,18 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
 
 
 def check_input(input):
-    vassert(
-        type(input) is str or isinstance(input, Dataset) or \
-            (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4),
-        f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the '
-        f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}, or a single tensor of 4 dims NxCxHxW'
+    check = type(input) is str or isinstance(input, Dataset) or isinstance(input, Subset) or \
+            (torch.is_tensor(input) and (input.dtype == torch.uint8) and input.ndim == 4)
+    err = ''
+    if not check and torch.is_tensor(input):
+        if input.dtype != torch.uint8:
+            err = f' dtype of tensor is not uint8! Given {input.dtype}'
+        elif input.ndim != 4:
+            err = f' input must have 4 dims (stack of images)! Given: {input.ndim} dims'
+    vassert(check,
+        f'Input can be either a Dataset instance; or a Subset instance; '
+        f'or a uint8 torch.tensor of 4 dims NxCxHxW; or a string (path to directory with samples); '
+        f'or one of the registered datasets: {", ".join(DATASETS_REGISTRY.keys())};' + err
     )
 
 
