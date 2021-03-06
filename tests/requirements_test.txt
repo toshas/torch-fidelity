@@ -1,5 +1,6 @@
 numpy
 Pillow
+requests
 scipy
 torch
 torchvision
