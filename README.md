@@ -235,7 +235,7 @@ latest versions of the dependencies.
 ```
 @misc{obukhov2020torchfidelity,
   author={Anton Obukhov and Maximilian Seitzer and Po-Wei Wu and Semen Zhydenko and Jonathan Kyl and Elvis Yu-Jing Lin},
-  title={toshas/torch-fidelity: Version 0.2.0},
+  title={High-fidelity performance metrics for generative models in PyTorch},
   month=may,
   year=2020,
   publisher={Zenodo},
