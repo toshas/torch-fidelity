@@ -233,22 +233,15 @@ latest versions of the dependencies.
 * Citation might be a good idea to reinforce the evaluation protocol, which is necessary for reproducibility. To cite this repository, use the BibTex below:
 
 ```
-@software{obukhov2020torchfidelity,
-    author = {
-        Anton Obukhov and
-        Maximilian Seitzer and
-        Po-Wei Wu and
-        Semen Zhydenko and
-        Jonathan Kyl and
-        Elvis Yu-Jing Lin
-    },
-    title = {toshas/torch-fidelity: Version 0.2.0},
-    month = may,
-    year = 2020,
-    publisher = {Zenodo},
-    version = {v0.2.0},
-    doi = {10.5281/zenodo.3786540},
-    url = {https://doi.org/10.5281/zenodo.3786540}
+@misc{obukhov2020torchfidelity,
+  author={Anton Obukhov and Maximilian Seitzer and Po-Wei Wu and Semen Zhydenko and Jonathan Kyl and Elvis Yu-Jing Lin},
+  title={toshas/torch-fidelity: Version 0.2.0},
+  month=may,
+  year=2020,
+  publisher={Zenodo},
+  version={v0.2.0},
+  doi={10.5281/zenodo.3786540},
+  url={https://github.com/toshas/torch-fidelity}
 }
 ```
 
