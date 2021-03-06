@@ -133,13 +133,14 @@ jobs:
           destination: test_images
 
 workflows:
+  version: 2
   main:
     jobs:
       - venv-and-test
   mondays:
     triggers:
       - schedule:
-          cron: "0 0 * * MON"
+          cron: "0 0 * * *"
           filters:
             branches:
               only:
