@@ -136,3 +136,13 @@ workflows:
   main:
     jobs:
       - venv-and-test
+  mondays:
+    triggers:
+      - schedule:
+          cron: "0 0 * * MON"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - venv-and-test
