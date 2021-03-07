@@ -131,7 +131,7 @@ jobs:
           name: Test interpolation
           command: |
             . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES="" PYTHONPATH=$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_interpolation.py
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_interpolation.py
   test_convolution:
     executor: executor_python
     steps:
@@ -141,7 +141,7 @@ jobs:
           name: Test convolution
           command: |
             . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES="" PYTHONPATH=$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_convolution.py
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_convolution.py
 
 workflows:
   version: 2
