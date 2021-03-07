@@ -7,7 +7,7 @@ jobs:
 #      image: ubuntu-1604-cuda-10.1:201909-23
     docker:
       - image: circleci/python:3.6.9
-    resource_class: large
+    resource_class: medium+
     steps:
       - checkout
       - run:
