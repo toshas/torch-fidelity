@@ -71,7 +71,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_isc_fidelity.py
       - run:
           name: Test metric (Frechet Inception Distance) determinism on CPU
-          no_output_timeout: 30m
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_determinism.py
@@ -82,7 +82,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_determinism.py
       - run:
           name: Test metric (Frechet Inception Distance) fidelity on CPU
-          no_output_timeout: 30m
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
@@ -93,7 +93,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_fid_fidelity.py
       - run:
           name: Test metric (Kernel Inception Distance) determinism on CPU
-          no_output_timeout: 30m
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_determinism.py
@@ -104,7 +104,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_kid_determinism.py
       - run:
           name: Test metric (Kernel Inception Distance) fidelity on CPU
-          no_output_timeout: 30m
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_fidelity.py
@@ -115,6 +115,7 @@ jobs:
 #            CUDA_VISIBLE_DEVICES=0 python3 ./tests/precision/test_metric_kid_fidelity.py
       - run:
           name: Test all metrics on CPU
+          no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metrics_all.py
