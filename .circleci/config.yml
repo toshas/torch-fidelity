@@ -126,6 +126,8 @@ jobs:
   test_interpolation:
     executor: executor_python
     steps:
+      - attach_workspace:
+          at: .
       - run:
           name: Test interpolation
           command: |
@@ -134,6 +136,8 @@ jobs:
   test_convolution:
     executor: executor_python
     steps:
+      - attach_workspace:
+          at: .
       - run:
           name: Test convolution
           command: |
