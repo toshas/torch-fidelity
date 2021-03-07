@@ -117,7 +117,6 @@ jobs:
             . env_fidelity/bin/activate
             pip3 install --upgrade pip
             pip3 install -r code/tests/requirements_test.txt
-            echo "export PYTHONPATH=$(realpath code):$PYTHONPATH" >> $BASH_ENV
       - persist_to_workspace:
           root: .
           paths:
@@ -132,7 +131,7 @@ jobs:
           name: Test interpolation
           command: |
             . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES="" python3 ./code/tests/precision/test_interpolation.py
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH=$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_interpolation.py
   test_convolution:
     executor: executor_python
     steps:
@@ -142,7 +141,7 @@ jobs:
           name: Test convolution
           command: |
             . env_fidelity/bin/activate
-            CUDA_VISIBLE_DEVICES="" python3 ./code/tests/precision/test_convolution.py
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH=$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_convolution.py
 
 workflows:
   version: 2
