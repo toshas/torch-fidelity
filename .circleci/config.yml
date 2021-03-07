@@ -1,101 +1,5 @@
 version: 2.1
 
-#jobs:
-#  venv-and-test:
-#    docker:
-#      - image: circleci/python:3.6.9
-#    steps:
-#      - checkout
-#      - run:
-#          name: Create virtual environment and install test dependencies
-#          command: |
-#            python3 -m venv env_fidelity
-#            . env_fidelity/bin/activate
-#            pip3 install --upgrade pip
-#            pip3 install -r tests/requirements_test.txt
-#            echo "export PYTHONPATH=.:$PYTHONPATH" >> $BASH_ENV
-#      - run:
-#          name: Test interpolation
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
-#      - run:
-#          name: Test convolution
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_convolution.py
-#      - run:
-#          name: Test feature extractor (inception)
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_inception.py
-#      - run:
-#          name: Test metric (Inception Score) determinism
-#          no_output_timeout: 30m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_determinism.py
-#      - run:
-#          name: Test metric (Inception Score) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_fidelity.py
-#      - run:
-#          name: Test metric (Frechet Inception Distance) determinism
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_determinism.py
-#      - run:
-#          name: Test metric (Frechet Inception Distance) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
-#      - run:
-#          name: Test metric (Kernel Inception Distance) determinism
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_determinism.py
-#      - run:
-#          name: Test metric (Kernel Inception Distance) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_fidelity.py
-#      - run:
-#          name: Test all metrics
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metrics_all.py
-#      - run:
-#          name: Organize artifacts
-#          command: |
-#            mkdir -p artifacts
-#            mv *.png artifacts/
-#      - store_artifacts:
-#          path: artifacts
-#          destination: test_images
-#
-#workflows:
-#  version: 2
-#  main:
-#    jobs:
-#      - venv-and-test
-#  mondays:
-#    triggers:
-#      - schedule:
-#          cron: "0 0 * * 1"
-#          filters:
-#            branches:
-#              only:
-#                - master
-#    jobs:
-#      - venv-and-test
-
 
 executors:
   executor_python:
@@ -142,87 +46,141 @@ jobs:
           command: |
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_convolution.py
+  test_feature_extractor:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test feature extractor (Inception)
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_inception.py
+  test_ISC_determinism:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Inception Score (ISC) determinism
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_isc_determinism.py
+  test_ISC_fidelity:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Inception Score (ISC) fidelity
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_isc_fidelity.py
+  test_FID_determinism:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Frechet Inception Distance (FID) determinism
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_fid_determinism.py
+  test_FID_fidelity:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Frechet Inception Distance (FID) fidelity
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_fid_fidelity.py
+  test_KID_determinism:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Kernel Inception Distance (KID) determinism
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_kid_determinism.py
+  test_KID_fidelity:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test Kernel Inception Distance (KID) fidelity
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metric_kid_fidelity.py
+  test_all_metrics:
+    executor: executor_python
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test all metrics
+          no_output_timeout: 120m
+          command: |
+            . env_fidelity/bin/activate
+            CUDA_VISIBLE_DEVICES="" PYTHONPATH="$(realpath code):$PYTHONPATH" python3 ./code/tests/precision/test_metrics_all.py
+
+
+aliases:
+  - &jobs_all_tests
+    - venv
+    - test_interpolation:
+        requires:
+          - venv
+    - test_convolution:
+        requires:
+          - venv
+    - test_feature_extractor:
+        requires:
+          - venv
+    - test_ISC_determinism:
+        requires:
+          - venv
+    - test_ISC_fidelity:
+        requires:
+          - venv
+    - test_FID_determinism:
+        requires:
+          - venv
+    - test_FID_fidelity:
+        requires:
+          - venv
+    - test_KID_determinism:
+        requires:
+          - venv
+    - test_KID_fidelity:
+        requires:
+          - venv
+    - test_all_metrics:
+        requires:
+          - venv
+
 
 workflows:
   version: 2
   venv_and_tests:
-    jobs:
-      - venv
-      - test_interpolation:
-          requires:
-            - venv
-      - test_convolution:
-          requires:
-            - venv
-
-#
-#
-#  venv-and-test:
-#    docker:
-#      - image: circleci/python:3.6.9
-#    steps:
-#      - run:
-#          name: Test interpolation
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
-#      - run:
-#          name: Test convolution
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_convolution.py
-#      - run:
-#          name: Test feature extractor (inception)
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_inception.py
-#      - run:
-#          name: Test metric (Inception Score) determinism
-#          no_output_timeout: 30m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_determinism.py
-#      - run:
-#          name: Test metric (Inception Score) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_isc_fidelity.py
-#      - run:
-#          name: Test metric (Frechet Inception Distance) determinism
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_determinism.py
-#      - run:
-#          name: Test metric (Frechet Inception Distance) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_fid_fidelity.py
-#      - run:
-#          name: Test metric (Kernel Inception Distance) determinism
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_determinism.py
-#      - run:
-#          name: Test metric (Kernel Inception Distance) fidelity
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metric_kid_fidelity.py
-#      - run:
-#          name: Test all metrics
-#          no_output_timeout: 120m
-#          command: |
-#            . env_fidelity/bin/activate
-#            CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_metrics_all.py
-#      - run:
-#          name: Organize artifacts
-#          command: |
-#            mkdir -p artifacts
-#            mv *.png artifacts/
-#      - store_artifacts:
-#          path: artifacts
-#          destination: test_images
+    jobs: *jobs_all_tests
+  mondays:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 1"
+          filters:
+            branches:
+              only:
+                - master
+    jobs: *jobs_all_tests

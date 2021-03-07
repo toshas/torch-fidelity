@@ -4,8 +4,8 @@
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
 [![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pepy.tech/project/torch-fidelity)
-[![DOI](https://img.shields.io/badge/DOI-zenodo-blue)](https://zenodo.org/record/3786540)
 ![License](https://img.shields.io/pypi/l/torch-fidelity)
+![Twitter Follow](https://img.shields.io/twitter/follow/AntonObukhov1?style=social)
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
