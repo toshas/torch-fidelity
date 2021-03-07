@@ -4,8 +4,8 @@
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
 [![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pepy.tech/project/torch-fidelity)
-[![DOI](https://img.shields.io/badge/DOI-zenodo-blue)](https://zenodo.org/record/3786540)
 ![License](https://img.shields.io/pypi/l/torch-fidelity)
+[![Twitter Follow](https://img.shields.io/twitter/follow/AntonObukhov1?style=social&label=Subscribe!)](https://twitter.com/antonobukhov1)
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
@@ -235,13 +235,13 @@ latest versions of the dependencies.
 ```
 @misc{obukhov2020torchfidelity,
   author={Anton Obukhov and Maximilian Seitzer and Po-Wei Wu and Semen Zhydenko and Jonathan Kyl and Elvis Yu-Jing Lin},
-  title={High-fidelity performance metrics for generative models in PyTorch},
-  month=may,
   year=2020,
+  title={High-fidelity performance metrics for generative models in PyTorch},
+  url={https://github.com/toshas/torch-fidelity},
   publisher={Zenodo},
   version={v0.2.0},
   doi={10.5281/zenodo.3786540},
-  url={https://github.com/toshas/torch-fidelity}
+  note={Version: 0.2.0, DOI: 10.5281/zenodo.3786540}
 }
 ```
 
