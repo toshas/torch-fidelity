@@ -97,12 +97,19 @@ version: 2.1
 #      - venv-and-test
 
 
-jobs:
-  venv:
+executors:
+  executor_python:
     docker:
       - image: circleci/python:3.6.9
+    working_directory: /tmp
+
+
+jobs:
+  venv:
+    executor: executor_python
     steps:
-      - checkout
+      - checkout:
+          path: code
       - run:
           name: Create virtual environment and install test dependencies
           command: |
@@ -111,9 +118,13 @@ jobs:
             pip3 install --upgrade pip
             pip3 install -r tests/requirements_test.txt
             echo "export PYTHONPATH=.:$PYTHONPATH" >> $BASH_ENV
+      - persist_to_workspace:
+          root: .
+          paths:
+            - env_fidelity
+            - code
   test_interpolation:
-    docker:
-      - image: circleci/python:3.6.9
+    executor: executor_python
     steps:
       - run:
           name: Test interpolation
@@ -121,8 +132,7 @@ jobs:
             . env_fidelity/bin/activate
             CUDA_VISIBLE_DEVICES="" python3 ./tests/precision/test_interpolation.py
   test_convolution:
-    docker:
-      - image: circleci/python:3.6.9
+    executor: executor_python
     steps:
       - run:
           name: Test convolution
