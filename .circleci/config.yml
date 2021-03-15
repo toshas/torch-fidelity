@@ -64,7 +64,7 @@ jobs:
           at: .
       - run:
           name: Test Inception Score (ISC) determinism
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_isc_determinism.py
@@ -75,7 +75,7 @@ jobs:
           at: .
       - run:
           name: Test Inception Score (ISC) fidelity
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_isc_fidelity.py
@@ -86,7 +86,7 @@ jobs:
           at: .
       - run:
           name: Test Frechet Inception Distance (FID) determinism
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_fid_determinism.py
@@ -97,7 +97,7 @@ jobs:
           at: .
       - run:
           name: Test Frechet Inception Distance (FID) fidelity
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_fid_fidelity.py
@@ -108,7 +108,7 @@ jobs:
           at: .
       - run:
           name: Test Kernel Inception Distance (KID) determinism
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_kid_determinism.py
@@ -119,7 +119,7 @@ jobs:
           at: .
       - run:
           name: Test Kernel Inception Distance (KID) fidelity
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metric_kid_fidelity.py
@@ -130,7 +130,7 @@ jobs:
           at: .
       - run:
           name: Test all metrics
-          no_output_timeout: 120m
+          no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/precision/test_metrics_all.py
