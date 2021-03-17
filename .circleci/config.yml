@@ -154,21 +154,22 @@ aliases:
     - test_ISC_fidelity:
         requires:
           - venv
-    - test_FID_determinism:
-        requires:
-          - venv
-    - test_FID_fidelity:
-        requires:
-          - venv
-    - test_KID_determinism:
-        requires:
-          - venv
-    - test_KID_fidelity:
-        requires:
-          - venv
-    - test_all_metrics:
-        requires:
-          - venv
+# The following tests are disabled due to no bandwidth with circleci on the open source plan
+#     - test_FID_determinism:
+#         requires:
+#           - venv
+#     - test_FID_fidelity:
+#         requires:
+#           - venv
+#     - test_KID_determinism:
+#         requires:
+#           - venv
+#     - test_KID_fidelity:
+#         requires:
+#           - venv
+#     - test_all_metrics:
+#         requires:
+#           - venv
 
 
 workflows:
