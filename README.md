@@ -78,7 +78,7 @@ makes overall training time just one hour longer.
 ```python
 from torch_fidelity import calculate_metrics
 
-# Each input can be either a string (path to images, registered input), or a Dataset instance
+# Each input can be either a string (path to images, registered input), or a Dataset instance, or uint8 tensor of images [N,C,H,W]
 metrics_dict = calculate_metrics(input1, input2, cuda=True, isc=True, fid=True, kid=True, verbose=False)
 
 print(metrics_dict)
@@ -137,7 +137,7 @@ into the feature extractor (refer to `Cifar10_RGB` for example),
 
 #### Working with Files
 
-If a positional argument is not a Dataset instance or a registered input, it is treated as a directory with images (jpg, png). 
+If a positional argument is not a Dataset instance or a registered input or a 4D uint8 tensor, it is treated as a directory with images (jpg, png). 
 To collect files recursively under the provided path, add `--samples-find-deep` command line key, or set 
 the `samples_find_deep` keyword argument to True. 
 To change file extensions picked up when traversing the path, specify `--samples-find-ext` command line key or 

@@ -74,7 +74,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             p.requires_grad_(False)
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, f'Expecting image as torch.Tensor with dtype=torch.uint8, got {type(x)}')
         features = {}
         remaining_features = self.features_list.copy()
 
