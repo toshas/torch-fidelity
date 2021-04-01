@@ -210,12 +210,15 @@ def extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_ext
     if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
         cached_filename_prefix = f'{cacheable_input_name}-{feat_extractor_name}-features-'
-        featuresdict = cache_lookup_group_recompute_all_on_any_miss(
-            cached_filename_prefix,
-            feat_extractor.get_requested_features_list(),
-            fn_recompute,
-            **kwargs,
-        )
+        if not get_kwarg('cache_features', kwargs):
+            featuresdict = fn_recompute()
+        else:
+            featuresdict = cache_lookup_group_recompute_all_on_any_miss(
+                cached_filename_prefix,
+                feat_extractor.get_requested_features_list(),
+                fn_recompute,
+                **kwargs,
+            )
     else:
         featuresdict = fn_recompute()
     return featuresdict

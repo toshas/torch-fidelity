@@ -23,6 +23,7 @@ DEFAULTS = {
     'datasets_download': True,
     'cache_root': None,
     'cache': True,
+    'cache_features': True,
     'cache_input1_name': None,
     'cache_input2_name': None,
     'rng_seed': 2020,

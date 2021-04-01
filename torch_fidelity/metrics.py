@@ -66,6 +66,8 @@ def calculate_metrics(input_1, input_2=None, **kwargs):
             Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache.
         cache: bool (default: True)
             Use file cache for features and statistics.
+        cache_features: bool (default: True)
+            Use file cache for features specifically. If False, will disable caching of features, but retain caching of statistics.
         cache_input1_name: str (default: None)
             Assigns a cache entry to input1 (if a path) and forces caching of features on it if not None.
         cache_input2_name: str (default: None)
