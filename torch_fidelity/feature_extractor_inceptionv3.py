@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
-from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert
-from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+from .feature_extractor_base import FeatureExtractorBase
+from .helpers import vassert
+from .interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 PT_INCEPTION_URL = \
     'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'

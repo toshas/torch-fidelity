@@ -1,7 +1,7 @@
 import json
 import sys
 
-from torch_fidelity.defaults import DEFAULTS
+from .defaults import DEFAULTS
 
 
 def vassert(truecond, message):

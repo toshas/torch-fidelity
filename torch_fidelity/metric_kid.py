@@ -2,8 +2,8 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
+from .helpers import get_kwarg, vassert, vprint
+from .utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
     get_input_cacheable_name
 
 KEY_METRIC_KID_MEAN = 'kernel_inception_distance_mean'

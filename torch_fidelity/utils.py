@@ -7,11 +7,11 @@ import torch.hub
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from torch_fidelity.datasets import ImagesPathDataset
-from torch_fidelity.defaults import DEFAULTS
-from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
+from .datasets import ImagesPathDataset
+from .defaults import DEFAULTS
+from .feature_extractor_base import FeatureExtractorBase
+from .helpers import get_kwarg, vassert, vprint
+from .registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
 
 
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):

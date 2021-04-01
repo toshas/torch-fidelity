@@ -1,8 +1,8 @@
 import numpy as np
 import torch
 
-from torch_fidelity.helpers import get_kwarg, vprint
-from torch_fidelity.utils import extract_featuresdict_from_input_cached, create_feature_extractor, \
+from .helpers import get_kwarg, vprint
+from .utils import extract_featuresdict_from_input_cached, create_feature_extractor, \
     get_input_cacheable_name
 
 KEY_METRIC_ISC_MEAN = 'inception_score_mean'
