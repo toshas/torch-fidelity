@@ -250,7 +250,7 @@ latest versions of the dependencies.
 Original implementations:
 * Inception Score: 
   * https://github.com/openai/improved-gan/blob/master/inception_score/model.py
-  * https://github.com/bioinf-jku/TTUR/fid.py 
+  * https://github.com/bioinf-jku/TTUR/blob/master/fid.py
   * https://github.com/bioinf-jku/TTUR/blob/master/FIDvsINC/fidutils.py
 * Fréchet Inception Distance: https://github.com/bioinf-jku/TTUR/blob/master/fid.py
 * Kernel Inception Distance: https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py
