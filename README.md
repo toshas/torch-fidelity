@@ -252,7 +252,7 @@ Original implementations:
   * https://github.com/openai/improved-gan/blob/master/inception_score/model.py
   * https://github.com/bioinf-jku/TTUR/fid.py 
   * https://github.com/bioinf-jku/TTUR/blob/master/FIDvsINC/fidutils.py
-* Fréchet Inception Distance: https://github.com/bioinf-jku/TTUR/fid.py
+* Fréchet Inception Distance: https://github.com/bioinf-jku/TTUR/blob/master/fid.py
 * Kernel Inception Distance: https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py
 
 [1] Tim Salimans et al., Improved Techniques for Training GANs, https://arxiv.org/pdf/1606.03498.pdf
