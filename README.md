@@ -3,8 +3,9 @@
 [![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
-[![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pypi.org/project/torch-fidelity/)
+[![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pepy.tech/project/torch-fidelity)
 ![License](https://img.shields.io/pypi/l/torch-fidelity)
+[![Twitter Follow](https://img.shields.io/twitter/follow/AntonObukhov1?style=social&label=Subscribe!)](https://twitter.com/antonobukhov1)
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
@@ -226,18 +227,32 @@ pipeline, between reference implementations and `torch_fidelity`:
 The badge 'CircleCI: passing' means that the declared tolerances were met during the last test run, involving all the 
 latest versions of the dependencies. 
 
-## Feedback
+## Feedback and Citation
 
-Feedback in the form of comments, tickets, and stars is welcome!
+* Feedback in the form of comments, tickets, and stars is welcome!
+* Citation might be a good idea to reinforce the evaluation protocol, which is necessary for reproducibility. To cite this repository, use the BibTex below:
+
+```
+@misc{obukhov2020torchfidelity,
+  author={Anton Obukhov and Maximilian Seitzer and Po-Wei Wu and Semen Zhydenko and Jonathan Kyl and Elvis Yu-Jing Lin},
+  year=2020,
+  title={High-fidelity performance metrics for generative models in PyTorch},
+  url={https://github.com/toshas/torch-fidelity},
+  publisher={Zenodo},
+  version={v0.2.0},
+  doi={10.5281/zenodo.3786540},
+  note={Version: 0.2.0, DOI: 10.5281/zenodo.3786540}
+}
+```
 
 ## References and Acknowledgements
 
 Original implementations:
 * Inception Score: 
   * https://github.com/openai/improved-gan/blob/master/inception_score/model.py
-  * https://github.com/bioinf-jku/TTUR/fid.py 
+  * https://github.com/bioinf-jku/TTUR/blob/master/fid.py
   * https://github.com/bioinf-jku/TTUR/blob/master/FIDvsINC/fidutils.py
-* Fréchet Inception Distance: https://github.com/bioinf-jku/TTUR/fid.py
+* Fréchet Inception Distance: https://github.com/bioinf-jku/TTUR/blob/master/fid.py
 * Kernel Inception Distance: https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py
 
 [1] Tim Salimans et al., Improved Techniques for Training GANs, https://arxiv.org/pdf/1606.03498.pdf
