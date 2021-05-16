@@ -51,3 +51,20 @@ class STL10_RGB(STL10):
     def __getitem__(self, index):
         img, target = super().__getitem__(index)
         return img
+
+
+class RandomlyGeneratedDataset(Dataset):
+    def __init__(self, num_samples, *dimensions, dtype=torch.uint8, seed=2021):
+        vassert(dtype == torch.uint8, 'Unsupported dtype')
+        rng_stash = torch.get_rng_state()
+        try:
+            torch.manual_seed(seed)
+            self.imgs = torch.randint(0, 255, (num_samples, *dimensions), dtype=dtype)
+        finally:
+            torch.set_rng_state(rng_stash)
+
+    def __len__(self):
+        return self.imgs.shape[0]
+
+    def __getitem__(self, i):
+        return self.imgs[i]

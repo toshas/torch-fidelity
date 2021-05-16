@@ -10,7 +10,8 @@ class FeatureExtractorBase(nn.Module):
         vassert(type(features_list) in (list, tuple), 'Wrong features list type')
         vassert(
             all((a in self.get_provided_features_list() for a in features_list)),
-            'Requested features are not on the list of provided'
+            f'Requested features {tuple(features_list)} are not on the list provided by the selected feature extractor '
+            f'{self.get_provided_features_list()}'
         )
         vassert(len(features_list) == len(set(features_list)), 'Duplicate features requested')
         self.name = name

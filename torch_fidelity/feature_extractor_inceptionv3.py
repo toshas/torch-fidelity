@@ -102,7 +102,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 64 x 73 x 73
 
         if '64' in remaining_features:
-            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('64')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -115,7 +115,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 192 x 35 x 35
 
         if '192' in remaining_features:
-            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('192')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -138,7 +138,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 768 x 17 x 17
 
         if '768' in remaining_features:
-            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('768')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
