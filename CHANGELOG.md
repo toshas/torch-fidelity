@@ -45,8 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   safe to use torch-fidelity in multiprocessing environment, such as a compute cluster with a shared file system.
 
 ### Fixed
-- GH-15: Fix '64', '192', and '768' feature layers usage in all metrics
-- GH-8: Fix a missing exception for when KID subset size is larger than the number of samples in one of the inputs
+- [#15](https://github.com/toshas/torch-fidelity/issues/15): Fix '64', '192', and '768' feature layers usage in all metrics
+- [#8](https://github.com/toshas/torch-fidelity/issues/8): Fix a missing exception for when KID subset size is larger than the number of samples in one of the inputs
 - Fix a missing check that the elements of inputs are actually instances of `torch.Tensor`
 
 ## [0.2.0] - 2020-05-05
