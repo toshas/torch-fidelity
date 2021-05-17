@@ -103,7 +103,7 @@ def main():
                         help='Do not output progress information to STDERR')
 
     args, unknown = parser.parse_known_args()
-    if unknown is not None:
+    if type(unknown) is list and len(unknown) > 0:
         print(f'Ignoring unrecognized command line options: {unknown}', file=sys.stderr)
         print(f'  This may be due the command line options change in the most recent version,', file=sys.stderr)
         print(f'  Use ''fidelity --help'' to see the up-to-date command line options,', file=sys.stderr)

@@ -11,7 +11,7 @@ from torch_fidelity.helpers import vassert
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 PT_INCEPTION_URL = \
-    'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/pt_inception-2015-12-05-6726825d.pth'
+    'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth'
 
 
 class FeatureExtractorInceptionV3(FeatureExtractorBase):

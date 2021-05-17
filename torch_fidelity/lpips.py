@@ -3,16 +3,8 @@ import torch.nn as nn
 import torchvision
 from torch.hub import load_state_dict_from_url
 
-# Official PyTorch lpips checkpoint, contains only lpips weights used with VGG16, relies on torchvision checkpoint;
-# can break if pytorch decide retrain and replace VGG16 checkpoint.
-PT_LPIPS_VGG16_URL = 'https://github.com/richzhang/PerceptualSimilarity/raw/master/models/weights/v0.1/vgg.pth'
-# Official TF port of the official PyTorch implementation, includes full VGG16+lpips checkpoint in pb format
-# http://rail.eecs.berkeley.edu/models/lpips/
-# Used in StyleGan, unpickling depends on their code, includes pretrained VGG16+lpips checkpoint
-# http://d36zk2xti64re0.cloudfront.net/stylegan1/networks/metrics/vgg16_zhang_perceptual.pkl
-
-# VGG16 base checkpoint: may not match what PT_LPIPS_VGG16_URL was trained with - requires checking!
 PT_VGG16_BASE_URL = 'https://download.pytorch.org/models/vgg16-397923af.pth'
+PT_LPIPS_VGG16_URL = 'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-vgg16-lpips.pth'
 
 
 class VGG16features(torch.nn.Module):

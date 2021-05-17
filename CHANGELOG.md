@@ -29,7 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--ppl-z-interp-mode`: Noise interpolation mode in PPL
 - ONNX model loading via command line (`--model`) functionality to support PPL
 - STL-10 dataset registered inputs: `stl10-train`, `stl10-test`, `stl10-unlabeled`
+- Test for LPIPS fidelity as compared to StyleGAN PyTorch implementation
 - Test for feature extraction layer
+- Unrecognized command line arguments warning
 
 ### Changed
 - API
