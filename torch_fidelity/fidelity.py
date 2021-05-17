@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
@@ -38,7 +39,8 @@ def main():
                         help='Type of noise for generator model input')
     parser.add_argument('--model-z-size', default=DEFAULTS['model_z_size'], type=int,
                         help='Dimensionality of generator noise')
-    parser.add_argument('--model-conditioning-num-classes', default=DEFAULTS['model_conditioning_num_classes'], type=int,
+    parser.add_argument('--model-conditioning-num-classes', default=DEFAULTS['model_conditioning_num_classes'],
+                        type=int,
                         help='Number of classes for conditional generation, or 0 for unconditional')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
                         choices=FEATURE_EXTRACTORS_REGISTRY.keys(),
@@ -80,11 +82,13 @@ def main():
     parser.add_argument('--samples-ext-lossy', default=DEFAULTS['samples_ext_lossy'], type=str,
                         help=f'List of extensions to warn about lossy compression')
     parser.add_argument('--datasets-root', default=DEFAULTS['datasets_root'], type=str,
-                        help='Path to built-in torchvision datasets root. Defaults to $ENV_TORCH_HOME/fidelity_datasets')
+                        help='Path to built-in torchvision datasets root. '
+                             'Defaults to $ENV_TORCH_HOME/fidelity_datasets')
     parser.add_argument('--no-datasets-download', action='store_true',
                         help='Do not download torchvision datasets to dataset_root')
     parser.add_argument('--cache-root', default=DEFAULTS['cache_root'], type=str,
-                        help='Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache')
+                        help='Path to file cache for features and statistics. '
+                             'Defaults to $ENV_TORCH_HOME/fidelity_cache')
     parser.add_argument('--no-cache', action='store_true',
                         help='Do not use file cache for features and statistics')
     parser.add_argument('--cache-input1-name', default=DEFAULTS['cache_input1_name'], type=str,
@@ -98,7 +102,12 @@ def main():
     parser.add_argument('--silent', action='store_true',
                         help='Do not output progress information to STDERR')
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    if unknown is not None:
+        print(f'Ignoring unrecognized command line options: {unknown}', file=sys.stderr)
+        print(f'  This may be due the command line options change in the most recent version,', file=sys.stderr)
+        print(f'  Use ''fidelity --help'' to see the up-to-date command line options,', file=sys.stderr)
+        print(f'  See https://github.com/toshas/torch-fidelity/blob/master/CHANGELOG.md', file=sys.stderr)
 
     args.verbose = not args.silent
     args.datasets_download = not args.no_datasets_download

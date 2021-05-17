@@ -32,7 +32,7 @@ def calculate_metrics(**kwargs):
         ppl: bool (default: False)
             Calculate PPL (Perceptual Path Length).
         model: str (default: None)
-            Path to generator model in ONNX format.
+            Path to generator model in ONNX format, or an instance of torch.nn.Module.
         model_z_type: str (default: normal)
             Type of noise for generator model input.
         model_z_size: int (default: None)
