@@ -1,3 +1,7 @@
+# Functions mmd2 and polynomial_kernel are adapted from
+#   https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py
+#   Distributed under BSD 3-Clause: https://github.com/mbinkowski/MMD-GAN/blob/master/LICENSE
+
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -11,8 +15,6 @@ KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
 
 
 def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est='unbiased'):
-    # based on https://github.com/dougalsutherland/opt-mmd/blob/master/two_sample/mmd.py
-    # changed to not compute the full kernel matrix at once
     vassert(mmd_est in ('biased', 'unbiased', 'u-statistic'), 'Invalid value of mmd_est')
 
     m = K_XX.shape[0]

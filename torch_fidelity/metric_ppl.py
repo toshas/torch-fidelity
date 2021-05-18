@@ -10,6 +10,9 @@ KEY_METRIC_PPL = 'perceptual_path_length'
 
 
 def ppl_model_to_metric(**kwargs):
+    """
+    Inspired by https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
+    """
     model = get_kwarg('model', kwargs)
     is_cuda = get_kwarg('cuda', kwargs)
     verbose = get_kwarg('verbose', kwargs)

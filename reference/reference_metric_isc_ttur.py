@@ -1,8 +1,11 @@
 # !/usr/bin/env python3
+
 # Adaptation of the following sources:
-# https://github.com/openai/improved-gan/blob/master/inception_score/model.py commit id 0b7ed92
-# https://github.com/bioinf-jku/TTUR/fid.py                                   commit id d4baae8
-# https://github.com/bioinf-jku/TTUR/blob/master/FIDvsINC/fidutils.py         commit id a5c0140
+#   https://github.com/openai/improved-gan/blob/master/inception_score/model.py commit id 0b7ed92
+#   https://github.com/bioinf-jku/TTUR/blob/master/fid.py                       commit id d4baae8
+#   https://github.com/bioinf-jku/TTUR/blob/master/FIDvsINC/fidutils.py         commit id a5c0140
+#   Distributed under Apache License 2.0: https://github.com/bioinf-jku/TTUR/blob/master/LICENSE
+
 import argparse
 import json
 import math
@@ -18,7 +21,9 @@ from PIL import Image
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
 
-DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+# InceptionV3 pretrained weights from TensorFlow models library
+#   Distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
+URL_INCEPTION_V3 = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 
 KEY_IS_MEAN = 'inception_score_mean'
 KEY_IS_STD = 'inception_score_std'
@@ -45,8 +50,6 @@ def glob_images_path(path, glob_recursively, verbose=False):
     return files
 
 
-# Call this function with list of images. Each of elements should be a
-# numpy array with values ranging from 0 to 255.
 def get_inception_score(model, images, splits=10, verbose=False):
     assert (type(images) == list)
     assert (type(images[0]) == np.ndarray)
@@ -81,14 +84,14 @@ def get_inception_score(model, images, splits=10, verbose=False):
 
 def init_inception():
     model_dir = tempfile.gettempdir()
-    filename = DATA_URL.split('/')[-1]
+    filename = URL_INCEPTION_V3.split('/')[-1]
     filepath = os.path.join(model_dir, filename)
     if not os.path.exists(filepath):
         def _progress(count, block_size, total_size):
             sys.stderr.write('\r>> Downloading %s %.1f%%' % (
                 filename, float(count * block_size) / float(total_size) * 100.0))
             sys.stderr.flush()
-        filepath, _ = request.urlretrieve(DATA_URL, filepath, _progress)
+        filepath, _ = request.urlretrieve(URL_INCEPTION_V3, filepath, _progress)
         statinfo = os.stat(filepath)
         print(f'Succesfully downloaded {filename} {statinfo.st_size} bytes.', file=sys.stderr)
     tarfile.open(filepath, 'r:gz').extractall(model_dir)

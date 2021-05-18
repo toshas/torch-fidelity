@@ -1,6 +1,9 @@
 # !/usr/bin/env python3
+
 # Adaptation of the following sources:
-# https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py commit id 4738ea6
+#   https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py commit id 4738ea6
+#   Distributed under BSD 3-Clause: https://github.com/mbinkowski/MMD-GAN/blob/master/LICENSE
+
 import json
 import os.path
 import sys
@@ -15,6 +18,10 @@ from scipy import linalg
 from sklearn.metrics.pairwise import polynomial_kernel
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
+
+# InceptionV3 pretrained weights from TensorFlow models library
+#   Distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
+URL_INCEPTION_V3 = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 
 
 def glob_images_path(path, glob_recursively, verbose=False):
@@ -41,16 +48,14 @@ def glob_images_path(path, glob_recursively, verbose=False):
 class Inception(object):
     def __init__(self):
         MODEL_DIR = tempfile.gettempdir()
-        DATA_URL = ('http://download.tensorflow.org/models/image/imagenet/'
-                    'inception-2015-12-05.tgz')
         self.softmax_dim = 1008
         self.coder_dim = 2048
 
-        filename = DATA_URL.split('/')[-1]
+        filename = URL_INCEPTION_V3.split('/')[-1]
         filepath = os.path.join(MODEL_DIR, filename)
 
         if not os.path.exists(filepath):
-            filepath, _ = request.urlretrieve(DATA_URL)
+            filepath, _ = request.urlretrieve(URL_INCEPTION_V3)
 
         tarfile.open(filepath, 'r:gz').extractall(MODEL_DIR)
         with tf.gfile.FastGFile(os.path.join(
@@ -112,9 +117,7 @@ class LeNet(object):
 def featurize(images, model, batch_size=100, transformer=np.asarray,
               get_preds=True, get_codes=False,
               out_preds=None, out_codes=None, verbose=False):
-    '''
-    images: a list of numpy arrays with values in [0, 255]
-    '''
+    """images: a list of numpy arrays with values in [0, 255]"""
     sub = transformer(images[:10])
     lo, hi = np.min(sub), np.max(sub)
     assert(sub.ndim == 4)

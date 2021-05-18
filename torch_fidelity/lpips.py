@@ -1,17 +1,29 @@
+# Adaptation of the following sources:
+#   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/pretrained_networks.py
+#   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/lpips.py
+#   Distributed under BSD 2-Clause: https://github.com/richzhang/PerceptualSimilarity/blob/master/LICENSE
+
 import torch
 import torch.nn as nn
 import torchvision
 from torch.hub import load_state_dict_from_url
 
-PT_VGG16_BASE_URL = 'https://download.pytorch.org/models/vgg16-397923af.pth'
-PT_LPIPS_VGG16_URL = 'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-vgg16-lpips.pth'
+# VGG16 pretrained weights from torchvision models hub
+#   Distributed under BSD 3-Clause: https://github.com/pytorch/vision/blob/master/LICENSE
+#   Original weights distributed under CC-BY: https://www.robots.ox.ac.uk/~vgg/research/very_deep/
+URL_VGG16_BASE = 'https://download.pytorch.org/models/vgg16-397923af.pth'
+
+# VGG16 LPIPS original weights re-uploaded from the following location:
+#   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/weights/v0.1/vgg.pth
+#   Distributed under BSD 2-Clause: https://github.com/richzhang/PerceptualSimilarity/blob/master/LICENSE
+URL_VGG16_LPIPS = 'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-vgg16-lpips.pth'
 
 
 class VGG16features(torch.nn.Module):
     def __init__(self):
         super().__init__()
         vgg_pretrained_features = torchvision.models.vgg16(pretrained=False)
-        vgg_pretrained_features.load_state_dict(load_state_dict_from_url(PT_VGG16_BASE_URL))
+        vgg_pretrained_features.load_state_dict(load_state_dict_from_url(URL_VGG16_BASE))
         vgg_pretrained_features = vgg_pretrained_features.features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
@@ -75,7 +87,7 @@ class LPIPS_VGG16(nn.Module):
         self.lin3 = NetLinLayer(self.chns[3], use_dropout=True)
         self.lin4 = NetLinLayer(self.chns[4], use_dropout=True)
         self.lins = [self.lin0, self.lin1, self.lin2, self.lin3, self.lin4]
-        state_dict = load_state_dict_from_url(PT_LPIPS_VGG16_URL, progress=True)
+        state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, progress=True)
         self.load_state_dict(state_dict)
         self.net = VGG16features()
         self.eval()

@@ -1,3 +1,7 @@
+# Functions fid_features_to_statistics and fid_statistics_to_metric are adapted from
+#   https://github.com/bioinf-jku/TTUR/blob/master/fid.py commit id d4baae8
+#   Distributed under Apache License 2.0: https://github.com/bioinf-jku/TTUR/blob/master/LICENSE
+
 import numpy as np
 import scipy.linalg
 import torch

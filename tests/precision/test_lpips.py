@@ -3,7 +3,7 @@ import unittest
 import torch
 import torch.nn.functional as F
 
-from tests.reference.reference_lpips import LPIPS_reference
+from reference.reference_lpips import LPIPS_reference
 from torch_fidelity.lpips import LPIPS_VGG16
 from torch_fidelity.utils import prepare_inputs_as_datasets
 
