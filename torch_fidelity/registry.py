@@ -4,9 +4,12 @@ from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, STL10_
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
 from torch_fidelity.helpers import vassert
+from torch_fidelity.sample_similarity_base import SampleSimilarityBase
+from torch_fidelity.sample_similarity_lpips import SampleSimilarityLPIPS
 
 DATASETS_REGISTRY = dict()
 FEATURE_EXTRACTORS_REGISTRY = dict()
+SAMPLE_SIMILARITY_REGISTRY = dict()
 
 
 def register_dataset(name, fn_create):
@@ -51,6 +54,25 @@ def register_feature_extractor(name, cls):
     FEATURE_EXTRACTORS_REGISTRY[name] = cls
 
 
+def register_sample_similarity(name, cls):
+    r"""
+    Register a new sample similarity (useful for extending sample similarity measures beyond LPIPS-VGG16 for 2D images).
+    Args:
+        name: str
+            A unique name of the sample similarity class.
+        cls: subclass(SampleSimilarityBase)
+            Name of a class subclassed from SampleSimilarityBase, implementing a new sample similarity.
+    """
+    vassert(type(name) is str, 'Sample similarity must be given a name')
+    vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')
+    vassert(os.path.sep not in name, 'Name must not contain path delimiters (slash/backslash)')
+    vassert(name not in SAMPLE_SIMILARITY_REGISTRY, f'Sample similarity "{name}" is already registered')
+    vassert(
+        issubclass(cls, SampleSimilarityBase), 'Sample similarity class must be subclassed from SampleSimilarityBase'
+    )
+    SAMPLE_SIMILARITY_REGISTRY[name] = cls
+
+
 register_dataset(
     'cifar10-train',
     lambda root, download: Cifar10_RGB(root, train=True, transform=TransformPILtoRGBTensor(), download=download)
@@ -73,3 +95,5 @@ register_dataset(
 )
 
 register_feature_extractor('inception-v3-compat', FeatureExtractorInceptionV3)
+
+register_sample_similarity('lpips-vgg16', SampleSimilarityLPIPS)

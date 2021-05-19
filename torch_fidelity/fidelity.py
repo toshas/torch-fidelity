@@ -6,7 +6,7 @@ import sys
 
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
-from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY
+from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY
 
 
 def main():
@@ -70,6 +70,18 @@ def main():
                         help='Number of samples to generate using the model in PPL')
     parser.add_argument('--ppl-epsilon', default=DEFAULTS['ppl_epsilon'], type=float,
                         help='Interpolation step size in PPL')
+    parser.add_argument('--ppl-reduction', default=DEFAULTS['ppl_reduction'], type=str,
+                        choices=('mean', 'none'),
+                        help='Reduction type to apply to the per-sample output values')
+    parser.add_argument('--ppl-sample-similarity', default=DEFAULTS['ppl_sample_similarity'], type=str,
+                        choices=list(SAMPLE_SIMILARITY_REGISTRY.keys()),
+                        help='Name of the sample similarity to use in PPL metric computation')
+    parser.add_argument('--ppl-sample-similarity-resize', default=DEFAULTS['ppl_sample_similarity_resize'], type=int,
+                        help='Force samples to this size when computing similarity, unless set to None')
+    parser.add_argument('--ppl-discard-percentile-lower', default=DEFAULTS['ppl_discard_percentile_lower'], type=int,
+                        help='Removes the lower percentile of samples before reduction')
+    parser.add_argument('--ppl-discard-percentile-higher', default=DEFAULTS['ppl_discard_percentile_higher'], type=int,
+                        help='Removes the higher percentile of samples before reduction')
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
                         choices=('lerp', 'slerp_any', 'slerp_unit'),
                         help='Noise interpolation mode in PPL')

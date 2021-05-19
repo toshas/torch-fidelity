@@ -39,6 +39,12 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
     if input.dim() != 4:
         raise ValueError('input must be a 4-D tensor')
 
+    if not torch.is_floating_point(input):
+        raise ValueError('input must be of floating point dtype')
+
+    if size is not None and (type(size) not in (tuple, list) or len(size) != 2):
+        raise ValueError('size must be a list or a tuple of two elements')
+
     if align_corners is None:
         raise ValueError('align_corners is not specified (use this function for a complete determinism)')
 

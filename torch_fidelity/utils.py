@@ -13,7 +13,7 @@ from torch_fidelity.datasets import ImagesPathDataset
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY
+from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY
 
 
 def batch_lerp(a, b, t):
@@ -58,14 +58,13 @@ def batch_interp(a, b, t, method):
 
 
 def sample_random(rng, shape, z_type):
+    vassert(z_type in ('normal', 'unit', 'uniform_0_1'), f'Sampling from "{z_type}" is not implemented"')
     if z_type == 'normal':
         return torch.from_numpy(rng.randn(*shape)).float()
     elif z_type == 'unit':
         return batch_normalize_last_dim(torch.from_numpy(rng.rand(*shape)).float())
     elif z_type == 'uniform_0_1':
         return torch.from_numpy(rng.rand(*shape)).float()
-    else:
-        vassert(False, f'Sampling from "{z_type}" is not implemented')
 
 
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
@@ -107,6 +106,17 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     if cuda:
         feat_extractor.cuda()
     return feat_extractor
+
+
+def create_sample_similarity(name, cuda=True, **kwargs):
+    vassert(name in SAMPLE_SIMILARITY_REGISTRY, f'Sample similarity "{name}" not registered')
+    vprint(get_kwarg('verbose', kwargs), f'Creating sample similarity "{name}"')
+    cls = SAMPLE_SIMILARITY_REGISTRY[name]
+    sample_similarity = cls(name, **kwargs)
+    sample_similarity.eval()
+    if cuda:
+        sample_similarity.cuda()
+    return sample_similarity
 
 
 def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):

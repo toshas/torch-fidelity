@@ -3,8 +3,7 @@ import torch
 from tqdm import tqdm
 
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.lpips import LPIPS_VGG16
-from torch_fidelity.utils import OnnxModel, sample_random, batch_interp
+from torch_fidelity.utils import OnnxModel, sample_random, batch_interp, create_sample_similarity
 
 KEY_METRIC_PPL = 'perceptual_path_length'
 
@@ -13,38 +12,53 @@ def ppl_model_to_metric(**kwargs):
     """
     Inspired by https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
     """
-    model = get_kwarg('model', kwargs)
+    batch_size = get_kwarg('batch_size', kwargs)
     is_cuda = get_kwarg('cuda', kwargs)
     verbose = get_kwarg('verbose', kwargs)
-    num_samples = get_kwarg('ppl_num_samples', kwargs)
+
+    model = get_kwarg('model', kwargs)
+    model_conditioning_num_classes = get_kwarg('model_conditioning_num_classes', kwargs)
     model_z_type = get_kwarg('model_z_type', kwargs)
     model_z_size = get_kwarg('model_z_size', kwargs)
-    model_conditioning_num_classes = get_kwarg('model_conditioning_num_classes', kwargs)
+
     epsilon = get_kwarg('ppl_epsilon', kwargs)
     interp = get_kwarg('ppl_z_interp_mode', kwargs)
-    batch_size = get_kwarg('batch_size', kwargs)
+    num_samples = get_kwarg('ppl_num_samples', kwargs)
+    reduction = get_kwarg('ppl_reduction', kwargs)
+    similarity_name = get_kwarg('ppl_sample_similarity', kwargs)
+    sample_similarity_resize = get_kwarg('ppl_sample_similarity_resize', kwargs)
+    discard_percentile_lower = get_kwarg('ppl_discard_percentile_lower', kwargs)
+    discard_percentile_higher = get_kwarg('ppl_discard_percentile_higher', kwargs)
+
+    vassert(model_conditioning_num_classes >= 0, 'Model can be unconditional (0 classes) or conditional (positive)')
+    vassert(type(model_z_size) is int and model_z_size > 0,
+            'Dimensionality of generator noise not specified ("model_z_size" argument)')
+    vassert(type(epsilon) is float and epsilon > 0, 'Epsilon must be a small positive floating point number')
+    vassert(type(num_samples) is int and num_samples > 0, 'Number of samples must be positive')
+    vassert(reduction in ('none', 'mean'), 'Reduction must be one of [none, mean]')
+    vassert(discard_percentile_lower is None or 0 < discard_percentile_lower < 100, 'Invalid percentile')
+    vassert(discard_percentile_higher is None or 0 < discard_percentile_higher < 100, 'Invalid percentile')
+    if discard_percentile_lower is not None and discard_percentile_higher is not None:
+        vassert(0 < discard_percentile_lower < discard_percentile_higher < 100, 'Invalid percentiles')
 
     vprint(verbose, 'Computing Perceptual Path Length')
 
-    vassert(model_z_size is not None, 'Dimensionality of generator noise not specified ("model_z_size" argument)')
-    vassert(model_conditioning_num_classes >= 0, 'Model can be unconditional (0 classes) or conditional (positive)')
+    sample_similarity = create_sample_similarity(
+        similarity_name,
+        sample_similarity_resize=sample_similarity_resize,
+        **kwargs
+    )
 
     is_cond = model_conditioning_num_classes > 0
 
     if type(model) is str:
         model = OnnxModel(model)
     else:
-        vassert(
-            isinstance(model, torch.nn.Module),
-            'Model can be either a path to ONNX model, or an instance of torch.nn.Module'
-        )
+        vassert(isinstance(model, torch.nn.Module),
+                'Model can be either a path to ONNX model, or an instance of torch.nn.Module')
         if is_cuda:
             model.cuda()
         model.eval()
-
-    lpips = LPIPS_VGG16()
-    if is_cuda:
-        lpips.cuda()
 
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
 
@@ -82,28 +96,28 @@ def ppl_model_to_metric(**kwargs):
                 rgb_e0 = model.forward(batch_lat_e0)
                 rgb_e1 = model.forward(batch_lat_e1)
 
-            rgb_e01 = torch.cat((rgb_e0, rgb_e1), dim=0)
-
-            if rgb_e01.shape[-1] > 256:
-                rgb_e01 = torch.nn.functional.interpolate(rgb_e01, (256, 256), mode='area')
-            else:
-                rgb_e01 = torch.nn.functional.interpolate(rgb_e01, (256, 256), mode='bilinear', align_corners=False)
-
-            rgb_e01 = ((rgb_e01 + 1) * (255. / 2)).to(dtype=torch.uint8)
-
-            rgb_e0, rgb_e1 = rgb_e01[0:batch_sz], rgb_e01[batch_sz:]
-
-            dist_lat_e01 = lpips.forward(rgb_e0, rgb_e1) / (epsilon ** 2)
+            sim = sample_similarity(rgb_e0, rgb_e1)
+            dist_lat_e01 = sim / (epsilon ** 2)
             distances.append(dist_lat_e01.cpu().numpy())
 
             t.update(batch_sz)
 
     distances = np.concatenate(distances, axis=0)
 
-    lo = np.percentile(distances, 1, interpolation='lower')
-    hi = np.percentile(distances, 99, interpolation='higher')
-    filtered_distances = np.extract(np.logical_and(lo <= distances, distances <= hi), distances)
-    metric = float(np.mean(filtered_distances))
+    cond, lo, hi = None, None, None
+    if discard_percentile_lower is not None:
+        lo = np.percentile(distances, discard_percentile_lower, interpolation='lower')
+        cond = lo <= distances
+    if discard_percentile_higher is not None:
+        hi = np.percentile(distances, discard_percentile_higher, interpolation='higher')
+        cond = np.logical_and(cond, distances <= hi)
+    if cond is not None:
+        distances = np.extract(cond, distances)
+
+    if reduction == 'mean':
+        metric = float(np.mean(distances))
+    else:
+        metric = distances
 
     return {
         KEY_METRIC_PPL: metric,

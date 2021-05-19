@@ -2,11 +2,16 @@
 #   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/pretrained_networks.py
 #   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/lpips.py
 #   Distributed under BSD 2-Clause: https://github.com/richzhang/PerceptualSimilarity/blob/master/LICENSE
+import sys
+from contextlib import redirect_stdout
 
 import torch
 import torch.nn as nn
 import torchvision
 from torch.hub import load_state_dict_from_url
+
+from torch_fidelity.helpers import vassert
+from torch_fidelity.sample_similarity_base import SampleSimilarityBase
 
 # VGG16 pretrained weights from torchvision models hub
 #   Distributed under BSD 3-Clause: https://github.com/pytorch/vision/blob/master/LICENSE
@@ -23,7 +28,8 @@ class VGG16features(torch.nn.Module):
     def __init__(self):
         super().__init__()
         vgg_pretrained_features = torchvision.models.vgg16(pretrained=False)
-        vgg_pretrained_features.load_state_dict(load_state_dict_from_url(URL_VGG16_BASE))
+        with redirect_stdout(sys.stderr):
+            vgg_pretrained_features.load_state_dict(load_state_dict_from_url(URL_VGG16_BASE))
         vgg_pretrained_features = vgg_pretrained_features.features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
@@ -59,13 +65,13 @@ class VGG16features(torch.nn.Module):
         return h_relu1_2, h_relu2_2, h_relu3_3, h_relu4_3, h_relu5_3
 
 
-def spatial_average(in_tens):
-    return in_tens.mean([2, 3]).squeeze(1)
+def spatial_average(in_tensor):
+    return in_tensor.mean([2, 3]).squeeze(1)
 
 
-def normalize_tensor(in_feat, eps=1e-10):
-    norm_factor = torch.sqrt(torch.sum(in_feat ** 2, dim=1, keepdim=True))
-    return in_feat / (norm_factor + eps)
+def normalize_tensor(in_features, eps=1e-10):
+    norm_factor = torch.sqrt(torch.sum(in_features ** 2, dim=1, keepdim=True))
+    return in_features / (norm_factor + eps)
 
 
 class NetLinLayer(nn.Module):
@@ -76,9 +82,15 @@ class NetLinLayer(nn.Module):
         self.model = nn.Sequential(*layers)
 
 
-class LPIPS_VGG16(nn.Module):
-    def __init__(self):
-        super().__init__()
+class SampleSimilarityLPIPS(SampleSimilarityBase):
+    def __init__(
+            self,
+            name,
+            sample_similarity_resize=None,
+            **kwargs
+    ):
+        super(SampleSimilarityLPIPS, self).__init__(name)
+        self.sample_similarity_resize = sample_similarity_resize
         self.chns = [64, 128, 256, 512, 512]
         self.L = len(self.chns)
         self.lin0 = NetLinLayer(self.chns[0], use_dropout=True)
@@ -87,7 +99,8 @@ class LPIPS_VGG16(nn.Module):
         self.lin3 = NetLinLayer(self.chns[3], use_dropout=True)
         self.lin4 = NetLinLayer(self.chns[4], use_dropout=True)
         self.lins = [self.lin0, self.lin1, self.lin2, self.lin3, self.lin4]
-        state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, progress=True)
+        with redirect_stdout(sys.stderr):
+            state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, progress=True)
         self.load_state_dict(state_dict)
         self.net = VGG16features()
         self.eval()
@@ -96,19 +109,30 @@ class LPIPS_VGG16(nn.Module):
 
     @staticmethod
     def normalize(x):
-        assert x.dtype == torch.uint8
         # torchvision values in range [0,1] mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225]
         mean_rescaled = (1 + torch.tensor([-.030, -.088, -.188], device=x.device)[None, :, None, None]) * 255 / 2
         inv_std_rescaled = 2 / (torch.tensor([.458, .448, .450], device=x.device)[None, :, None, None] * 255)
         x = (x.float() - mean_rescaled) * inv_std_rescaled
         return x
 
+    @staticmethod
+    def resize(x, size):
+        if x.shape[-1] > size and x.shape[-2] > size:
+            x = torch.nn.functional.interpolate(x, (size, size), mode='area')
+        else:
+            x = torch.nn.functional.interpolate(x, (size, size), mode='bilinear', align_corners=False)
+        return x
+
     def forward(self, in0, in1):
-        assert torch.is_tensor(in0) and torch.is_tensor(in1), 'Inputs must be torch tensors'
-        assert in0.dim() == 4 and in0.shape[1] == 3 and in0.dtype == torch.uint8, 'Input 0 is not B x 3 x H x W @ uint8'
-        assert in1.dim() == 4 and in1.shape[1] == 3 and in1.dtype == torch.uint8, 'Input 1 is not B x 3 x H x W @ uint8'
+        vassert(torch.is_tensor(in0) and torch.is_tensor(in1), 'Inputs must be torch tensors')
+        vassert(in0.dim() == 4 and in0.shape[1] == 3 and in0.dtype == torch.uint8, 'Input 0 is not Bx3xHxW @ uint8')
+        vassert(in1.dim() == 4 and in1.shape[1] == 3 and in1.dtype == torch.uint8, 'Input 1 is not Bx3xHxW @ uint8')
         in0_input = self.normalize(in0)
         in1_input = self.normalize(in1)
+
+        if self.sample_similarity_resize is not None:
+            in0_input = self.resize(in0_input, self.sample_similarity_resize)
+            in1_input = self.resize(in1_input, self.sample_similarity_resize)
 
         outs0 = self.net.forward(in0_input)
         outs1 = self.net.forward(in1_input)
