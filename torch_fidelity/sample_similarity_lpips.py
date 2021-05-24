@@ -83,14 +83,21 @@ class NetLinLayer(nn.Module):
 
 
 class SampleSimilarityLPIPS(SampleSimilarityBase):
+    SUPPORTED_DTYPES = {
+        'uint8': torch.uint8,
+        'float32': torch.float32,
+    }
+
     def __init__(
             self,
             name,
             sample_similarity_resize=None,
+            sample_similarity_dtype=None,
             **kwargs
     ):
         super(SampleSimilarityLPIPS, self).__init__(name)
         self.sample_similarity_resize = sample_similarity_resize
+        self.sample_similarity_dtype = sample_similarity_dtype
         self.chns = [64, 128, 256, 512, 512]
         self.L = len(self.chns)
         self.lin0 = NetLinLayer(self.chns[0], use_dropout=True)
@@ -125,8 +132,12 @@ class SampleSimilarityLPIPS(SampleSimilarityBase):
 
     def forward(self, in0, in1):
         vassert(torch.is_tensor(in0) and torch.is_tensor(in1), 'Inputs must be torch tensors')
-        vassert(in0.dim() == 4 and in0.shape[1] == 3 and in0.dtype == torch.uint8, 'Input 0 is not Bx3xHxW @ uint8')
-        vassert(in1.dim() == 4 and in1.shape[1] == 3 and in1.dtype == torch.uint8, 'Input 1 is not Bx3xHxW @ uint8')
+        vassert(in0.dim() == 4 and in0.shape[1] == 3, 'Input 0 is not Bx3xHxW')
+        vassert(in1.dim() == 4 and in1.shape[1] == 3, 'Input 1 is not Bx3xHxW')
+        if self.sample_similarity_dtype is not None:
+            dtype = self.SUPPORTED_DTYPES.get(self.sample_similarity_dtype, None)
+            vassert(dtype is not None and in0.dtype == dtype and in1.dtype == dtype,
+                    f'Unexpected input dtype ({in0.dtype})')
         in0_input = self.normalize(in0)
         in1_input = self.normalize(in1)
 

@@ -27,6 +27,7 @@ DEFAULTS = {
     'ppl_reduction': 'mean',
     'ppl_sample_similarity': 'lpips-vgg16',
     'ppl_sample_similarity_resize': 256,
+    'ppl_sample_similarity_dtype': 'uint8',
     'ppl_discard_percentile_lower': 1,
     'ppl_discard_percentile_higher': 99,
     'ppl_z_interp_mode': 'slerp_any',

@@ -71,6 +71,8 @@ def calculate_metrics(**kwargs):
             Name of the sample similarity to use in PPL metric computation.
         ppl_sample_similarity_resize: int (default: 256)
             Force samples to this size when computing similarity, unless set to None.
+        ppl_sample_similarity_dtype: str (default: uint8)
+            Check samples are of compatible dtype when computing similarity, unless set to None.
         ppl_discard_percentile_lower: int (default: 1)
             Removes the lower percentile of samples before reduction.
         ppl_discard_percentile_higher: int (default: 99)

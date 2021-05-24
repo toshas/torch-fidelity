@@ -5,7 +5,9 @@ from tqdm import tqdm
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.utils import OnnxModel, sample_random, batch_interp, create_sample_similarity
 
-KEY_METRIC_PPL = 'perceptual_path_length'
+KEY_METRIC_PPL_RAW = 'perceptual_path_length_raw'
+KEY_METRIC_PPL_MEAN = 'perceptual_path_length_mean'
+KEY_METRIC_PPL_STD = 'perceptual_path_length_std'
 
 
 def ppl_model_to_metric(**kwargs):
@@ -27,6 +29,7 @@ def ppl_model_to_metric(**kwargs):
     reduction = get_kwarg('ppl_reduction', kwargs)
     similarity_name = get_kwarg('ppl_sample_similarity', kwargs)
     sample_similarity_resize = get_kwarg('ppl_sample_similarity_resize', kwargs)
+    sample_similarity_dtype = get_kwarg('ppl_sample_similarity_dtype', kwargs)
     discard_percentile_lower = get_kwarg('ppl_discard_percentile_lower', kwargs)
     discard_percentile_higher = get_kwarg('ppl_discard_percentile_higher', kwargs)
 
@@ -46,6 +49,7 @@ def ppl_model_to_metric(**kwargs):
     sample_similarity = create_sample_similarity(
         similarity_name,
         sample_similarity_resize=sample_similarity_resize,
+        sample_similarity_dtype=sample_similarity_dtype,
         **kwargs
     )
 
@@ -90,11 +94,15 @@ def ppl_model_to_metric(**kwargs):
                     batch_labels = batch_labels.cuda(non_blocking=True)
 
             if is_cond:
-                rgb_e0 = model.forward(batch_lat_e0, batch_labels)
-                rgb_e1 = model.forward(batch_lat_e1, batch_labels)
+                rgb_e01 = model.forward(
+                    torch.cat((batch_lat_e0, batch_lat_e1), dim=0),
+                    torch.cat((batch_labels, batch_labels), dim=0)
+                )
             else:
-                rgb_e0 = model.forward(batch_lat_e0)
-                rgb_e1 = model.forward(batch_lat_e1)
+                rgb_e01 = model.forward(
+                    torch.cat((batch_lat_e0, batch_lat_e1), dim=0)
+                )
+            rgb_e0, rgb_e1 = rgb_e01.chunk(2)
 
             sim = sample_similarity(rgb_e0, rgb_e1)
             dist_lat_e01 = sim / (epsilon ** 2)
@@ -114,11 +122,11 @@ def ppl_model_to_metric(**kwargs):
     if cond is not None:
         distances = np.extract(cond, distances)
 
-    if reduction == 'mean':
-        metric = float(np.mean(distances))
-    else:
-        metric = distances
-
-    return {
-        KEY_METRIC_PPL: metric,
+    out = {
+        KEY_METRIC_PPL_MEAN: float(np.mean(distances)),
+        KEY_METRIC_PPL_STD: float(np.std(distances))
     }
+    if reduction == 'none':
+        out[KEY_METRIC_PPL_RAW] = distances
+
+    return out

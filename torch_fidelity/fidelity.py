@@ -78,6 +78,8 @@ def main():
                         help='Name of the sample similarity to use in PPL metric computation')
     parser.add_argument('--ppl-sample-similarity-resize', default=DEFAULTS['ppl_sample_similarity_resize'], type=int,
                         help='Force samples to this size when computing similarity, unless set to None')
+    parser.add_argument('--ppl-sample-similarity-dtype', default=DEFAULTS['ppl_sample_similarity_dtype'], type=str,
+                        help='Check samples are of compatible dtype when computing similarity, unless set to None')
     parser.add_argument('--ppl-discard-percentile-lower', default=DEFAULTS['ppl_discard_percentile_lower'], type=int,
                         help='Removes the lower percentile of samples before reduction')
     parser.add_argument('--ppl-discard-percentile-higher', default=DEFAULTS['ppl_discard_percentile_higher'], type=int,
