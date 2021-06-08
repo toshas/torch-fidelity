@@ -115,7 +115,7 @@ If torchvision datasets do not need to be downloaded, it is possible to disable 
 
 To save time on recomputations of features and statistics of inputs that do not change often, caching is enabled
 on all registered inputs. In addition to that, one can force caching on a path input by assigning a new cache slot name
-to such input via `cache_input1_name` or `cache_input2_name` keys, for the first and second positional arguments
+to such input via `input1_cache_name` or `input2_cache_name` keys, for the first and second positional arguments
 respectively.
 
 ### Extensibility

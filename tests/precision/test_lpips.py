@@ -1,17 +1,18 @@
 import os
+import tempfile
 import unittest
 
 import torch
 import torch.nn.functional as F
 
 from reference.reference_lpips import LPIPS_reference
-from torch_fidelity.utils import prepare_inputs_as_datasets, create_sample_similarity
+from torch_fidelity.utils import prepare_input_from_id, create_sample_similarity
 
 
 class TestLPIPS(unittest.TestCase):
     @staticmethod
     def _get_sample(batch, index=0, size=None):
-        ds = prepare_inputs_as_datasets('cifar10-val')
+        ds = prepare_input_from_id('cifar10-val', datasets_root=tempfile.gettempdir())
         x = torch.cat([ds[i].unsqueeze(0) for i in range(index, index+batch)], dim=0)
         if size is not None:
             x = F.interpolate(x.float(), size=(size, size), mode='bicubic', align_corners=False).to(torch.uint8)

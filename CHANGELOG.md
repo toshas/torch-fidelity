@@ -6,29 +6,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2021-05-17
+## [0.3.0] - 2021-06-08
 ### Added
 - API
   - `calculate_metrics`
     - `ppl`: Calculate PPL (Perceptual Path Length)
-    - `model`: Path to generator model in ONNX format, or an instance of torch.nn.Module
-    - `model_z_type`: Type of noise for generator model input
-    - `model_z_size`: Dimensionality of generator noise
-    - `model_conditioning_num_classes`: Number of classes for conditional generation, or 0 for unconditional
-    - `ppl_num_samples`: Number of samples to generate using the model in PPL
     - `ppl_epsilon`: Interpolation step size in PPL
+    - `ppl_reduction`: Reduction type to apply to the per-sample output values
+    - `ppl_sample_similarity`: Name of the sample similarity to use in PPL metric computation
+    - `ppl_sample_similarity_resize`: Force samples to this size when computing similarity, unless set to None
+    - `ppl_sample_similarity_dtype`: Check samples are of compatible dtype when computing similarity, unless set to None.
+    - `ppl_discard_percentile_lower`: Removes the lower percentile of samples before reduction
+    - `ppl_discard_percentile_higher`: Removes the higher percentile of samples before reduction
     - `ppl_z_interp_mode`: Noise interpolation mode in PPL
+    - `input1_model_z_type`: Type of noise accepted by the input1 generator model
+    - `input1_model_z_size`: Dimensionality of noise accepted by the input1 generator model
+    - `input1_model_num_classes`: Number of classes for conditional generation (0 for unconditional) accepted by the input1 generator model
+    - `input1_model_num_samples`: Number of samples to draw from input1 generator model, when it is provided as a path to ONNX model. This option affects the following metrics: ISC, FID, KID
+    - `input2_model_z_type`: Type of noise accepted by the input2 generator model
+    - `input2_model_z_size`: Dimensionality of noise accepted by the input2 generator model
+    - `input2_model_num_classes`: Number of classes for conditional generation (0 for unconditional) accepted by the input2 generator model
+    - `input2_model_num_samples`: Number of samples to draw from input2 generator model, when it is provided as a path to ONNX model. This option affects the following metrics: ISC, FID, KID
 - Command line
   - `--ppl`: Calculate PPL (Perceptual Path Length)
-  - `--model`: Path to generator model in ONNX format
-  - `--model-z-type`: Type of noise for generator model input
-  - `--model-z-size`: Dimensionality of generator noise
-  - `--model-conditioning-num-classes`: Number of classes for conditional generation, or 0 for unconditional
-  - `--ppl-num-samples`: Number of samples to generate using the model in PPL
   - `--ppl-epsilon`: Interpolation step size in PPL
+  - `--ppl-reduction`: Reduction type to apply to the per-sample output values
+  - `--ppl-sample-similarity`: Name of the sample similarity to use in PPL metric computation
+  - `--ppl-sample-similarity-resize`: Force samples to this size when computing similarity, unless set to None 
+  - `--ppl-sample-similarity-dtype`: Check samples are of compatible dtype when computing similarity, unless set to None.
+  - `--ppl-discard-percentile-lower`: Removes the lower percentile of samples before reduction
+  - `--ppl-discard-percentile-higher`: Removes the higher percentile of samples before reduction
   - `--ppl-z-interp-mode`: Noise interpolation mode in PPL
-- ONNX model loading via command line (`--model`) functionality to support PPL
-- STL-10 dataset registered inputs: `stl10-train`, `stl10-test`, `stl10-unlabeled`
+  - `--input1-model-z-type`: Type of noise accepted by the input1 generator model
+  - `--input1-model-z-size`: Dimensionality of noise accepted by the input1 generator model
+  - `--input1-model-num-classes`: Number of classes for conditional generation (0 for unconditional) accepted by the input1 generator model
+  - `--input1-model-num-samples`: Number of samples to draw from input1 generator model, when it is provided as a path to ONNX model. This option affects the following metrics: ISC, FID, KID
+  - `--input2-model-z-type`: Type of noise accepted by the input2 generator model
+  - `--input2-model-z-size`: Dimensionality of noise accepted by the input2 generator model
+  - `--input2-model-num-classes`: Number of classes for conditional generation (0 for unconditional) accepted by the input2 generator model
+  - `--input2-model-num-samples`: Number of samples to draw from input2 generator model, when it is provided as a path to ONNX model. This option affects the following metrics: ISC, FID, KID
+- Support generative model modules as inputs to all metrics  
+- ONNX model loading via command line functionality to support framework-agnostic metrics calculation
+- Noise source types and latent vector interpolation methods can now be registered and dispatched similar to registered inputs
+- Registered inputs: `stl10-train`, `stl10-test`, `stl10-unlabeled`
+- Registered noise source types: `normal`, `uniform_0_1`, `unit` 
+- Registered latent vector interpolation methods: `lerp`, `slerp_any`, `slerp` 
+- Example SNGAN training and evaluation script (`examples/sngan_cifar10.py`)
 - Test for LPIPS fidelity as compared to StyleGAN PyTorch implementation
 - Test for feature extraction layer
 - Unrecognized command line arguments warning
@@ -38,11 +61,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - First input positional argument of `calculate_metrics` is now expected as a value to kwarg `input1`
   - Second input (optional) positional argument of `calculate_metrics` is now expected as a value to kwarg argument 
   `input2`
+  - `cache_input1_name` renamed to `input1_cache_name`  
+  - `cache_input2_name` renamed to `input2_cache_name`  
+  - `rng_seed` default value from 2020 to 2021
 - Command line
   - First input positional argument is now expected as a value to the key `--input1`
   - Second input (optional) positional argument is now expected as a value to the key `--input2`
   - `--datasets-downloaded` renamed to `--no-datasets-download`
   - `--samples-alphanumeric` renamed to `--no-samples-shuffle`
+  - `--cache-input1-name` renamed to `--input1-cache-name`  
+  - `--cache-input2-name` renamed to `--input2-cache-name`  
+  - `--rng-seed` default value from 2020 to 2021
 - Change `torch.save` to an atomic saving operation in all functions of the caching layer, which makes it 
   safe to use torch-fidelity in multiprocessing environment, such as a compute cluster with a shared file system.
 

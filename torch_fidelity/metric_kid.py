@@ -7,8 +7,7 @@ import torch
 from tqdm import tqdm
 
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
-    get_input_cacheable_name
+from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached
 
 KEY_METRIC_KID_MEAN = 'kernel_inception_distance_mean'
 KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
@@ -95,7 +94,7 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
 
     for i in tqdm(
             range(kid_subsets), disable=not verbose, leave=False, unit='subsets',
-            desc='Computing Kernel Inception Distance'
+            desc='Kernel Inception Distance'
     ):
         f1 = features_1[rng.choice(n_samples_1, kid_subset_size, replace=False)]
         f2 = features_2[rng.choice(n_samples_2, kid_subset_size, replace=False)]
@@ -108,12 +107,14 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
         )
         mmds[i] = o
 
-    vprint(verbose, 'Computing Kernel Inception Distance')
-
-    return {
+    out = {
         KEY_METRIC_KID_MEAN: float(np.mean(mmds)),
         KEY_METRIC_KID_STD: float(np.std(mmds)),
     }
+
+    vprint(verbose, f'Kernel Inception Distance: {out[KEY_METRIC_KID_MEAN]} ± {out[KEY_METRIC_KID_STD]}')
+
+    return out
 
 
 def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs):
@@ -123,19 +124,11 @@ def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, 
     return metric
 
 
-def calculate_kid(input_1, input_2, **kwargs):
+def calculate_kid(**kwargs):
+    feature_extractor = get_kwarg('feature_extractor', kwargs)
     feat_layer_name = get_kwarg('feature_layer_kid', kwargs)
-    feat_extractor = create_feature_extractor(
-        get_kwarg('feature_extractor', kwargs),
-        [feat_layer_name],
-        **kwargs
-    )
-
-    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
-    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
-
-    featuresdict_1 = extract_featuresdict_from_input_cached(input_1, cacheable_input1_name, feat_extractor, **kwargs)
-    featuresdict_2 = extract_featuresdict_from_input_cached(input_2, cacheable_input2_name, feat_extractor, **kwargs)
-
+    feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
+    featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
+    featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
     metric = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs)
     return metric

@@ -12,59 +12,11 @@ from tqdm import tqdm
 from torch_fidelity.datasets import ImagesPathDataset
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
+from torch_fidelity.generative_model_base import GenerativeModelBase
+from torch_fidelity.generative_model_onnx import GenerativeModelONNX
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY
-
-
-def batch_lerp(a, b, t):
-    return a + (b - a) * t
-
-
-def batch_normalize_last_dim(v, eps=1e-7):
-    return v / (v ** 2).sum(dim=-1, keepdim=True).sqrt().clamp_min(eps)
-
-
-def batch_slerp_any(a, b, t, eps=1e-7):
-    assert torch.is_tensor(a) and torch.is_tensor(b) and a.dim() >= 2 and a.shape == b.shape
-    ndims, N = a.dim() - 1, a.shape[-1]
-    a_1 = batch_normalize_last_dim(a, eps)
-    b_1 = batch_normalize_last_dim(b, eps)
-    d = (a_1 * b_1).sum(dim=-1, keepdim=True)
-    mask_zero = (a_1.norm(dim=-1, keepdim=True) < eps) | (b_1.norm(dim=-1, keepdim=True) < eps)
-    mask_collinear = (d > 1 - eps) | (d < -1 + eps)
-    mask_lerp = (mask_zero | mask_collinear).repeat([1 for _ in range(ndims)] + [N])
-    omega = d.acos()
-    denom = omega.sin().clamp_min(eps)
-    coef_a = ((1 - t) * omega).sin() / denom
-    coef_b = (t * omega).sin() / denom
-    out = coef_a * a + coef_b * b
-    out[mask_lerp] = batch_lerp(a, b, t)[mask_lerp]
-    return out
-
-
-def batch_slerp_unit(a, b, t, eps=1e-7):
-    out = batch_slerp_any(a, b, t, eps)
-    out = batch_normalize_last_dim(out, eps)
-    return out
-
-
-def batch_interp(a, b, t, method):
-    vassert(method in ('lerp', 'slerp_any', 'slerp_unit'), f'Unknown interpolation method "{method}"')
-    return {
-        'lerp': batch_lerp,
-        'slerp_any': batch_slerp_any,
-        'slerp_unit': batch_slerp_unit,
-    }[method](a, b, t)
-
-
-def sample_random(rng, shape, z_type):
-    vassert(z_type in ('normal', 'unit', 'uniform_0_1'), f'Sampling from "{z_type}" is not implemented"')
-    if z_type == 'normal':
-        return torch.from_numpy(rng.randn(*shape)).float()
-    elif z_type == 'unit':
-        return batch_normalize_last_dim(torch.from_numpy(rng.rand(*shape)).float())
-    elif z_type == 'uniform_0_1':
-        return torch.from_numpy(rng.rand(*shape)).float()
+from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
+    INTERPOLATION_REGISTRY, NOISE_SOURCE_REGISTRY
 
 
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
@@ -119,6 +71,18 @@ def create_sample_similarity(name, cuda=True, **kwargs):
     return sample_similarity
 
 
+def sample_random(rng, shape, z_type):
+    fn_noise_src = NOISE_SOURCE_REGISTRY.get(z_type, None)
+    vassert(fn_noise_src is not None, f'Noise source "{z_type}" not registered')
+    return fn_noise_src(rng, shape)
+
+
+def batch_interp(a, b, t, method):
+    fn_interpolate = INTERPOLATION_REGISTRY.get(method, None)
+    vassert(method is not None, f'Interpolation method "{method}" not registered')
+    return fn_interpolate(a, b, t)
+
+
 def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose):
     vassert(isinstance(input, Dataset), 'Input can only be a Dataset instance')
     vassert(torch.is_tensor(input[0]), 'Input Dataset should return torch.Tensor')
@@ -141,13 +105,13 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
 
     out = None
 
-    with tqdm(disable=not verbose, leave=False, unit='samples', total=len(input), desc='Processing samples') as t:
+    with tqdm(disable=not verbose, leave=False, unit='samples', total=len(input), desc='Processing samples') as t, \
+            torch.no_grad():
         for bid, batch in enumerate(dataloader):
             if cuda:
                 batch = batch.cuda(non_blocking=True)
 
-            with torch.no_grad():
-                features = feat_extractor(batch)
+            features = feat_extractor(batch)
             featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
             featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
 
@@ -155,7 +119,7 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
                 out = featuresdict
             else:
                 out = {k: out[k] + featuresdict[k] for k in out.keys()}
-            t.update(batch_size)
+            t.update(batch.shape[0])
 
     vprint(verbose, 'Processing samples')
 
@@ -164,46 +128,144 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
     return out
 
 
-def check_input(input):
+def get_featuresdict_from_generative_model(gen_model, feat_extractor, num_samples, batch_size, cuda, rng_seed, verbose):
+    vassert(isinstance(gen_model, GenerativeModelBase), 'Input can only be a GenerativeModel instance')
     vassert(
-        type(input) is str or isinstance(input, Dataset),
-        f'Input can be either a Dataset instance, or a string (path to directory with samples, or one of the '
-        f'registered datasets: {", ".join(DATASETS_REGISTRY.keys())}'
+        isinstance(feat_extractor, FeatureExtractorBase), 'Feature extractor is not a subclass of FeatureExtractorBase'
     )
 
+    if batch_size > num_samples:
+        batch_size = num_samples
 
-def get_input_cacheable_name(input, cache_input_name=None):
-    check_input(input)
+    out = None
+
+    rng = np.random.RandomState(rng_seed)
+
+    with tqdm(disable=not verbose, leave=False, unit='samples', total=num_samples, desc='Processing samples') as t, \
+            torch.no_grad():
+        for sample_start in range(0, num_samples, batch_size):
+            sample_end = min(sample_start + batch_size, num_samples)
+            sz = sample_end - sample_start
+
+            noise = NOISE_SOURCE_REGISTRY[gen_model.z_type](rng, (sz, gen_model.z_size))
+            if cuda:
+                noise = noise.cuda(non_blocking=True)
+            gen_args = [noise]
+            if gen_model.num_classes > 0:
+                cond_labels = torch.from_numpy(rng.randint(low=0, high=gen_model.num_classes, size=(sz,), dtype=np.int))
+                if cuda:
+                    cond_labels = cond_labels.cuda(non_blocking=True)
+                gen_args.append(cond_labels)
+
+            fakes = gen_model(*gen_args)
+            features = feat_extractor(fakes)
+            featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
+            featuresdict = {k: [v.cpu()] for k, v in featuresdict.items()}
+
+            if out is None:
+                out = featuresdict
+            else:
+                out = {k: out[k] + featuresdict[k] for k in out.keys()}
+            t.update(sz)
+
+    vprint(verbose, 'Processing samples')
+
+    out = {k: torch.cat(v, dim=0) for k, v in out.items()}
+
+    return out
+
+
+def make_input_descriptor_from_int(input_int, **kwargs):
+    vassert(input_int in (1, 2), 'Supported input slots: 1, 2')
+    inputX = f'input{input_int}'
+    input = get_kwarg(inputX, kwargs)
+    input_desc = {
+        'input': input,
+        'input_cache_name': get_kwarg(f'{inputX}_cache_name', kwargs),
+        'input_model_z_type': get_kwarg(f'{inputX}_model_z_type', kwargs),
+        'input_model_z_size': get_kwarg(f'{inputX}_model_z_size', kwargs),
+        'input_model_num_classes': get_kwarg(f'{inputX}_model_num_classes', kwargs),
+        'input_model_num_samples': get_kwarg(f'{inputX}_model_num_samples', kwargs),
+    }
+    if type(input) is str and input in DATASETS_REGISTRY:
+        input_desc['input_cache_name'] = input
+    return input_desc
+
+
+def make_input_descriptor_from_str(input_str):
+    vassert(type(input_str) is str and input_str in DATASETS_REGISTRY,
+            f'Supported input str: {list(DATASETS_REGISTRY.keys())}')
+    return {
+        'input': input_str,
+        'input_cache_name': input_str,
+        'input_model_z_type': DEFAULTS['input1_model_z_type'],
+        'input_model_z_size': DEFAULTS['input1_model_z_size'],
+        'input_model_num_classes': DEFAULTS['input1_model_num_classes'],
+        'input_model_num_samples': DEFAULTS['input1_model_num_samples'],
+    }
+
+
+def prepare_input_from_descriptor(input_desc, **kwargs):
+    bad_input = False
+    input = input_desc['input']
     if type(input) is str:
         if input in DATASETS_REGISTRY:
-            return input
-        elif os.path.isdir(input):
-            return cache_input_name
-        else:
-            raise ValueError(f'Unknown format of input string "{input}"')
-    elif isinstance(input, Dataset):
-        return cache_input_name
-
-
-def prepare_inputs_as_datasets(
-        input, samples_find_deep=False, samples_find_ext=DEFAULTS['samples_find_ext'],
-        samples_ext_lossy=DEFAULTS['samples_ext_lossy'], datasets_root=None, datasets_download=True, verbose=True
-):
-    check_input(input)
-    if type(input) is str:
-        if input in DATASETS_REGISTRY:
+            datasets_root = get_kwarg('datasets_root', kwargs)
+            datasets_download = get_kwarg('datasets_download', kwargs)
             fn_instantiate = DATASETS_REGISTRY[input]
             if datasets_root is None:
                 datasets_root = os.path.join(torch.hub._get_torch_home(), 'fidelity_datasets')
             os.makedirs(datasets_root, exist_ok=True)
             input = fn_instantiate(datasets_root, datasets_download)
         elif os.path.isdir(input):
+            samples_find_deep = get_kwarg('samples_find_deep', kwargs)
+            samples_find_ext = get_kwarg('samples_find_ext', kwargs)
+            samples_ext_lossy = get_kwarg('samples_ext_lossy', kwargs)
+            verbose = get_kwarg('verbose', kwargs)
             input = glob_samples_paths(input, samples_find_deep, samples_find_ext, samples_ext_lossy, verbose)
             vassert(len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}')
             input = ImagesPathDataset(input)
+        elif os.path.isfile(input) and input.endswith('.onnx'):
+            input = GenerativeModelONNX(
+                input,
+                input_desc['input_model_z_size'],
+                input_desc['input_model_z_type'],
+                input_desc['input_model_num_classes']
+            )
         else:
-            raise ValueError(f'Unknown format of input string "{input}"')
+            bad_input = True
+    elif isinstance(input, Dataset) or isinstance(input, GenerativeModelBase):
+        pass
+    else:
+        bad_input = True
+    vassert(
+        not bad_input,
+        f'Input descriptor "input" field can be either an instance of Dataset, GenerativeModelBase class, or a string, '
+        f'such as a path to a name of a registered dataset ({", ".join(DATASETS_REGISTRY.keys())}), a directory with '
+        f'file samples, or a path to an ONNX model file'
+    )
     return input
+
+
+def prepare_input_descriptor_from_input_id(input_id, **kwargs):
+    vassert(type(input_id) is int or type(input_id) is str and input_id in DATASETS_REGISTRY,
+            'Input can be either integer (1 or 2) specifying the first or the second set of kwargs, or a string as a '
+            'shortcut for registered datasets')
+    if type(input_id) is int:
+        input_desc = make_input_descriptor_from_int(input_id, **kwargs)
+    else:
+        input_desc = make_input_descriptor_from_str(input_id)
+    return input_desc
+
+
+def prepare_input_from_id(input_id, **kwargs):
+    input_desc = prepare_input_descriptor_from_input_id(input_id, **kwargs)
+    return prepare_input_from_descriptor(input_desc, **kwargs)
+
+
+def get_cacheable_input_name(input_id, **kwargs):
+    input_desc = prepare_input_descriptor_from_input_id(input_id, **kwargs)
+    return input_desc['input_cache_name']
 
 
 def atomic_torch_save(what, path):
@@ -260,31 +322,30 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     return items
 
 
-def extract_featuresdict_from_input(input, feat_extractor, **kwargs):
-    input_ds = prepare_inputs_as_datasets(
-        input,
-        samples_find_deep=get_kwarg('samples_find_deep', kwargs),
-        samples_find_ext=get_kwarg('samples_find_ext', kwargs),
-        samples_ext_lossy=get_kwarg('samples_ext_lossy', kwargs),
-        datasets_root=get_kwarg('datasets_root', kwargs),
-        datasets_download=get_kwarg('datasets_download', kwargs),
-        verbose=get_kwarg('verbose', kwargs),
-    )
-    featuresdict = get_featuresdict_from_dataset(
-        input_ds,
-        feat_extractor,
-        get_kwarg('batch_size', kwargs),
-        get_kwarg('cuda', kwargs),
-        get_kwarg('save_cpu_ram', kwargs),
-        get_kwarg('verbose', kwargs),
-    )
+def extract_featuresdict_from_input_id(input_id, feat_extractor, **kwargs):
+    batch_size = get_kwarg('batch_size', kwargs)
+    cuda = get_kwarg('cuda', kwargs)
+    rng_seed = get_kwarg('rng_seed', kwargs)
+    verbose = get_kwarg('verbose', kwargs)
+    input = prepare_input_from_id(input_id, **kwargs)
+    if isinstance(input, Dataset):
+        save_cpu_ram = get_kwarg('save_cpu_ram', kwargs)
+        featuresdict = get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_cpu_ram, verbose)
+    else:
+        input_desc = prepare_input_descriptor_from_input_id(input_id, **kwargs)
+        num_samples = input_desc['input_model_num_samples']
+        vassert(type(num_samples) is int and num_samples > 0, 'Number of samples must be positive')
+        featuresdict = get_featuresdict_from_generative_model(
+            input, feat_extractor, num_samples, batch_size, cuda, rng_seed, verbose
+        )
     return featuresdict
 
 
-def extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_extractor, **kwargs):
+def extract_featuresdict_from_input_id_cached(input_id, feat_extractor, **kwargs):
+    cacheable_input_name = get_cacheable_input_name(input_id, **kwargs)
 
     def fn_recompute():
-        return extract_featuresdict_from_input(input, feat_extractor, **kwargs)
+        return extract_featuresdict_from_input_id(input_id, feat_extractor, **kwargs)
 
     if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
@@ -298,46 +359,3 @@ def extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_ext
     else:
         featuresdict = fn_recompute()
     return featuresdict
-
-
-class OnnxModel(torch.nn.Module):
-    def __init__(self, path_onnx):
-        super().__init__()
-        vassert(os.path.isfile(path_onnx), f'Model file not found at "{path_onnx}"')
-        try:
-            import onnxruntime
-        except ImportError as e:
-            # This message may be removed if onnxruntime becomes a unified package with embedded CUDA dependencies,
-            # like for example pytorch
-            print(
-                '====================================================================================================\n'
-                'Loading ONNX models in PyTorch requires ONNX runtime package, which we did not want to include in\n'
-                'torch_fidelity package requirements.txt. The two relevant pip packages are:\n'
-                ' - onnxruntime       (pip install onnxruntime), or\n'
-                ' - onnxruntime-gpu   (pip install onnxruntime-gpu).\n'
-                'If you choose to install "onnxruntime", you will be able to run inference on CPU only - this may be\n'
-                'slow. With "onnxruntime-gpu" speed is not an issue, but at run time you might face CUDA toolkit\n'
-                'versions incompatibility, which can only be resolved by recompiling onnxruntime-gpu from source.\n'
-                'Alternatively, use calculate_metrics API and pass torch.nn.Module instance as a "model" kwarg.\n'
-                '===================================================================================================='
-            )
-            raise e
-        self.ort_session = onnxruntime.InferenceSession(path_onnx)
-        self.input_names = [a.name for a in self.ort_session.get_inputs()]
-
-    @staticmethod
-    def to_numpy(tensor):
-        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
-
-    def forward(self, *args):
-        vassert(
-            len(args) == len(self.input_names),
-            f'Number of input arguments {len(args)} does not match ONNX model: {self.input_names}'
-        )
-        vassert(all(torch.is_tensor(a) for a in args), 'All model inputs must be tensors')
-        ort_input = {self.input_names[i]: self.to_numpy(args[i]) for i in range(len(args))}
-        ort_output = self.ort_session.run(None, ort_input)
-        ort_output = ort_output[0]
-        vassert(isinstance(ort_output, np.ndarray), 'Invalid output of ONNX model')
-        out = torch.from_numpy(ort_output).to(device=args[0].device)
-        return out

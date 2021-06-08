@@ -11,7 +11,7 @@ from PIL import Image
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
-from torch_fidelity.utils import prepare_inputs_as_datasets, create_feature_extractor
+from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
 
 
 class TestConvolution(unittest.TestCase):
@@ -93,7 +93,7 @@ class TestConvolution(unittest.TestCase):
         # conv_pt.weight.data = conv_pt.weight[0:keep_filters]
         # conv_pt.out_channels = keep_filters
 
-        ds = prepare_inputs_as_datasets('cifar10-train', datasets_root=tempfile.gettempdir())
+        ds = prepare_input_from_id('cifar10-train', datasets_root=tempfile.gettempdir())
         rng = np.random.RandomState(2020)
         x_pt = torch.cat([ds[i].unsqueeze(0) for i in rng.choice(len(ds), batch_size, replace=False)], dim=0)
         if cuda:

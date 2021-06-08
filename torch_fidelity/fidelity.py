@@ -6,15 +6,24 @@ import sys
 
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
-from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY
+from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
+    INTERPOLATION_REGISTRY, NOISE_SOURCE_REGISTRY
 
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--input1', default=DEFAULTS['input1'], type=str,
-                        help=f'First path to samples or a registered input source (one of {DATASETS_REGISTRY.keys()})')
+                        help=f'First input, which can be either a path to a directory with samples, or one of the '
+                             f'registered input sources ({DATASETS_REGISTRY.keys()}, or a path to a generative model '
+                             f'in the ONNX format. In the latter case, the following arguments must also be provided: '
+                             f'--input1-model-z-type, --input1-model-z-size, --input1-model-num-classes, and'
+                             f'--input1-model-num-samples.')
     parser.add_argument('--input2', default=DEFAULTS['input2'], type=str,
-                        help=f'Second path to samples or a registered input source (one of {DATASETS_REGISTRY.keys()})')
+                        help=f'Second input, which can be either a path to a directory with samples, or one of the '
+                             f'registered input sources ({DATASETS_REGISTRY.keys()}, or a path to a generative model '
+                             f'in the ONNX format. In the latter case, the following arguments must also be provided: '
+                             f'--input2-model-z-type, --input2-model-z-size, --input2-model-num-classes, and'
+                             f'--input2-model-num-samples.')
     parser.add_argument('-b', '--batch-size', default=DEFAULTS['batch_size'], type=int,
                         help='Batch size to use')
     pgroup = parser.add_mutually_exclusive_group()
@@ -32,16 +41,6 @@ def main():
                         help='Calculate KID (Kernel Inception Distance)')
     parser.add_argument('-p', '--ppl', action='store_true',
                         help='Calculate PPL (Perceptual Path Length)')
-    parser.add_argument('-m', '--model', default=DEFAULTS['model'], type=str,
-                        help='Path to generator model in ONNX format')
-    parser.add_argument('--model-z-type', default=DEFAULTS['model_z_type'], type=str,
-                        choices=('normal', 'uniform_0_1'),
-                        help='Type of noise for generator model input')
-    parser.add_argument('--model-z-size', default=DEFAULTS['model_z_size'], type=int,
-                        help='Dimensionality of generator noise')
-    parser.add_argument('--model-conditioning-num-classes', default=DEFAULTS['model_conditioning_num_classes'],
-                        type=int,
-                        help='Number of classes for conditional generation, or 0 for unconditional')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
                         choices=FEATURE_EXTRACTORS_REGISTRY.keys(),
                         help='Name of the feature extractor')
@@ -66,8 +65,6 @@ def main():
                         help='Polynomial kernel gamma in KID')
     parser.add_argument('--kid-coef0', default=DEFAULTS['kid_coef0'], type=float,
                         help='Polynomial kernel coef0 in KID')
-    parser.add_argument('--ppl-num-samples', default=DEFAULTS['ppl_num_samples'], type=int,
-                        help='Number of samples to generate using the model in PPL')
     parser.add_argument('--ppl-epsilon', default=DEFAULTS['ppl_epsilon'], type=float,
                         help='Interpolation step size in PPL')
     parser.add_argument('--ppl-reduction', default=DEFAULTS['ppl_reduction'], type=str,
@@ -85,7 +82,7 @@ def main():
     parser.add_argument('--ppl-discard-percentile-higher', default=DEFAULTS['ppl_discard_percentile_higher'], type=int,
                         help='Removes the higher percentile of samples before reduction')
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
-                        choices=('lerp', 'slerp_any', 'slerp_unit'),
+                        choices=list(INTERPOLATION_REGISTRY.keys()),
                         help='Noise interpolation mode in PPL')
     parser.add_argument('--no-samples-shuffle', action='store_true',
                         help='Do not perform samples shuffling before computing splits')
@@ -105,10 +102,34 @@ def main():
                              'Defaults to $ENV_TORCH_HOME/fidelity_cache')
     parser.add_argument('--no-cache', action='store_true',
                         help='Do not use file cache for features and statistics')
-    parser.add_argument('--cache-input1-name', default=DEFAULTS['cache_input1_name'], type=str,
-                        help='Assigns a cache entry to input1 (if a path) and forces caching of features on it')
-    parser.add_argument('--cache-input2-name', default=DEFAULTS['cache_input2_name'], type=str,
-                        help='Assigns a cache entry to input2 (if a path) and forces caching of features on it')
+    parser.add_argument('--input1-cache-name', default=DEFAULTS['input1_cache_name'], type=str,
+                        help='Assigns a cache entry to input1 (when not a registered input) and forces caching of '
+                             'features on it.')
+    parser.add_argument('--input1-model-z-type', default=DEFAULTS['input1_model_z_type'], type=str,
+                        choices=list(NOISE_SOURCE_REGISTRY.keys()),
+                        help='Type of noise accepted by the input1 generator model')
+    parser.add_argument('--input1-model-z-size', default=DEFAULTS['input1_model_z_size'], type=int,
+                        help='Dimensionality of noise accepted by the input1 generator model')
+    parser.add_argument('--input1-model-num-classes', default=DEFAULTS['input1_model_num_classes'], type=int,
+                        help='Number of classes for conditional generation (0 for unconditional) accepted by the '
+                             'input1 generator model')
+    parser.add_argument('--input1-model-num-samples', default=DEFAULTS['input1_model_num_samples'], type=int,
+                        help='Number of samples to draw from input1 generator model, when it is provided as a path to '
+                             'ONNX model. This option affects the following metrics: ISC, FID, KID.')
+    parser.add_argument('--input2-cache-name', default=DEFAULTS['input2_cache_name'], type=str,
+                        help='Assigns a cache entry to input2 (when not a registered input) and forces caching of '
+                             'features on it.')
+    parser.add_argument('--input2-model-z-type', default=DEFAULTS['input2_model_z_type'], type=str,
+                        choices=list(NOISE_SOURCE_REGISTRY.keys()),
+                        help='Type of noise accepted by the input2 generator model')
+    parser.add_argument('--input2-model-z-size', default=DEFAULTS['input2_model_z_size'], type=int,
+                        help='Dimensionality of noise accepted by the input2 generator model')
+    parser.add_argument('--input2-model-num-classes', default=DEFAULTS['input2_model_num_classes'], type=int,
+                        help='Number of classes for conditional generation (0 for unconditional) accepted by the '
+                             'input2 generator model')
+    parser.add_argument('--input2-model-num-samples', default=DEFAULTS['input2_model_num_samples'], type=int,
+                        help='Number of samples to draw from input2 generator model, when it is provided as a path to '
+                             'ONNX model. This option affects the following metrics: ISC, FID, KID.')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for all operations involving randomness')
     parser.add_argument('--save-cpu-ram', action='store_true',

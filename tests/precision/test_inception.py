@@ -10,7 +10,7 @@ import tensorflow as tf
 import torch
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
-from torch_fidelity.utils import prepare_inputs_as_datasets, create_feature_extractor
+from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
 
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 
@@ -78,7 +78,7 @@ class TestInception(unittest.TestCase):
             ['2048', 'logits_unbiased'],
             cuda=cuda,
         )
-        ds = prepare_inputs_as_datasets('cifar10-train', datasets_root=tempfile.gettempdir())
+        ds = prepare_input_from_id('cifar10-train', datasets_root=tempfile.gettempdir())
         rng = np.random.RandomState(rng_seed)
         batch_pt = torch.cat([ds[i].unsqueeze(0) for i in rng.choice(len(ds), batch_size, replace=False)], dim=0)
         f1_pt, f2_pt = TestInception.forward_pt(model_pt, batch_pt, cuda)

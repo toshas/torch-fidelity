@@ -3,21 +3,39 @@ from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_
     fid_statistics_to_metric
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
-from torch_fidelity.metric_ppl import ppl_model_to_metric
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
-    get_input_cacheable_name
+from torch_fidelity.metric_ppl import calculate_ppl
+from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
+    get_cacheable_input_name
 
 
 def calculate_metrics(**kwargs):
     r"""
     Calculate metrics for the given inputs.
     Args:
-        input1: str or torch.util.data.Dataset (default: None)
-            First input, can be either a Dataset instance, or a string containing a path to a directory
-            of images, or one of the registered input sources (see registry.py).
+        input1: str or torch.util.data.Dataset or torch_fidelity.GenerativeModelBase (default: None)
+            First input, which can be either of the following types:
+                - string, which can identify one of the following options:
+                    - a registered input. See DATASETS_REGISTRY for preregistered inputs, and register_dataset for
+                      registering a new input). The following options refine the behavior wrt dataset location and
+                      downloading: datasets_root, datasets_download.
+                    - a path to a directory with samples. The following options refine the behavior wrt directory
+                      traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
+                    - a path to a generative model in the ONNX format. This option also requires the following kwargs:
+                      input1_model_z_type, input1_model_z_size, input1_model_num_classes.
+                - an instance of torch.util.data.Dataset.
+                - an instance of torch_fidelity.GenerativeModelBase.
         input2: str or torch.util.data.Dataset (default: None)
-            Second input (not used in unary metrics, such as "isc"), can be either a Dataset instance, or a
-            string containing a path to a directory of images, or one of the registered input sources (see registry.py).
+            Second input, which can be either of the following types:
+                - string, which can identify one of the following options:
+                    - a registered input. See DATASETS_REGISTRY for preregistered inputs, and register_dataset for
+                      registering a new input). The following options refine the behavior wrt dataset location and
+                      downloading: datasets_root, datasets_download.
+                    - a path to a directory with samples. The following options refine the behavior wrt directory
+                      traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
+                    - a path to a generative model in the ONNX format. This option also requires the following kwargs:
+                      input2_model_z_type, input2_model_z_size, input3_model_num_classes.
+                - an instance of torch.util.data.Dataset.
+                - an instance of torch_fidelity.GenerativeModelBase.
         cuda: bool (default: True)
             Sets executor device to GPU.
         batch_size: int (default: 64)
@@ -31,14 +49,6 @@ def calculate_metrics(**kwargs):
             Calculate KID (Kernel Inception Distance).
         ppl: bool (default: False)
             Calculate PPL (Perceptual Path Length).
-        model: str (default: None)
-            Path to generator model in ONNX format, or an instance of torch.nn.Module.
-        model_z_type: str (default: normal)
-            Type of noise for generator model input.
-        model_z_size: int (default: None)
-            Dimensionality of generator noise.
-        model_conditioning_num_classes: int (default: 0)
-            Number of classes for conditional generation, or 0 for unconditional.
         feature_extractor: str (default: inception-v3-compat)
             Name of the feature extractor (see registry.py).
         feature_layer_isc: str (default: logits_unbiased)
@@ -61,15 +71,13 @@ def calculate_metrics(**kwargs):
             Polynomial kernel gamma in KID (automatic if None).
         kid_coef0: float (default: 1)
             Polynomial kernel coef0 in KID.
-        ppl_num_samples: int (default: 50000)
-            Number of samples to generate using the model in PPL.
         ppl_epsilon: float (default: 1e-4)
             Interpolation step size in PPL.
         ppl_reduction: str (default: mean)
             Reduction type to apply to the per-sample output values.
         ppl_sample_similarity: str (default: lpips-vgg16)
             Name of the sample similarity to use in PPL metric computation.
-        ppl_sample_similarity_resize: int (default: 256)
+        ppl_sample_similarity_resize: int (default: 64)
             Force samples to this size when computing similarity, unless set to None.
         ppl_sample_similarity_dtype: str (default: uint8)
             Check samples are of compatible dtype when computing similarity, unless set to None.
@@ -77,7 +85,7 @@ def calculate_metrics(**kwargs):
             Removes the lower percentile of samples before reduction.
         ppl_discard_percentile_higher: int (default: 99)
             Removes the higher percentile of samples before reduction.
-        ppl_z_interp_mode: str (default: slerp_any)
+        ppl_z_interp_mode: str (default: lerp)
             Noise interpolation mode in PPL.
         samples_shuffle: bool (default: True)
             Perform random samples shuffling before computing splits.
@@ -95,11 +103,29 @@ def calculate_metrics(**kwargs):
             Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache.
         cache: bool (default: True)
             Use file cache for features and statistics.
-        cache_input1_name: str (default: None)
-            Assigns a cache entry to input1 (if a path) and forces caching of features on it if not None.
-        cache_input2_name: str (default: None)
-            Assigns a cache entry to input2 (if a path) and forces caching of features on it if not None.
-        rng_seed: int (default: 2020)
+        input1_cache_name: str (default: None)
+            Assigns a cache entry to input1 (when not a registered input) and forces caching of features on it.
+        input1_model_z_type: str (default: 'normal')
+            Type of noise accepted by the input1 generator model.
+        input1_model_z_size: int (default: None)
+            Dimensionality of noise accepted by the input1 generator model.
+        input1_model_num_classes: int (default: 0)
+            Number of classes for conditional generation (0 for unconditional) accepted by the input1 generator model.
+        input1_model_num_samples: int (default: None)
+            Number of samples to draw from input1 generator model, when it is provided as a path to ONNX model. This
+            option affects the following metrics: ISC, FID, KID.
+        input2_cache_name: str (default: None)
+            Assigns a cache entry to input2 (when not a registered input) and forces caching of features on it.
+        input2_model_z_type: str (default: 'normal')
+            Type of noise accepted by the input2 generator model.
+        input2_model_z_size: int (default: None)
+            Dimensionality of noise accepted by the input2 generator model.
+        input2_model_num_classes: int (default: 0)
+            Number of classes for conditional generation (0 for unconditional) accepted by the input2 generator model.
+        input2_model_num_samples: int (default: None)
+            Number of samples to draw from input2 generator model, when it is provided as a path to ONNX model. This
+            option affects the following metrics: ISC, FID, KID.
+        rng_seed: int (default: 2021)
             Random numbers generator seed for all operations involving randomness.
         save_cpu_ram: bool (default: False)
             Use less CPU RAM at the cost of speed.
@@ -111,28 +137,26 @@ def calculate_metrics(**kwargs):
 
     verbose = get_kwarg('verbose', kwargs)
     input1, input2 = get_kwarg('input1', kwargs), get_kwarg('input2', kwargs)
-    model = get_kwarg('model', kwargs)
 
     have_isc = get_kwarg('isc', kwargs)
     have_fid = get_kwarg('fid', kwargs)
     have_kid = get_kwarg('kid', kwargs)
     have_ppl = get_kwarg('ppl', kwargs)
 
-    need_input1 = have_isc or have_fid or have_kid
+    need_input1 = have_isc or have_fid or have_kid or have_ppl
     need_input2 = have_fid or have_kid
-    need_model = have_ppl
 
     vassert(
         have_isc or have_fid or have_kid or have_ppl,
         'At least one of "isc", "fid", "kid", "ppl" metrics must be specified'
     )
-    vassert(input1 is not None or not need_input1, 'First input is required for "isc", "fid", and "kid" metrics')
+    vassert(input1 is not None or not need_input1, 'First input is required for "isc", "fid", "kid", and "ppl" metrics')
     vassert(input2 is not None or not need_input2, 'Second input is required for "fid" and "kid" metrics')
-    vassert(model is not None or not need_model, 'Model argument is required for "ppl" metric')
 
     metrics = {}
 
     if have_isc or have_fid or have_kid:
+        feature_extractor = get_kwarg('feature_extractor', kwargs)
         feature_layer_isc, feature_layer_fid, feature_layer_kid = (None,) * 3
         feature_layers = set()
         if have_isc:
@@ -145,9 +169,7 @@ def calculate_metrics(**kwargs):
             feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
             feature_layers.add(feature_layer_kid)
 
-        feat_extractor = create_feature_extractor(
-            get_kwarg('feature_extractor', kwargs), list(feature_layers), **kwargs
-        )
+        feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
 
         # isc: input - featuresdict(cached) - metric
         # fid: input - featuresdict(cached) - statistics(cached) - metric
@@ -155,43 +177,38 @@ def calculate_metrics(**kwargs):
 
         if (not have_isc) and have_fid and (not have_kid):
             # shortcut for a case when statistics are cached and features are not required on at least one input
-            metric_fid = fid_inputs_to_metric(input1, input2, feat_extractor, feature_layer_fid, **kwargs)
+            metric_fid = fid_inputs_to_metric(feat_extractor, **kwargs)
             metrics.update(metric_fid)
-            return metrics
+        else:
+            vprint(verbose, f'Extracting features from input1')
+            featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
+            featuresdict_2 = None
+            if input2 is not None:
+                vprint(verbose, f'Extracting features from input2')
+                featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
 
-        cacheable_input1_name = get_input_cacheable_name(input1, get_kwarg('cache_input1_name', kwargs))
-        cacheable_input2_name = None
+            if have_isc:
+                metric_isc = isc_featuresdict_to_metric(featuresdict_1, feature_layer_isc, **kwargs)
+                metrics.update(metric_isc)
 
-        vprint(verbose, f'Extracting features from input1')
-        featuresdict_1 = extract_featuresdict_from_input_cached(input1, cacheable_input1_name, feat_extractor, **kwargs)
-        featuresdict_2 = None
-        if input2 is not None:
-            cacheable_input2_name = get_input_cacheable_name(input2, get_kwarg('cache_input2_name', kwargs))
-            vprint(verbose, f'Extracting features from input2')
-            featuresdict_2 = extract_featuresdict_from_input_cached(
-                input2, cacheable_input2_name, feat_extractor, **kwargs
-            )
+            if have_fid:
+                cacheable_input1_name = get_cacheable_input_name(1, **kwargs)
+                cacheable_input2_name = get_cacheable_input_name(2, **kwargs)
+                fid_stats_1 = fid_featuresdict_to_statistics_cached(
+                    featuresdict_1, cacheable_input1_name, feat_extractor, feature_layer_fid, **kwargs
+                )
+                fid_stats_2 = fid_featuresdict_to_statistics_cached(
+                    featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
+                )
+                metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg('verbose', kwargs))
+                metrics.update(metric_fid)
 
-        if have_isc:
-            metric_isc = isc_featuresdict_to_metric(featuresdict_1, feature_layer_isc, **kwargs)
-            metrics.update(metric_isc)
-
-        if have_fid:
-            fid_stats_1 = fid_featuresdict_to_statistics_cached(
-                featuresdict_1, cacheable_input1_name, feat_extractor, feature_layer_fid, **kwargs
-            )
-            fid_stats_2 = fid_featuresdict_to_statistics_cached(
-                featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
-            )
-            metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg('verbose', kwargs))
-            metrics.update(metric_fid)
-
-        if have_kid:
-            metric_kid = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_kid, **kwargs)
-            metrics.update(metric_kid)
+            if have_kid:
+                metric_kid = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_kid, **kwargs)
+                metrics.update(metric_kid)
 
     if have_ppl:
-        metric_ppl = ppl_model_to_metric(**kwargs)
+        metric_ppl = calculate_ppl(1, **kwargs)
         metrics.update(metric_ppl)
 
     return metrics

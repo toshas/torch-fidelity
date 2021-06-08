@@ -2,30 +2,25 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+from torch_fidelity.generative_model_base import GenerativeModelBase
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.utils import OnnxModel, sample_random, batch_interp, create_sample_similarity
+from torch_fidelity.utils import sample_random, batch_interp, create_sample_similarity, \
+    prepare_input_descriptor_from_input_id, prepare_input_from_descriptor
 
 KEY_METRIC_PPL_RAW = 'perceptual_path_length_raw'
 KEY_METRIC_PPL_MEAN = 'perceptual_path_length_mean'
 KEY_METRIC_PPL_STD = 'perceptual_path_length_std'
 
 
-def ppl_model_to_metric(**kwargs):
+def calculate_ppl(input_id, **kwargs):
     """
     Inspired by https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
     """
     batch_size = get_kwarg('batch_size', kwargs)
     is_cuda = get_kwarg('cuda', kwargs)
     verbose = get_kwarg('verbose', kwargs)
-
-    model = get_kwarg('model', kwargs)
-    model_conditioning_num_classes = get_kwarg('model_conditioning_num_classes', kwargs)
-    model_z_type = get_kwarg('model_z_type', kwargs)
-    model_z_size = get_kwarg('model_z_size', kwargs)
-
     epsilon = get_kwarg('ppl_epsilon', kwargs)
     interp = get_kwarg('ppl_z_interp_mode', kwargs)
-    num_samples = get_kwarg('ppl_num_samples', kwargs)
     reduction = get_kwarg('ppl_reduction', kwargs)
     similarity_name = get_kwarg('ppl_sample_similarity', kwargs)
     sample_similarity_resize = get_kwarg('ppl_sample_similarity_resize', kwargs)
@@ -33,18 +28,30 @@ def ppl_model_to_metric(**kwargs):
     discard_percentile_lower = get_kwarg('ppl_discard_percentile_lower', kwargs)
     discard_percentile_higher = get_kwarg('ppl_discard_percentile_higher', kwargs)
 
-    vassert(model_conditioning_num_classes >= 0, 'Model can be unconditional (0 classes) or conditional (positive)')
-    vassert(type(model_z_size) is int and model_z_size > 0,
-            'Dimensionality of generator noise not specified ("model_z_size" argument)')
+    input_desc = prepare_input_descriptor_from_input_id(input_id, **kwargs)
+    model = prepare_input_from_descriptor(input_desc, **kwargs)
+    vassert(
+        isinstance(model, GenerativeModelBase),
+        'Input needs to be an instance of GenerativeModelBase, which can be either passed programmatically by wrapping '
+        'a model with GenerativeModelModuleWrapper, or via command line by specifying a path to ONNX model and a set '
+        'of input1_model_* arguments'
+    )
+
+    input_model_num_samples = input_desc['input_model_num_samples']
+    input_model_num_classes = model.num_classes
+    input_model_z_size = model.z_size
+    input_model_z_type = model.z_type
+
+    vassert(input_model_num_classes >= 0, 'Model can be unconditional (0 classes) or conditional (positive)')
+    vassert(type(input_model_z_size) is int and input_model_z_size > 0,
+            'Dimensionality of generator noise not specified ("input1_model_z_size" argument)')
     vassert(type(epsilon) is float and epsilon > 0, 'Epsilon must be a small positive floating point number')
-    vassert(type(num_samples) is int and num_samples > 0, 'Number of samples must be positive')
+    vassert(type(input_model_num_samples) is int and input_model_num_samples > 0, 'Number of samples must be positive')
     vassert(reduction in ('none', 'mean'), 'Reduction must be one of [none, mean]')
     vassert(discard_percentile_lower is None or 0 < discard_percentile_lower < 100, 'Invalid percentile')
     vassert(discard_percentile_higher is None or 0 < discard_percentile_higher < 100, 'Invalid percentile')
     if discard_percentile_lower is not None and discard_percentile_higher is not None:
         vassert(0 < discard_percentile_lower < discard_percentile_higher < 100, 'Invalid percentiles')
-
-    vprint(verbose, 'Computing Perceptual Path Length')
 
     sample_similarity = create_sample_similarity(
         similarity_name,
@@ -53,33 +60,24 @@ def ppl_model_to_metric(**kwargs):
         **kwargs
     )
 
-    is_cond = model_conditioning_num_classes > 0
-
-    if type(model) is str:
-        model = OnnxModel(model)
-    else:
-        vassert(isinstance(model, torch.nn.Module),
-                'Model can be either a path to ONNX model, or an instance of torch.nn.Module')
-        if is_cuda:
-            model.cuda()
-        model.eval()
+    is_cond = input_desc['input_model_num_classes'] > 0
 
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
 
-    lat_e0 = sample_random(rng, (num_samples, model_z_size), model_z_type)
-    lat_e1 = sample_random(rng, (num_samples, model_z_size), model_z_type)
+    lat_e0 = sample_random(rng, (input_model_num_samples, input_model_z_size), input_model_z_type)
+    lat_e1 = sample_random(rng, (input_model_num_samples, input_model_z_size), input_model_z_type)
     lat_e1 = batch_interp(lat_e0, lat_e1, epsilon, interp)
 
     labels = None
     if is_cond:
-        labels = torch.from_numpy(rng.randint(0, model_conditioning_num_classes, (num_samples,)))
+        labels = torch.from_numpy(rng.randint(0, input_model_num_classes, (input_model_num_samples,)))
 
     distances = []
 
-    with tqdm(disable=not verbose, leave=False, unit='samples', total=num_samples, desc='Processing samples') as t, \
-            torch.no_grad():
-        for begin_id in range(0, num_samples, batch_size):
-            end_id = min(begin_id + batch_size, num_samples)
+    with tqdm(disable=not verbose, leave=False, unit='samples', total=input_model_num_samples,
+              desc='Perceptual Path Length') as t, torch.no_grad():
+        for begin_id in range(0, input_model_num_samples, batch_size):
+            end_id = min(begin_id + batch_size, input_model_num_samples)
             batch_sz = end_id - begin_id
 
             batch_lat_e0 = lat_e0[begin_id:end_id]
@@ -128,5 +126,7 @@ def ppl_model_to_metric(**kwargs):
     }
     if reduction == 'none':
         out[KEY_METRIC_PPL_RAW] = distances
+
+    vprint(verbose, f'Perceptual Path Length: {out[KEY_METRIC_PPL_MEAN]} ± {out[KEY_METRIC_PPL_STD]}')
 
     return out
