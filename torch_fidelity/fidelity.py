@@ -15,15 +15,15 @@ def main():
     parser.add_argument('--input1', default=DEFAULTS['input1'], type=str,
                         help=f'First input, which can be either a path to a directory with samples, or one of the '
                              f'registered input sources ({DATASETS_REGISTRY.keys()}, or a path to a generative model '
-                             f'in the ONNX format. In the latter case, the following arguments must also be provided: '
-                             f'--input1-model-z-type, --input1-model-z-size, --input1-model-num-classes, and'
-                             f'--input1-model-num-samples.')
+                             f'in the ONNX or PTH (JIT) formats. In the latter case, the following arguments must also '
+                             f'be provided: --input1-model-z-type, --input1-model-z-size, --input1-model-num-classes, '
+                             f'and --input1-model-num-samples.')
     parser.add_argument('--input2', default=DEFAULTS['input2'], type=str,
                         help=f'Second input, which can be either a path to a directory with samples, or one of the '
                              f'registered input sources ({DATASETS_REGISTRY.keys()}, or a path to a generative model '
-                             f'in the ONNX format. In the latter case, the following arguments must also be provided: '
-                             f'--input2-model-z-type, --input2-model-z-size, --input2-model-num-classes, and'
-                             f'--input2-model-num-samples.')
+                             f'in the ONNX or PTH (JIT) format. In the latter case, the following arguments must also '
+                             f'be provided: --input2-model-z-type, --input2-model-z-size, --input2-model-num-classes, '
+                             f'and --input2-model-num-samples.')
     parser.add_argument('-b', '--batch-size', default=DEFAULTS['batch_size'], type=int,
                         help='Batch size to use')
     pgroup = parser.add_mutually_exclusive_group()
@@ -107,29 +107,29 @@ def main():
                              'features on it.')
     parser.add_argument('--input1-model-z-type', default=DEFAULTS['input1_model_z_type'], type=str,
                         choices=list(NOISE_SOURCE_REGISTRY.keys()),
-                        help='Type of noise accepted by the input1 generator model')
+                        help='Type of noise (only required when the input is a path to a generator model)')
     parser.add_argument('--input1-model-z-size', default=DEFAULTS['input1_model_z_size'], type=int,
-                        help='Dimensionality of noise accepted by the input1 generator model')
+                        help='Dimensionality of noise (only required when the input is a path to a generator model)')
     parser.add_argument('--input1-model-num-classes', default=DEFAULTS['input1_model_num_classes'], type=int,
-                        help='Number of classes for conditional generation (0 for unconditional) accepted by the '
-                             'input1 generator model')
+                        help='Number of classes for conditional (0 for unconditional) generation (only required when '
+                             'the input is a path to a generator model)')
     parser.add_argument('--input1-model-num-samples', default=DEFAULTS['input1_model_num_samples'], type=int,
-                        help='Number of samples to draw from input1 generator model, when it is provided as a path to '
-                             'ONNX model. This option affects the following metrics: ISC, FID, KID.')
+                        help='Number of samples to draw (only required when the input is a generator model). '
+                             'This option affects the following metrics: ISC, FID, KID')
     parser.add_argument('--input2-cache-name', default=DEFAULTS['input2_cache_name'], type=str,
                         help='Assigns a cache entry to input2 (when not a registered input) and forces caching of '
                              'features on it.')
     parser.add_argument('--input2-model-z-type', default=DEFAULTS['input2_model_z_type'], type=str,
                         choices=list(NOISE_SOURCE_REGISTRY.keys()),
-                        help='Type of noise accepted by the input2 generator model')
+                        help='Type of noise (only required when the input is a path to a generator model)')
     parser.add_argument('--input2-model-z-size', default=DEFAULTS['input2_model_z_size'], type=int,
-                        help='Dimensionality of noise accepted by the input2 generator model')
+                        help='Dimensionality of noise (only required when the input is a path to a generator model)')
     parser.add_argument('--input2-model-num-classes', default=DEFAULTS['input2_model_num_classes'], type=int,
-                        help='Number of classes for conditional generation (0 for unconditional) accepted by the '
-                             'input2 generator model')
+                        help='Number of classes for conditional (0 for unconditional) generation (only required when '
+                             'the input is a path to a generator model)')
     parser.add_argument('--input2-model-num-samples', default=DEFAULTS['input2_model_num_samples'], type=int,
-                        help='Number of samples to draw from input2 generator model, when it is provided as a path to '
-                             'ONNX model. This option affects the following metrics: ISC, FID, KID.')
+                        help='Number of samples to draw (only required when the input is a generator model). '
+                             'This option affects the following metrics: ISC, FID, KID')
     parser.add_argument('--rng-seed', default=DEFAULTS['rng_seed'], type=int,
                         help='Random numbers generator seed for all operations involving randomness')
     parser.add_argument('--save-cpu-ram', action='store_true',

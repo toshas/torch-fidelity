@@ -9,6 +9,7 @@ import torch.hub
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
+from torch_fidelity import GenerativeModelModuleWrapper
 from torch_fidelity.datasets import ImagesPathDataset
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
@@ -141,6 +142,9 @@ def get_featuresdict_from_generative_model(gen_model, feat_extractor, num_sample
 
     rng = np.random.RandomState(rng_seed)
 
+    if cuda:
+        gen_model.cuda()
+
     with tqdm(disable=not verbose, leave=False, unit='samples', total=num_samples, desc='Processing samples') as t, \
             torch.no_grad():
         for sample_start in range(0, num_samples, batch_size):
@@ -232,6 +236,14 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
                 input_desc['input_model_z_type'],
                 input_desc['input_model_num_classes']
             )
+        elif os.path.isfile(input) and input.endswith('.pth'):
+            input = torch.jit.load(input, map_location='cpu')
+            input = GenerativeModelModuleWrapper(
+                input,
+                input_desc['input_model_z_size'],
+                input_desc['input_model_z_type'],
+                input_desc['input_model_num_classes']
+            )
         else:
             bad_input = True
     elif isinstance(input, Dataset) or isinstance(input, GenerativeModelBase):
@@ -242,7 +254,7 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
         not bad_input,
         f'Input descriptor "input" field can be either an instance of Dataset, GenerativeModelBase class, or a string, '
         f'such as a path to a name of a registered dataset ({", ".join(DATASETS_REGISTRY.keys())}), a directory with '
-        f'file samples, or a path to an ONNX model file'
+        f'file samples, or a path to an ONNX or PTH (JIT) module'
     )
     return input
 

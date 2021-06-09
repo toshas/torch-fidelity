@@ -87,7 +87,7 @@ def train(args):
     )
     ds_instance = torchvision.datasets.CIFAR10(args.dir_dataset, train=True, download=True, transform=ds_transform)
     loader = torch.utils.data.DataLoader(
-        ds_instance, batch_size=args.batch_size, drop_last=True, shuffle=True, num_workers=1, pin_memory=True
+        ds_instance, batch_size=args.batch_size, drop_last=True, shuffle=True, num_workers=4, pin_memory=True
     )
     loader_iter = iter(loader)
 
@@ -95,7 +95,7 @@ def train(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     num_classes = 10 if args.conditional else 0  # unconditional
     leading_metric, last_best_metric, metric_greater_cmp = {
-        'IS': (torch_fidelity.KEY_METRIC_ISC_MEAN, 0.0, float.__gt__),
+        'ISC': (torch_fidelity.KEY_METRIC_ISC_MEAN, 0.0, float.__gt__),
         'FID': (torch_fidelity.KEY_METRIC_FID, float('inf'), float.__lt__),
         'KID': (torch_fidelity.KEY_METRIC_KID_MEAN, float('inf'), float.__lt__),
         'PPL': (torch_fidelity.KEY_METRIC_PPL_MEAN, float('inf'), float.__lt__),
@@ -158,6 +158,7 @@ def train(args):
             pbar.set_postfix(step_info)
             for k, v in step_info.items():
                 tb.add_scalar(f'loss/{k}', v, global_step=step)
+            tb.add_scalar(f'LR/lr', scheduler_G.get_last_lr()[0], global_step=step)
         pbar.update(1)
 
         # decay LR
@@ -174,7 +175,7 @@ def train(args):
         # compute and log generative metrics
         metrics = torch_fidelity.calculate_metrics(
             input1=torch_fidelity.GenerativeModelModuleWrapper(G, args.z_size, args.z_type, num_classes),
-            input1_model_num_samples=50000,
+            input1_model_num_samples=args.num_samples_for_metrics,
             input2='cifar10-train',
             isc=True,
             fid=True,
@@ -201,26 +202,21 @@ def train(args):
 
             last_best_metric = metrics[leading_metric]
 
-            G.cpu()
-            torch.onnx.export(
-                G,
-                torch.zeros(1, args.z_size),
-                os.path.join(args.dir_logs, 'generator.onnx'),
-                opset_version=11,
-                input_names=['z'],
-                output_names=['rgb'],
+            dummy_input = torch.zeros(1, args.z_size, device=device)
+            torch.jit.save(torch.jit.trace(G, (dummy_input,)), os.path.join(args.dir_logs, 'generator.pth'))
+            torch.onnx.export(G, dummy_input, os.path.join(args.dir_logs, 'generator.onnx'),
+                opset_version=11, input_names=['z'], output_names=['rgb'],
                 dynamic_axes={'z': {0: 'batch'}, 'rgb': {0: 'batch'}},
             )
-            G.to(device)
 
         # resume training
         if step != args.num_total_steps - 1:
-            pbar = tqdm.tqdm(total=args.num_total_steps, initial=step, desc='Training', unit='batch')
+            pbar = tqdm.tqdm(total=args.num_total_steps, initial=step+1, desc='Training', unit='batch')
             G.train()
 
     tb.close()
     print(f'Training finished; the model with best {args.leading_metric} value ({last_best_metric}) is saved as '
-          f'{args.dir_logs}/generator.onnx')
+          f'{args.dir_logs}/generator.onnx and {args.dir_logs}/generator.pth')
 
 
 def main():
@@ -230,16 +226,17 @@ def main():
     parser.add_argument('--num_total_steps', type=int, default=100000)
     parser.add_argument('--num_epoch_steps', type=int, default=5000)
     parser.add_argument('--num_dis_updates', type=int, default=5)
+    parser.add_argument('--num_samples_for_metrics', type=int, default=50000)
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--z_size', type=int, default=128, choices=(128,))
     parser.add_argument('--z_type', type=str, default='normal')
-    parser.add_argument('--leading_metric', type=str, default='FID', choices=('IS', 'FID', 'KID', 'PPL'))
+    parser.add_argument('--leading_metric', type=str, default='ISC', choices=('ISC', 'FID', 'KID', 'PPL'))
     parser.add_argument('--disable_sn', default=False, action='store_true')
     parser.add_argument('--conditional', default=False, action='store_true')
     parser.add_argument('--dir_dataset', type=str, default=os.path.join(dir, 'dataset'))
     parser.add_argument('--dir_logs', type=str, default=os.path.join(dir, 'logs'))
     args = parser.parse_args()
-    print('Configuration:\n' + ('\n'.join([f'{k:>20}: {v}' for k, v in args.__dict__.items()])))
+    print('Configuration:\n' + ('\n'.join([f'{k:>25}: {v}' for k, v in args.__dict__.items()])))
     assert not args.conditional, 'Conditional mode not implemented'
     train(args)
 

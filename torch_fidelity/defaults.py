@@ -44,7 +44,7 @@ DEFAULTS = {
     'input2_model_z_size': None,
     'input2_model_num_classes': 0,
     'input2_model_num_samples': None,
-    'rng_seed': 2021,
+    'rng_seed': 2020,
     'save_cpu_ram': False,
     'verbose': True,
 }

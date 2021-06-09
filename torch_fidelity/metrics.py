@@ -20,8 +20,8 @@ def calculate_metrics(**kwargs):
                       downloading: datasets_root, datasets_download.
                     - a path to a directory with samples. The following options refine the behavior wrt directory
                       traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
-                    - a path to a generative model in the ONNX format. This option also requires the following kwargs:
-                      input1_model_z_type, input1_model_z_size, input1_model_num_classes.
+                    - a path to a generative model in the ONNX or PTH (JIT) format. This option also requires the
+                      following kwargs: input1_model_z_type, input1_model_z_size, input1_model_num_classes.
                 - an instance of torch.util.data.Dataset.
                 - an instance of torch_fidelity.GenerativeModelBase.
         input2: str or torch.util.data.Dataset (default: None)
@@ -32,8 +32,8 @@ def calculate_metrics(**kwargs):
                       downloading: datasets_root, datasets_download.
                     - a path to a directory with samples. The following options refine the behavior wrt directory
                       traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
-                    - a path to a generative model in the ONNX format. This option also requires the following kwargs:
-                      input2_model_z_type, input2_model_z_size, input3_model_num_classes.
+                    - a path to a generative model in the ONNX or PTH (JIT) format. This option also requires the
+                      following kwargs: input2_model_z_type, input2_model_z_size, input3_model_num_classes.
                 - an instance of torch.util.data.Dataset.
                 - an instance of torch_fidelity.GenerativeModelBase.
         cuda: bool (default: True)
@@ -106,25 +106,27 @@ def calculate_metrics(**kwargs):
         input1_cache_name: str (default: None)
             Assigns a cache entry to input1 (when not a registered input) and forces caching of features on it.
         input1_model_z_type: str (default: 'normal')
-            Type of noise accepted by the input1 generator model.
+            Type of noise (only required when the input is a path to a generator model).
         input1_model_z_size: int (default: None)
-            Dimensionality of noise accepted by the input1 generator model.
+            Dimensionality of noise (only required when the input is a path to a generator model).
         input1_model_num_classes: int (default: 0)
-            Number of classes for conditional generation (0 for unconditional) accepted by the input1 generator model.
+            Number of classes for conditional (0 for unconditional) generation (only required when the input is a path
+            to a generator model).
         input1_model_num_samples: int (default: None)
-            Number of samples to draw from input1 generator model, when it is provided as a path to ONNX model. This
-            option affects the following metrics: ISC, FID, KID.
+            Number of samples to draw (only required when the input is a generator model).
+            This option affects the following metrics: ISC, FID, KID.
         input2_cache_name: str (default: None)
             Assigns a cache entry to input2 (when not a registered input) and forces caching of features on it.
         input2_model_z_type: str (default: 'normal')
-            Type of noise accepted by the input2 generator model.
+            Type of noise (only required when the input is a path to a generator model).
         input2_model_z_size: int (default: None)
-            Dimensionality of noise accepted by the input2 generator model.
+            Dimensionality of noise (only required when the input is a path to a generator model).
         input2_model_num_classes: int (default: 0)
-            Number of classes for conditional generation (0 for unconditional) accepted by the input2 generator model.
+            Number of classes for conditional (0 for unconditional) generation (only required when the input is a path
+            to a generator model).
         input2_model_num_samples: int (default: None)
-            Number of samples to draw from input2 generator model, when it is provided as a path to ONNX model. This
-            option affects the following metrics: ISC, FID, KID.
+            Number of samples to draw (only required when the input is a generator model).
+            This option affects the following metrics: ISC, FID, KID.
         rng_seed: int (default: 2021)
             Random numbers generator seed for all operations involving randomness.
         save_cpu_ram: bool (default: False)

@@ -33,9 +33,12 @@ def calculate_ppl(input_id, **kwargs):
     vassert(
         isinstance(model, GenerativeModelBase),
         'Input needs to be an instance of GenerativeModelBase, which can be either passed programmatically by wrapping '
-        'a model with GenerativeModelModuleWrapper, or via command line by specifying a path to ONNX model and a set '
-        'of input1_model_* arguments'
+        'a model with GenerativeModelModuleWrapper, or via command line by specifying a path to a ONNX or PTH (JIT) '
+        'model and a set of input1_model_* arguments'
     )
+
+    if is_cuda:
+        model.cuda()
 
     input_model_num_samples = input_desc['input_model_num_samples']
     input_model_num_classes = model.num_classes
