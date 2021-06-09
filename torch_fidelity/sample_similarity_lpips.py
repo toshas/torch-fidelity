@@ -107,7 +107,7 @@ class SampleSimilarityLPIPS(SampleSimilarityBase):
         self.lin4 = NetLinLayer(self.chns[4], use_dropout=True)
         self.lins = [self.lin0, self.lin1, self.lin2, self.lin3, self.lin4]
         with redirect_stdout(sys.stderr):
-            state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, progress=True)
+            state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, map_location='cpu', progress=True)
         self.load_state_dict(state_dict)
         self.net = VGG16features()
         self.eval()
