@@ -166,7 +166,8 @@ def train(args):
         scheduler_D.step()
 
         # check if it is validation time
-        if (step + 1) % args.num_epoch_steps != 0:
+        next_step = step + 1
+        if next_step % args.num_epoch_steps != 0:
             continue
         pbar.close()
         G.eval()
@@ -187,14 +188,14 @@ def train(args):
         
         # log metrics
         for k, v in metrics.items():
-            tb.add_scalar(f'metrics/{k}', v, global_step=step)
+            tb.add_scalar(f'metrics/{k}', v, global_step=next_step)
 
         # log observed images
         samples_vis = G(z_vis).detach().cpu()
         samples_vis = torchvision.utils.make_grid(samples_vis).permute(1, 2, 0).numpy()
-        tb.add_image('observations', samples_vis, global_step=step, dataformats='HWC')
+        tb.add_image('observations', samples_vis, global_step=next_step, dataformats='HWC')
         samples_vis = PIL.Image.fromarray(samples_vis)
-        samples_vis.save(os.path.join(args.dir_logs, f'{step:06d}.png'))
+        samples_vis.save(os.path.join(args.dir_logs, f'{next_step:06d}.png'))
 
         # save the generator if it improved
         if metric_greater_cmp(metrics[leading_metric], last_best_metric):
@@ -210,8 +211,8 @@ def train(args):
             )
 
         # resume training
-        if step != args.num_total_steps - 1:
-            pbar = tqdm.tqdm(total=args.num_total_steps, initial=step+1, desc='Training', unit='batch')
+        if next_step <= args.num_total_steps:
+            pbar = tqdm.tqdm(total=args.num_total_steps, initial=next_step, desc='Training', unit='batch')
             G.train()
 
     tb.close()
