@@ -11,7 +11,7 @@ from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
 class TestMetricIscFidelity(unittest.TestCase):
     @staticmethod
     def call_ref_isc(input, cuda, determinism):
-        args = ['python3', 'tests/reference/reference_metric_isc_ttur.py', input]
+        args = ['python3', 'reference/reference_metric_isc_ttur.py', input]
         if cuda:
             args.append('--gpu')
             args.append(os.environ['CUDA_VISIBLE_DEVICES'])
@@ -24,7 +24,7 @@ class TestMetricIscFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_isc(input):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', input]
+        args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', '--input1', input]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 

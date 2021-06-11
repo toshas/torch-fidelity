@@ -12,7 +12,7 @@ class TestMetricKidFidelity(unittest.TestCase):
     @staticmethod
     def call_ref_kid(input_1, input_2, cuda, determinism):
         args = [
-            'python3', 'tests/reference/reference_metric_kid_mmdgan.py', input_1, input_2,
+            'python3', 'reference/reference_metric_kid_mmdgan.py', input_1, input_2,
             '--no-inception', '--do-mmd'
         ]
         if cuda:
@@ -27,7 +27,10 @@ class TestMetricKidFidelity(unittest.TestCase):
 
     @staticmethod
     def call_fidelity_kid(input_1, input_2):
-        args = ['python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--save-cpu-ram', input_1, input_2]
+        args = [
+            'python3', '-m', 'torch_fidelity.fidelity', '--kid', '--json', '--save-cpu-ram',
+            '--input1', input_1, '--input2', input_2
+        ]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
 
@@ -52,7 +55,7 @@ class TestMetricKidFidelity(unittest.TestCase):
         # this partucular reference app needs features pre-extracted
         if not os.path.exists(cifar10trainorig_codes):
             args = [
-                'python3', 'tests/reference/reference_metric_kid_mmdgan.py', cifar10trainorig_root,
+                'python3', 'reference/reference_metric_kid_mmdgan.py', cifar10trainorig_root,
                 '--save-codes', cifar10trainorig_codes, '--determinism'
             ]
             if cuda:

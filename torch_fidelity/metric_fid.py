@@ -1,10 +1,14 @@
+# Functions fid_features_to_statistics and fid_statistics_to_metric are adapted from
+#   https://github.com/bioinf-jku/TTUR/blob/master/fid.py commit id d4baae8
+#   Distributed under Apache License 2.0: https://github.com/bioinf-jku/TTUR/blob/master/LICENSE
+
 import numpy as np
 import scipy.linalg
 import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
-from torch_fidelity.utils import get_input_cacheable_name, cache_lookup_one_recompute_on_miss, \
-    extract_featuresdict_from_input_cached, create_feature_extractor
+from torch_fidelity.utils import get_cacheable_input_name, cache_lookup_one_recompute_on_miss, \
+    extract_featuresdict_from_input_id_cached, create_feature_extractor
 
 KEY_METRIC_FID = 'frechet_inception_distance'
 
@@ -22,8 +26,6 @@ def fid_features_to_statistics(features):
 
 def fid_statistics_to_metric(stat_1, stat_2, verbose):
     eps = 1e-6
-
-    vprint(verbose, 'Computing Frechet Inception Distance')
 
     mu1, sigma1 = stat_1['mu'], stat_1['sigma']
     mu2, sigma2 = stat_2['mu'], stat_2['sigma']
@@ -60,11 +62,13 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
 
     tr_covmean = np.trace(covmean)
 
-    fid = diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean
-
-    return {
-        KEY_METRIC_FID: float(fid),
+    out = {
+        KEY_METRIC_FID: float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
     }
+
+    vprint(verbose, f'Frechet Inception Distance: {out[KEY_METRIC_FID]}')
+
+    return out
 
 
 def fid_featuresdict_to_statistics(featuresdict, feat_layer_name):
@@ -89,15 +93,17 @@ def fid_featuresdict_to_statistics_cached(
     return stat
 
 
-def fid_input_to_statistics(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs):
-    featuresdict = extract_featuresdict_from_input_cached(input, cacheable_input_name, feat_extractor, **kwargs)
+def fid_input_id_to_statistics(input_id, feat_extractor, feat_layer_name, **kwargs):
+    featuresdict = extract_featuresdict_from_input_id_cached(input_id, feat_extractor, **kwargs)
     return fid_featuresdict_to_statistics(featuresdict, feat_layer_name)
 
 
-def fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs):
+def fid_input_id_to_statistics_cached(input_id, feat_extractor, feat_layer_name, **kwargs):
 
     def fn_recompute():
-        return fid_input_to_statistics(input, cacheable_input_name, feat_extractor, feat_layer_name, **kwargs)
+        return fid_input_id_to_statistics(input_id, feat_extractor, feat_layer_name, **kwargs)
+
+    cacheable_input_name = get_cacheable_input_name(input_id, **kwargs)
 
     if cacheable_input_name is not None:
         feat_extractor_name = feat_extractor.get_name()
@@ -108,28 +114,23 @@ def fid_input_to_statistics_cached(input, cacheable_input_name, feat_extractor, 
     return stat
 
 
-def fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs):
+def fid_inputs_to_metric(feat_extractor, **kwargs):
+    feat_layer_name = get_kwarg('feature_layer_fid', kwargs)
     verbose = get_kwarg('verbose', kwargs)
 
-    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
-    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
+    vprint(verbose, f'Extracting statistics from input 1')
+    stats_1 = fid_input_id_to_statistics_cached(1, feat_extractor, feat_layer_name, **kwargs)
 
-    vprint(verbose, f'Extracting statistics from input_1')
-    stats_1 = fid_input_to_statistics_cached(input_1, cacheable_input1_name, feat_extractor, feat_layer_name, **kwargs)
-
-    vprint(verbose, f'Extracting statistics from input_2')
-    stats_2 = fid_input_to_statistics_cached(input_2, cacheable_input2_name, feat_extractor, feat_layer_name, **kwargs)
+    vprint(verbose, f'Extracting statistics from input 2')
+    stats_2 = fid_input_id_to_statistics_cached(2, feat_extractor, feat_layer_name, **kwargs)
 
     metric = fid_statistics_to_metric(stats_1, stats_2, get_kwarg('verbose', kwargs))
     return metric
 
 
-def calculate_fid(input_1, input_2, **kwargs):
+def calculate_fid(**kwargs):
+    feature_extractor = get_kwarg('feature_extractor', kwargs)
     feat_layer_name = get_kwarg('feature_layer_fid', kwargs)
-    feat_extractor = create_feature_extractor(
-        get_kwarg('feature_extractor', kwargs),
-        [feat_layer_name],
-        **kwargs
-    )
-    metric = fid_inputs_to_metric(input_1, input_2, feat_extractor, feat_layer_name, **kwargs)
+    feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
+    metric = fid_inputs_to_metric(feat_extractor, **kwargs)
     return metric

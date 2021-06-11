@@ -1,18 +1,19 @@
+# Functions mmd2 and polynomial_kernel are adapted from
+#   https://github.com/mbinkowski/MMD-GAN/blob/master/gan/compute_scores.py
+#   Distributed under BSD 3-Clause: https://github.com/mbinkowski/MMD-GAN/blob/master/LICENSE
+
 import numpy as np
 import torch
 from tqdm import tqdm
 
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_cached, \
-    get_input_cacheable_name
+from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached
 
 KEY_METRIC_KID_MEAN = 'kernel_inception_distance_mean'
 KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
 
 
 def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est='unbiased'):
-    # based on https://github.com/dougalsutherland/opt-mmd/blob/master/two_sample/mmd.py
-    # changed to not compute the full kernel matrix at once
     vassert(mmd_est in ('biased', 'unbiased', 'u-statistic'), 'Invalid value of mmd_est')
 
     m = K_XX.shape[0]
@@ -69,27 +70,34 @@ def polynomial_mmd(features_1, features_2, degree, gamma, coef0):
 
 
 def kid_features_to_metric(features_1, features_2, **kwargs):
-    verbose = get_kwarg('verbose', kwargs)
-
     assert torch.is_tensor(features_1) and features_1.dim() == 2
     assert torch.is_tensor(features_2) and features_2.dim() == 2
     assert features_1.shape[1] == features_2.shape[1]
 
-    features_1 = features_1.cpu().numpy()
-    features_2 = features_2.cpu().numpy()
-
     kid_subsets = get_kwarg('kid_subsets', kwargs)
     kid_subset_size = get_kwarg('kid_subset_size', kwargs)
+    verbose = get_kwarg('verbose', kwargs)
+
+    n_samples_1, n_samples_2 = len(features_1), len(features_2)
+    vassert(
+        n_samples_1 >= kid_subset_size and n_samples_2 >= kid_subset_size,
+        f'KID subset size {kid_subset_size} cannot be smaller than the number of samples (input_1: {n_samples_1}, '
+        f'input_2: {n_samples_2}). Consider using "kid_subset_size" kwarg or "--kid-subset-size" command line key to '
+        f'proceed.'
+    )
+
+    features_1 = features_1.cpu().numpy()
+    features_2 = features_2.cpu().numpy()
 
     mmds = np.zeros(kid_subsets)
     rng = np.random.RandomState(get_kwarg('rng_seed', kwargs))
 
     for i in tqdm(
             range(kid_subsets), disable=not verbose, leave=False, unit='subsets',
-            desc='Computing Kernel Inception Distance'
+            desc='Kernel Inception Distance'
     ):
-        f1 = features_1[rng.choice(len(features_1), kid_subset_size, replace=False)]
-        f2 = features_2[rng.choice(len(features_2), kid_subset_size, replace=False)]
+        f1 = features_1[rng.choice(n_samples_1, kid_subset_size, replace=False)]
+        f2 = features_2[rng.choice(n_samples_2, kid_subset_size, replace=False)]
         o = polynomial_mmd(
             f1,
             f2,
@@ -99,12 +107,14 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
         )
         mmds[i] = o
 
-    vprint(verbose, 'Computing Kernel Inception Distance')
-
-    return {
+    out = {
         KEY_METRIC_KID_MEAN: float(np.mean(mmds)),
         KEY_METRIC_KID_STD: float(np.std(mmds)),
     }
+
+    vprint(verbose, f'Kernel Inception Distance: {out[KEY_METRIC_KID_MEAN]} ± {out[KEY_METRIC_KID_STD]}')
+
+    return out
 
 
 def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs):
@@ -114,19 +124,11 @@ def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, 
     return metric
 
 
-def calculate_kid(input_1, input_2, **kwargs):
+def calculate_kid(**kwargs):
+    feature_extractor = get_kwarg('feature_extractor', kwargs)
     feat_layer_name = get_kwarg('feature_layer_kid', kwargs)
-    feat_extractor = create_feature_extractor(
-        get_kwarg('feature_extractor', kwargs),
-        [feat_layer_name],
-        **kwargs
-    )
-
-    cacheable_input1_name = get_input_cacheable_name(input_1, get_kwarg('cache_input1_name', kwargs))
-    cacheable_input2_name = get_input_cacheable_name(input_2, get_kwarg('cache_input2_name', kwargs))
-
-    featuresdict_1 = extract_featuresdict_from_input_cached(input_1, cacheable_input1_name, feat_extractor, **kwargs)
-    featuresdict_2 = extract_featuresdict_from_input_cached(input_2, cacheable_input2_name, feat_extractor, **kwargs)
-
+    feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
+    featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
+    featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
     metric = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, **kwargs)
     return metric

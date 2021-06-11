@@ -41,16 +41,16 @@ class TestMetricsAll(unittest.TestCase):
 
         kwargs = {
             'cuda': cuda,
-            'cache_input1_name': 'test_input_1',
-            'cache_input2_name': 'test_input_2',
+            'input1_cache_name': 'test_input_1',
+            'input2_cache_name': 'test_input_2',
             'save_cpu_ram': True,
         }
 
-        all = calculate_metrics(input_1, input_2, isc=True, fid=True, kid=True, **kwargs)
+        all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, **kwargs)
 
-        isc = calculate_isc(input_1, **kwargs)
-        fid = calculate_fid(input_1, input_2, **kwargs)
-        kid = calculate_kid(input_1, input_2, **kwargs)
+        isc = calculate_isc(1, **kwargs)
+        fid = calculate_fid(**kwargs)
+        kid = calculate_kid(**kwargs)
 
         self.assertEqual(isc[KEY_METRIC_ISC_MEAN], all[KEY_METRIC_ISC_MEAN])
         self.assertEqual(fid[KEY_METRIC_FID], all[KEY_METRIC_FID])

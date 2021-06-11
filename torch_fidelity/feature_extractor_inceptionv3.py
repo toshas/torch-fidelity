@@ -1,3 +1,7 @@
+# Portions of source code adapted from the following sources:
+#   https://github.com/mseitzer/pytorch-fid/blob/master/src/pytorch_fid/inception.py
+#   Distributed under Apache License 2.0: https://github.com/mseitzer/pytorch-fid/blob/master/LICENSE
+
 import sys
 from contextlib import redirect_stdout
 
@@ -10,8 +14,10 @@ from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import vassert
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
-PT_INCEPTION_URL = \
-    'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'
+# InceptionV3 weights converted from the official TensorFlow weights using utils/util_convert_inception_weights.py
+#   Original weights distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
+URL_INCEPTION_V3 = \
+    'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth'
 
 
 class FeatureExtractorInceptionV3(FeatureExtractorBase):
@@ -65,7 +71,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr):
-                state_dict = load_state_dict_from_url(PT_INCEPTION_URL, progress=True)
+                state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=True)
         else:
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
@@ -102,7 +108,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 64 x 73 x 73
 
         if '64' in remaining_features:
-            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('64')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -115,7 +121,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 192 x 35 x 35
 
         if '192' in remaining_features:
-            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('192')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -138,7 +144,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 768 x 17 x 17
 
         if '768' in remaining_features:
-            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1))
+            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
             remaining_features.remove('768')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)

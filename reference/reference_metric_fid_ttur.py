@@ -1,6 +1,9 @@
 # !/usr/bin/env python3
+
 # Adaptation of the following sources:
-# https://github.com/bioinf-jku/TTUR/fid.py commit id d4baae8
+#   https://github.com/bioinf-jku/TTUR/blob/master/fid.py commit id d4baae8
+#   Distributed under Apache License 2.0: https://github.com/bioinf-jku/TTUR/blob/master/LICENSE
+
 import json
 import os
 import pathlib
@@ -16,22 +19,23 @@ from scipy import linalg
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
 
+# InceptionV3 pretrained weights from TensorFlow models library
+#   Distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
+URL_INCEPTION_V3 = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+
 KEY_FID = 'frechet_inception_distance'
 
 
 def create_inception_graph(pth):
     """Creates a graph from saved GraphDef file."""
-    # Creates graph from saved graph_def.pb.
     with tf.io.gfile.GFile(pth, 'rb') as f:
         graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
         _ = tf.import_graph_def(graph_def, name='FID_Inception_Net')
 
 
-# code for handling inception net derived from
-#   https://github.com/openai/improved-gan/blob/master/inception_score/model.py
 def get_inception_layer(sess):
-    """Prepares inception net for batched usage and returns pool_3 layer. """
+    """Prepares inception net for batched usage and returns pool_3 layer."""
     layername = 'FID_Inception_Net/pool_3:0'
     pool3 = sess.graph.get_tensor_by_name(layername)
     ops = pool3.graph.get_operations()
@@ -162,13 +166,6 @@ def calculate_activation_statistics(images, sess, batch_size=50, verbose=False):
     return mu, sigma
 
 
-# ------------------
-# The following methods are implemented to obtain a batched version of the activations.
-# This has the advantage to reduce memory requirements, at the cost of slightly reduced efficiency.
-# - Pyrestone
-# ------------------
-
-
 def load_image_batch(files):
     """Convenience method for batch-loading images
     Params:
@@ -235,15 +232,8 @@ def calculate_activation_statistics_from_files(files, sess, batch_size=50, verbo
     return mu, sigma
 
 
-# -------------------------------------------------------------------------------
-# The following functions aren't needed for calculating the FID
-# they're just here to make this module work as a stand-alone script
-# for calculating FID scores
-# -------------------------------------------------------------------------------
 def check_or_download_inception(verbose=False):
-    ''' Checks if the path to the inception file is valid, or downloads
-        the file if it is not present. '''
-    INCEPTION_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+    """Checks if the path to the inception file is valid, or downloads the file if it is not present."""
     inception_path = tempfile.gettempdir()
     inception_path = pathlib.Path(inception_path)
     model_file = inception_path / 'classify_image_graph_def.pb'
@@ -252,7 +242,7 @@ def check_or_download_inception(verbose=False):
             print("Downloading Inception model", sys.stderr)
         from urllib import request
         import tarfile
-        fn, _ = request.urlretrieve(INCEPTION_URL)
+        fn, _ = request.urlretrieve(URL_INCEPTION_V3)
         with tarfile.open(fn, mode='r') as f:
             f.extract('classify_image_graph_def.pb', str(model_file.parent))
     return str(model_file)
@@ -271,12 +261,12 @@ def handle_path(path, sess, low_profile=False, verbose=False):
         else:
             x = np.array([imread(str(fn)).astype(np.float32) for fn in files])
             m, s = calculate_activation_statistics(x, sess, verbose=verbose)
-            del x  # clean up memory
+            del x
     return m, s
 
 
 def calculate_fid_given_paths(paths, low_profile=False, verbose=False):
-    ''' Calculates the FID of two paths. '''
+    """Calculates the FID of two paths."""
     inception_path = check_or_download_inception(verbose=verbose)
 
     for p in paths:
