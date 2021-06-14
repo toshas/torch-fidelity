@@ -35,7 +35,7 @@ accepting 3D scan volumes, such as used in MRI.
    installation
    usage_cmd
    usage_api
-   advanced_usage
+   extensibility
    api
    registry
    fidelity

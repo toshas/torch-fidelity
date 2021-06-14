@@ -71,8 +71,6 @@ intersphinx_mapping = {
     'torch': ('https://pytorch.org/docs/stable/', None),
 }
 
-
-
 autodoc_member_order = 'groupwise'
 
 autoclass_content = 'both'
