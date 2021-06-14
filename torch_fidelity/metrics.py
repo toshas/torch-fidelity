@@ -9,132 +9,185 @@ from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_
 
 
 def calculate_metrics(**kwargs):
-    r"""
-    Calculate metrics for the given inputs.
-    Args:
-        input1: str or torch.util.data.Dataset or torch_fidelity.GenerativeModelBase (default: None)
-            First input, which can be either of the following types:
-                - string, which can identify one of the following options:
-                    - a registered input. See DATASETS_REGISTRY for preregistered inputs, and register_dataset for
-                      registering a new input). The following options refine the behavior wrt dataset location and
-                      downloading: datasets_root, datasets_download.
-                    - a path to a directory with samples. The following options refine the behavior wrt directory
-                      traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
-                    - a path to a generative model in the ONNX or PTH (JIT) format. This option also requires the
-                      following kwargs: input1_model_z_type, input1_model_z_size, input1_model_num_classes.
-                - an instance of torch.util.data.Dataset.
-                - an instance of torch_fidelity.GenerativeModelBase.
-        input2: str or torch.util.data.Dataset (default: None)
-            Second input, which can be either of the following types:
-                - string, which can identify one of the following options:
-                    - a registered input. See DATASETS_REGISTRY for preregistered inputs, and register_dataset for
-                      registering a new input). The following options refine the behavior wrt dataset location and
-                      downloading: datasets_root, datasets_download.
-                    - a path to a directory with samples. The following options refine the behavior wrt directory
-                      traversal and samples filtering: samples_find_deep, samples_find_ext, samples_ext_lossy.
-                    - a path to a generative model in the ONNX or PTH (JIT) format. This option also requires the
-                      following kwargs: input2_model_z_type, input2_model_z_size, input3_model_num_classes.
-                - an instance of torch.util.data.Dataset.
-                - an instance of torch_fidelity.GenerativeModelBase.
-        cuda: bool (default: True)
-            Sets executor device to GPU.
-        batch_size: int (default: 64)
-            Batch size used to process images; the larger the more memory is used on the executor device (see "cuda"
-            argument).
-        isc: bool (default: False)
-            Calculate ISC (Inception Score).
-        fid: bool (default: False)
-            Calculate FID (Frechet Inception Distance).
-        kid: bool (default: False)
-            Calculate KID (Kernel Inception Distance).
-        ppl: bool (default: False)
-            Calculate PPL (Perceptual Path Length).
-        feature_extractor: str (default: inception-v3-compat)
-            Name of the feature extractor (see registry.py).
-        feature_layer_isc: str (default: logits_unbiased)
-            Name of the feature layer to use with ISC metric.
-        feature_layer_fid: str (default: 2048)
-            Name of the feature layer to use with FID metric.
-        feature_layer_kid: str (default: 2048)
-            Name of the feature layer to use with KID metric.
-        feature_extractor_weights_path: str (default: None)
-            Path to feature extractor weights (downloaded if None).
-        isc_splits: int (default: 10)
-            Number of splits in ISC.
-        kid_subsets: int (default: 100)
-            Number of subsets in KID.
-        kid_subset_size: int (default: 1000)
-            Subset size in KID.
-        kid_degree: int (default: 3)
-            Degree of polynomial kernel in KID.
-        kid_gamma: float (default: None)
-            Polynomial kernel gamma in KID (automatic if None).
-        kid_coef0: float (default: 1)
-            Polynomial kernel coef0 in KID.
-        ppl_epsilon: float (default: 1e-4)
-            Interpolation step size in PPL.
-        ppl_reduction: str (default: mean)
-            Reduction type to apply to the per-sample output values.
-        ppl_sample_similarity: str (default: lpips-vgg16)
-            Name of the sample similarity to use in PPL metric computation.
-        ppl_sample_similarity_resize: int (default: 64)
-            Force samples to this size when computing similarity, unless set to None.
-        ppl_sample_similarity_dtype: str (default: uint8)
-            Check samples are of compatible dtype when computing similarity, unless set to None.
-        ppl_discard_percentile_lower: int (default: 1)
-            Removes the lower percentile of samples before reduction.
-        ppl_discard_percentile_higher: int (default: 99)
-            Removes the higher percentile of samples before reduction.
-        ppl_z_interp_mode: str (default: lerp)
-            Noise interpolation mode in PPL.
-        samples_shuffle: bool (default: True)
-            Perform random samples shuffling before computing splits.
-        samples_find_deep: bool (default: False)
-            Find all samples in paths recursively.
-        samples_find_ext: str (default: png,jpg,jpeg)
-            List of extensions to look for when traversing input path.
-        samples_ext_lossy: str (default: jpg,jpeg)
-            List of extensions to warn about lossy compression.
-        datasets_root: str (default: None)
-            Path to built-in torchvision datasets root. Defaults to $ENV_TORCH_HOME/fidelity_datasets.
-        datasets_download: bool (default: True)
-            Download torchvision datasets to dataset_root.
-        cache_root: str (default: None)
-            Path to file cache for features and statistics. Defaults to $ENV_TORCH_HOME/fidelity_cache.
-        cache: bool (default: True)
-            Use file cache for features and statistics.
-        input1_cache_name: str (default: None)
-            Assigns a cache entry to input1 (when not a registered input) and forces caching of features on it.
-        input1_model_z_type: str (default: 'normal')
-            Type of noise (only required when the input is a path to a generator model).
-        input1_model_z_size: int (default: None)
-            Dimensionality of noise (only required when the input is a path to a generator model).
-        input1_model_num_classes: int (default: 0)
-            Number of classes for conditional (0 for unconditional) generation (only required when the input is a path
-            to a generator model).
-        input1_model_num_samples: int (default: None)
-            Number of samples to draw (only required when the input is a generator model).
-            This option affects the following metrics: ISC, FID, KID.
-        input2_cache_name: str (default: None)
-            Assigns a cache entry to input2 (when not a registered input) and forces caching of features on it.
-        input2_model_z_type: str (default: 'normal')
-            Type of noise (only required when the input is a path to a generator model).
-        input2_model_z_size: int (default: None)
-            Dimensionality of noise (only required when the input is a path to a generator model).
-        input2_model_num_classes: int (default: 0)
-            Number of classes for conditional (0 for unconditional) generation (only required when the input is a path
-            to a generator model).
-        input2_model_num_samples: int (default: None)
-            Number of samples to draw (only required when the input is a generator model).
-            This option affects the following metrics: ISC, FID, KID.
-        rng_seed: int (default: 2021)
-            Random numbers generator seed for all operations involving randomness.
-        save_cpu_ram: bool (default: False)
-            Use less CPU RAM at the cost of speed.
-        verbose: bool (default: True)
-            Output progress information to STDERR.
+    """
+    Calculates metrics for the given inputs. Keyword arguments:
 
-    Return: a dictionary of metrics.
+    .. _ISC: https://arxiv.org/pdf/1606.03498.pdf
+    .. _FID: https://arxiv.org/pdf/1706.08500.pdf
+    .. _KID: https://arxiv.org/pdf/1801.01401.pdf
+    .. _PPL: https://arxiv.org/pdf/1812.04948.pdf
+
+    Args:
+
+        input1 (str or torch.utils.data.Dataset or GenerativeModelBase):
+            First input, which can be either of the following values:
+
+            - Name of a registered input. See :ref:`registry <Registry>` for the complete list of preregistered
+              inputs, and :meth:`register_dataset` for registering a new input. The following options refine the
+              behavior wrt dataset location and downloading:
+              :paramref:`~calculate_metrics.datasets_root`,
+              :paramref:`~calculate_metrics.datasets_download`.
+            - Path to a directory with samples. The following options refine the behavior wrt directory
+              traversal and samples filtering:
+              :paramref:`~calculate_metrics.samples_find_deep`,
+              :paramref:`~calculate_metrics.samples_find_ext`, and
+              :paramref:`~calculate_metrics.samples_ext_lossy`.
+            - Path to a generative model in the :obj:`ONNX<torch:torch.onnx>` or `PTH` (:obj:`JIT<torch:torch.jit>`)
+              format. This option also requires the following kwargs:
+              :paramref:`~calculate_metrics.input1_model_z_type`,
+              :paramref:`~calculate_metrics.input1_model_z_size`, and
+              :paramref:`~calculate_metrics.input1_model_num_classes`.
+            - Instance of :class:`~torch:torch.utils.data.Dataset` encapsulating a fixed set of samples.
+            - Instance of :class:`GenerativeModelBase`, implementing the generative model.
+
+            Default: `None`.
+
+        input2 (str or torch.utils.data.Dataset or GenerativeModelBase):
+            Second input, which can be either of the following values:
+
+            - Name of a registered input. See :ref:`registry <Registry>` for the complete list of preregistered
+              inputs, and :meth:`register_dataset` for registering a new input. The following options refine the
+              behavior wrt dataset location and downloading:
+              :paramref:`~calculate_metrics.datasets_root`,
+              :paramref:`~calculate_metrics.datasets_download`.
+            - Path to a directory with samples. The following options refine the behavior wrt directory
+              traversal and samples filtering:
+              :paramref:`~calculate_metrics.samples_find_deep`,
+              :paramref:`~calculate_metrics.samples_find_ext`, and
+              :paramref:`~calculate_metrics.samples_ext_lossy`.
+            - Path to a generative model in the :obj:`ONNX<torch:torch.onnx>` or `PTH` (:obj:`JIT<torch:torch.jit>`)
+              format. This option also requires the following kwargs:
+              :paramref:`~calculate_metrics.input2_model_z_type`,
+              :paramref:`~calculate_metrics.input2_model_z_size`, and
+              :paramref:`~calculate_metrics.input2_model_num_classes`.
+            - Instance of :class:`~torch:torch.utils.data.Dataset` encapsulating a fixed set of samples.
+            - Instance of :class:`GenerativeModelBase`, implementing the generative model.
+
+            Default: `None`.
+
+        cuda (bool): Sets executor device to GPU. Default: `True`.
+
+        batch_size (int): Batch size used to process images; the larger the more memory is used on the executor device
+            (see :paramref:`~calculate_metrics.cuda`). Default: `64`.
+
+        isc (bool): Calculate ISC_ (Inception Score). Default: `False`.
+
+        fid (bool): Calculate FID_ (Frechet Inception Distance). Default: `False`.
+
+        kid (bool): Calculate KID_ (Kernel Inception Distance). Default: `False`.
+
+        ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
+
+        feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
+            `inception-v3-compat`.
+
+        feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `logits_unbiased`.
+
+        feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `"2048"`.
+
+        feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `"2048"`.
+
+        feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
+
+        isc_splits (int): Number of splits in ISC. Default: `10`.
+
+        kid_subsets (int): Number of subsets in KID. Default: `100`.
+
+        kid_subset_size (int): Subset size in KID. Default: `1000`.
+
+        kid_degree (int): Degree of polynomial kernel in KID. Default: `3`.
+
+        kid_gamma (float): Polynomial kernel gamma in KID (automatic if `None`). Default: `None`.
+
+        kid_coef0 (float): Polynomial kernel coef0 in KID. Default: `1.0`.
+
+        ppl_epsilon (float): Interpolation step size in PPL. Default: `1e-4`.
+
+        ppl_reduction (str): Reduction type to apply to the per-sample output values. Default: `mean`.
+
+        ppl_sample_similarity (str): Name of the sample similarity to use in PPL metric computation (see :ref:`registry
+            <Registry>`). Default: `lpips-vgg16`.
+
+        ppl_sample_similarity_resize (int): Force samples to this size when computing similarity, unless set to `None`.
+            Default: `64`.
+
+        ppl_sample_similarity_dtype (str): Check samples are of compatible dtype when computing similarity, unless set
+            to `None`. Default: `uint8`.
+
+        ppl_discard_percentile_lower (int): Removes the lower percentile of samples before reduction. Default: `1`.
+
+        ppl_discard_percentile_higher (int): Removes the higher percentile of samples before reduction. Default: `99`.
+
+        ppl_z_interp_mode (str): Noise interpolation mode in PPL (see :ref:`registry <Registry>`). Default: `lerp`.
+
+        samples_shuffle (bool): Perform random samples shuffling before computing splits. Default: `True`.
+
+        samples_find_deep (bool): Find all samples in paths recursively. Default: `False`.
+
+        samples_find_ext (str): List of comma-separated extensions (no blanks) to look for when traversing input path.
+            Default: `png,jpg,jpeg`.
+
+        samples_ext_lossy (str): List of comma-separated extensions (no blanks) to warn about lossy compression.
+            Default: `jpg,jpeg`.
+
+        datasets_root (str): Path to built-in torchvision datasets root. Default: `$ENV_TORCH_HOME/fidelity_datasets`.
+
+        datasets_download (bool): Download torchvision datasets to :paramref:`~calculate_metrics.dataset_root`.
+            Default: `True`.
+
+        cache_root (str): Path to file cache for features and statistics. Default: `$ENV_TORCH_HOME/fidelity_cache`.
+
+        cache (bool): Use file cache for features and statistics. Default: `True`.
+
+        input1_cache_name (str): Assigns a cache entry to input1 (when not a registered input) and forces caching of
+            features on it. Default: `None`.
+
+        input1_model_z_type (str): Type of noise, only required when the input is a path to a generator model (see
+            :ref:`registry <Registry>`). Default: `normal`.
+
+        input1_model_z_size (int): Dimensionality of noise (only required when the input is a path to a generator
+            model). Default: `None`.
+
+        input1_model_num_classes (int): Number of classes for conditional (0 for unconditional) generation (only
+            required when the input is a path to a generator model). Default: `0`.
+
+        input1_model_num_samples (int): Number of samples to draw (only required when the input is a generator model).
+            This option affects the following metrics: ISC, FID, KID. Default: `None`.
+
+        input2_cache_name (str): Assigns a cache entry to input2 (when not a registered input) and forces caching of
+            features on it. Default: `None`.
+
+        input2_model_z_type (str): Type of noise, only required when the input is a path to a generator model (see
+            :ref:`registry <Registry>`). Default: `normal`.
+
+        input2_model_z_size (int): Dimensionality of noise (only required when the input is a path to a generator
+            model). Default: `None`.
+
+        input2_model_num_classes (int): Number of classes for conditional (0 for unconditional) generation (only
+            required when the input is a path to a generator model). Default: `0`.
+
+        input2_model_num_samples (int): Number of samples to draw (only required when the input is a generator model).
+            This option affects the following metrics: FID, KID. Default: `None`.
+
+        rng_seed (int): Random numbers generator seed for all operations involving randomness. Default: `2020`.
+
+        save_cpu_ram (bool): Use less CPU RAM at the cost of speed. May not lead to improvement with every metric.
+            Default: `False`.
+
+        verbose (bool): Output progress information to STDERR. Default: `True`.
+
+    Returns:
+
+        : Dictionary of metrics with a subset of the following keys:
+
+            - :const:`torch_fidelity.KEY_METRIC_ISC_MEAN`
+            - :const:`torch_fidelity.KEY_METRIC_ISC_STD`
+            - :const:`torch_fidelity.KEY_METRIC_FID`
+            - :const:`torch_fidelity.KEY_METRIC_KID_MEAN`
+            - :const:`torch_fidelity.KEY_METRIC_KID_STD`
+            - :const:`torch_fidelity.KEY_METRIC_PPL_MEAN`
+            - :const:`torch_fidelity.KEY_METRIC_PPL_STD`
+            - :const:`torch_fidelity.KEY_METRIC_PPL_RAW`
     """
 
     verbose = get_kwarg('verbose', kwargs)

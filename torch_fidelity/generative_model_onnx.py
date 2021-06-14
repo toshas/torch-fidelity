@@ -9,6 +9,21 @@ from torch_fidelity.helpers import vassert
 
 class GenerativeModelONNX(GenerativeModelBase):
     def __init__(self, path_onnx, z_size, z_type, num_classes):
+        """
+        Wraps :obj:`ONNX<torch:torch.onnx>` generative model, implements the :class:`GenerativeModelBase` interface.
+
+        Args:
+
+            path_onnx (str): Path to a generative model in :obj:`ONNX<torch:torch.onnx>` format.
+
+            z_size (int): Size of the noise dimension of the generative model (positive integer).
+
+            z_type (str): Type of the noise used by the generative model (see :ref:`registry <Registry>` for a list of
+                preregistered noise types, see :func:`register_noise_source` for registering a new noise type).
+
+            num_classes (int): Number of classes used by a conditional generative model. Must return zero for
+                unconditional models.
+        """
         super().__init__()
         vassert(os.path.isfile(path_onnx), f'Model file not found at "{path_onnx}"')
         vassert(type(z_size) is int and z_size > 0, 'z_size must be a positive integer')

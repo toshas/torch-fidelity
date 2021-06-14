@@ -30,17 +30,26 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             feature_extractor_weights_path=None,
             **kwargs,
     ):
-        """Build pretrained InceptionV3
+        """
+        InceptionV3 feature extractor for 2D RGB 24bit images.
 
-        Parameters
-        ----------
-        features_list: list
-            A list of feature names from the list of provided by this extractor,
-            which will be produced for each input
-        feature_extractor_weights_path: str
-            Path to the pretrained Inception model weights in PyTorch format.
-            Refer to inception_features.py:__main__ for making your own.
-            By default downloads the checkpoint from internet.
+        Args:
+
+            name (str): Unique name of the feature extractor, must be the same as used in
+                :func:`register_feature_extractor`.
+
+            features_list (list): A list of the requested feature names, which will be produced for each input. This
+                feature extractor provides the following features:
+
+                - '64'
+                - '192'
+                - '768'
+                - '2048'
+                - 'logits_unbiased'
+                - 'logits'
+
+            feature_extractor_weights_path (str): Path to the pretrained InceptionV3 model weights in PyTorch format.
+                Refer to `util_convert_inception_weights` for making your own. Downloads from internet if `None`.
         """
         super(FeatureExtractorInceptionV3, self).__init__(name, features_list)
 

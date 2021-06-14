@@ -17,15 +17,17 @@ INTERPOLATION_REGISTRY = dict()
 
 
 def register_dataset(name, fn_create):
-    r"""
-    Register a new input source (useful for ground truth or reference datasets).
+    """
+    Registers a new input source.
+
     Args:
-        name: str
-            A unique name of the input source, which will be available for use as a positional input argument. See
-            calculate_metrics function.
-        fn_create: callable(root, download)
-            A constructor of torch.util.data.Dataset instance. The passed arguments denote a possible root where the
-            dataset may be downloaded.
+
+        name (str): Unique name of the input source.
+
+        fn_create (callable): A constructor of a :class:`~torch:torch.utils.data.Dataset` instance. Callable arguments:
+
+            - `root` (str): Location where the dataset files may be downloaded.
+            - `download` (bool): Whether to perform downloading or rely on the cached version.
     """
     vassert(type(name) is str, 'Dataset must be given a name')
     vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')
@@ -39,14 +41,14 @@ def register_dataset(name, fn_create):
 
 
 def register_feature_extractor(name, cls):
-    r"""
-    Register a new feature extractor (useful for extending metrics beyond Inception 2D feature extractor).
+    """
+    Registers a new feature extractor.
+
     Args:
-        name: str
-            A unique name of the feature extractor, which will be available for use as a value of the
-            "feature_extractor" argument. See calculate_metrics function.
-        cls: subclass(FeatureExtractorBase)
-            Name of a class subclassed from FeatureExtractorBase, implementing a new feature extractor.
+
+        name (str): Unique name of the feature extractor.
+
+        cls (FeatureExtractorBase): Instance of :class:`FeatureExtractorBase`, implementing a new feature extractor.
     """
     vassert(type(name) is str, 'Feature extractor must be given a name')
     vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')
@@ -59,13 +61,15 @@ def register_feature_extractor(name, cls):
 
 
 def register_sample_similarity(name, cls):
-    r"""
-    Register a new sample similarity (useful for extending sample similarity measures beyond LPIPS-VGG16 for 2D images).
+    """
+    Registers a new sample similarity measure.
+
     Args:
-        name: str
-            A unique name of the sample similarity class.
-        cls: subclass(SampleSimilarityBase)
-            Name of a class subclassed from SampleSimilarityBase, implementing a new sample similarity.
+
+        name (str): Unique name of the sample similarity measure.
+
+        cls (SampleSimilarityBase): Instance of :class:`SampleSimilarityBase`, implementing a new sample similarity
+            measure.
     """
     vassert(type(name) is str, 'Sample similarity must be given a name')
     vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')
@@ -78,14 +82,18 @@ def register_sample_similarity(name, cls):
 
 
 def register_noise_source(name, fn_generate):
-    r"""
-    Register a new noise source, which can generate samples to be used as inputs to generative models.
+    """
+    Registers a new noise source, which can generate samples to be used as inputs to generative models.
+
     Args:
-        name: str
-            A unique name of the noise source.
-        fn_generate: callable(rng, shape)
-            A generator of a random sample of specified type and shape. The passed arguments denote an initialized RNG
-            instance and the desired sample shape.
+
+        name (str): Unique name of the noise source.
+
+        fn_generate (callable): Generator of a random samples of specified type and shape. Callable arguments:
+
+            - `rng` (numpy.random.RandomState): random number generator state, initialized with \
+                :paramref:`~calculate_metrics.seed`.
+            - `shape` (torch.Size): shape of the tensor of random samples.
     """
     vassert(type(name) is str, 'Noise source must be given a name')
     vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')
@@ -99,14 +107,18 @@ def register_noise_source(name, fn_generate):
 
 
 def register_interpolation(name, fn_interpolate):
-    r"""
-    Register a new interpolation method, adhering to the interface `fn(a, b, t), where a and b are the endpoints,
-    and t is a float in the [0,1] range.
+    """
+    Registers a new sample interpolation method.
+
     Args:
-        name: str
-            A unique name of the interpolation method.
-        fn_interpolate: callable(a, b, t)
-            An interpolation function of the specified interface.
+
+        name (str): Unique name of the interpolation method.
+
+        fn_interpolate (callable): Sample interpolation function. Callable arguments:
+
+            - `a` (torch.Tensor): batch of the first endpoint samples.
+            - `b` (torch.Tensor): batch of the second endpoint samples.
+            - `t` (float): interpolation coefficient in the range [0,1].
     """
     vassert(type(name) is str, 'Interpolation must be given a name')
     vassert(name.strip() == name, 'Name must not have leading or trailing whitespaces')

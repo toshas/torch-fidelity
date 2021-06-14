@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--input2-model-num-classes`: Number of classes for conditional generation (0 for unconditional) accepted by the input2 generator model
   - `--input2-model-num-samples`: Number of samples to draw from input2 generator model, when it is provided as a path to ONNX model. This option affects the following metrics: ISC, FID, KID
 - Support generative model modules as inputs to all metrics  
-- ONNX model loading via command line functionality to support framework-agnostic metrics calculation
+- ONNX and PTH (JIT) model loading via command line functionality to support framework-agnostic metrics calculation
 - Noise source types and latent vector interpolation methods can now be registered and dispatched similar to registered inputs
 - Registered inputs: `stl10-train`, `stl10-test`, `stl10-unlabeled`
 - Registered noise source types: `normal`, `uniform_0_1`, `unit` 
@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test for LPIPS fidelity as compared to StyleGAN PyTorch implementation
 - Test for feature extraction layer
 - Unrecognized command line arguments warning
+- Added ReadTheDocs documentation
 
 ### Changed
 - API

@@ -9,10 +9,10 @@
 
 This repository provides **epsilon-exact**, **efficient**, and **extensible** implementations of the popular metrics for 
 generative model evaluation, including:
-- Inception Score (ISC) [[paper]](https://arxiv.org/pdf/1606.03498.pdf)
-- Fréchet Inception Distance (FID) [[paper]](https://arxiv.org/pdf/1706.08500.pdf)
-- Kernel Inception Distance (KID) [[paper]](https://arxiv.org/pdf/1801.01401.pdf)
-- Perceptual Path Length (PPL) [[paper]](https://arxiv.org/pdf/1812.04948.pdf)
+- Inception Score ([ISC](https://arxiv.org/pdf/1606.03498.pdf))
+- Fréchet Inception Distance ([FID](https://arxiv.org/pdf/1706.08500.pdf))
+- Kernel Inception Distance ([KID](https://arxiv.org/pdf/1801.01401.pdf))
+- Perceptual Path Length ([PPL](https://arxiv.org/pdf/1812.04948.pdf))
 
 **Epsilon-exactness**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
 implementations up to machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
@@ -34,7 +34,7 @@ accepting 3D scan volumes, such as used in MRI.
 pip install torch-fidelity
 ```
 
-## What's new
+### What's new
 
 See [CHANGELOG.md](CHANGELOG.md) for a full list of changes since the last release.
 
@@ -140,7 +140,7 @@ Output:
 }
 ```
 
-## Example of Integration with the Training Loop
+### Example of Integration with the Training Loop
 
 Refer to [sngan_cifar10.py](examples/sngan_cifar10.py) for a complete training example.
 
@@ -301,7 +301,7 @@ Below is a summary of use cases when changing the defaults is required:
   
 ## Citation
 
-Citation is required to reinforce the evaluation protocol in works relying on torch-fidelity. 
+Citation is recommended to reinforce the evaluation protocol in works relying on torch-fidelity. 
 To ensure reproducibility when citing this repository, use the following BibTeX:
 
 ```
