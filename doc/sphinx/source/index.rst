@@ -56,7 +56,7 @@ To ensure reproducibility, use the following BibTeX:
         title={High-fidelity performance metrics for generative models in PyTorch},
         url={https://github.com/toshas/torch-fidelity},
         publisher={Zenodo},
-        version={v0.2.0},
-        doi={10.5281/zenodo.3786540},
-        note={Version: 0.2.0, DOI: 10.5281/zenodo.3786540}
+        version={v0.3.0},
+        doi={10.5281/zenodo.4957738},
+        note={Version: 0.3.0, DOI: 10.5281/zenodo.4957738}
       }
