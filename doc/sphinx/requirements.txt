@@ -1,3 +1,5 @@
+recommonmark
 sphinx
-sphinx-rtd-theme
+sphinx-markdown-tables
 sphinx-paramlinks
+sphinx-rtd-theme

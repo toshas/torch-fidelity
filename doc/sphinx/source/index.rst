@@ -1,7 +1,7 @@
 torch-fidelity: High-fidelity performance metrics for generative models in PyTorch
 ==================================================================================
 
-torch-fidelity provides **epsilon-exact**, **efficient**, and **extensible** implementations of the popular metrics for
+**torch-fidelity** provides **precise**, **efficient**, and **extensible** implementations of the popular metrics for
 generative model evaluation, including:
 
 * Inception Score (ISC_)
@@ -14,9 +14,9 @@ generative model evaluation, including:
 .. _KID: https://arxiv.org/pdf/1801.01401.pdf
 .. _PPL: https://arxiv.org/pdf/1812.04948.pdf
 
-**Epsilon-exactness**: Unlike many other reimplementations, the values produced by torch-fidelity match reference
+**Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference
 implementations up to machine precision. This allows using torch-fidelity for reporting metrics in papers instead of
-scattered and slow reference implementations. [Read more about epsilon-exactness of this code.](doc/fidelity.md)
+scattered and slow reference implementations.
 
 **Efficiency**: Feature sharing between different metrics saves recomputation time, and an additional caching
 level avoids recomputing features and statistics whenever possible. High efficiency allows using torch-fidelity in the
@@ -29,16 +29,18 @@ accepting 3D scan volumes, such as used in MRI.
 **TLDR; fast and reliable GAN evaluation in PyTorch**
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Getting started:
+   :maxdepth: 2
+   :caption: Overview
 
    installation
    usage_cmd
    usage_api
-   extensibility
    api
    registry
-   fidelity
+   extensibility
+   miscellaneous
+   precision
+   changelog
 
 Citation
 --------
@@ -46,7 +48,7 @@ Citation
 Citation is recommended to reinforce the evaluation protocol in works relying on torch-fidelity.
 To ensure reproducibility, use the following BibTeX:
 
-.. code-block:: console
+.. code-block:: bibtex
 
       @misc{obukhov2020torchfidelity,
         author={Anton Obukhov and Maximilian Seitzer and Po-Wei Wu and Semen Zhydenko and Jonathan Kyl and Elvis Yu-Jing Lin},

@@ -14,6 +14,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../../'))
 
+from recommonmark.parser import CommonMarkParser
+
 
 # -- Project information -----------------------------------------------------
 
@@ -37,10 +39,18 @@ extensions = [
   'sphinx.ext.napoleon',
   'sphinx.ext.autosectionlabel',
   'sphinx_paramlinks',
+  'sphinx_markdown_tables',
+  'recommonmark',
 ]
+
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+source_suffix = ['.rst', '.md']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
