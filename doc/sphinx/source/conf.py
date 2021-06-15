@@ -12,7 +12,8 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../../'))
+three_up = os.path.abspath(os.path.join('..', '..', '..'))
+sys.path.insert(0, three_up)
 
 from recommonmark.parser import CommonMarkParser
 
@@ -23,8 +24,12 @@ project = 'torch-fidelity'
 copyright = '2021, Anton Obukhov'
 author = 'Anton Obukhov'
 
+with open(os.path.join(three_up, 'torch_fidelity', 'version.py')) as f:
+    version_pycode = f.read()
+exec(version_pycode)
+
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
