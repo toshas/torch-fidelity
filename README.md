@@ -1,5 +1,6 @@
 ![High-fidelity performance metrics for generative models in PyTorch](doc/img/header.png)
 
+[![Documentation Status](https://readthedocs.org/projects/torch-fidelity/badge/?version=latest)](https://torch-fidelity.readthedocs.io/en/latest/?badge=latest)
 [![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
 ![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
@@ -16,15 +17,15 @@ generative model evaluation, including:
 
 **Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
 implementations up to machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
-scattered and slow reference implementations. [Read more about precision of this code.](doc/sphinx/source/precision.md) 
+scattered and slow reference implementations. [Read more about precision](https://torch-fidelity.readthedocs.io/en/latest/precision.html) 
 
 **Efficiency**: Feature sharing between different metrics saves recomputation time, and an additional caching 
 level avoids recomputing features and statistics whenever possible. High efficiency allows using torch-fidelity in the 
-training loop, for example at the end of every epoch.
+training loop, for example at the end of every epoch. [Read more about efficiency](https://torch-fidelity.readthedocs.io/en/latest/miscellaneous.html)
 
 **Extensibility**: Going beyond 2D image generation is easy due to high modularity and abstraction of the metrics from
 input data, models, and feature extractors. For example, one can swap out InceptionV3 feature extractor for a one
-accepting 3D scan volumes, such as used in MRI.
+accepting 3D scan volumes, such as used in MRI. [Read more about extensibility](https://torch-fidelity.readthedocs.io/en/latest/extensibility.html)
 
 **TLDR; fast and reliable GAN evaluation in PyTorch**
 
@@ -33,6 +34,8 @@ accepting 3D scan volumes, such as used in MRI.
 ```shell script
 pip install torch-fidelity
 ```
+
+See also: [Installing the latest GitHub code](https://torch-fidelity.readthedocs.io/en/latest/installation.html#nightly-version) 
 
 ## Usage Examples with Command Line
 
@@ -73,6 +76,8 @@ Efficient computation of ISC and PPL for `input1`, and FID and KID between a gen
   --input1-model-num-samples 50000 \ 
   --input2 cifar10-train 
 ```
+
+See also: [Other usage examples](https://torch-fidelity.readthedocs.io/en/latest/usage_cmd.html)
 
 ## Quick Start with Python API
 
@@ -125,6 +130,8 @@ Output:
     'kernel_inception_distance_std': 0.001310059
 }
 ```
+
+See also: [Full API reference](https://torch-fidelity.readthedocs.io/en/latest/api.html)
 
 ### Example of Integration with the Training Loop
 
