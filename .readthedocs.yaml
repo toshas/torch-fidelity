@@ -1,0 +1,18 @@
+version: 2
+
+python:
+  version: 3.9
+  install:
+    - requirements: doc/sphinx/requirements.txt
+    - method: pip
+      path: .
+      extra_requirements: []
+    - method: setuptools
+      path: another/package
+  system_packages: true
+build:
+  image: latest
+sphinx:
+  builder: html
+  configuration: doc/sphinx/source/conf.py
+  fail_on_warning: false
