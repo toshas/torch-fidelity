@@ -3,9 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/torch-fidelity/badge/?version=latest)](https://torch-fidelity.readthedocs.io/en/latest/?badge=latest)
 [![TestStatus](https://circleci.com/gh/toshas/torch-fidelity.svg?style=shield)](https://circleci.com/gh/toshas/torch-fidelity)
 [![PyPiVersion](https://badge.fury.io/py/torch-fidelity.svg)](https://pypi.org/project/torch-fidelity/)
-![PythonVersion](https://img.shields.io/badge/python-%3E%3D3.6-yellowgreen)
 [![PyPiDownloads](https://pepy.tech/badge/torch-fidelity)](https://pepy.tech/project/torch-fidelity)
-![License](https://img.shields.io/pypi/l/torch-fidelity)
 [![Twitter Follow](https://img.shields.io/twitter/follow/AntonObukhov1?style=social&label=Subscribe!)](https://twitter.com/antonobukhov1)
 
 This repository provides **precise**, **efficient**, and **extensible** implementations of the popular metrics for 
