@@ -12,6 +12,7 @@ generative model evaluation, including:
 - Fréchet Inception Distance ([FID](https://arxiv.org/pdf/1706.08500.pdf))
 - Kernel Inception Distance ([KID](https://arxiv.org/pdf/1801.01401.pdf))
 - Perceptual Path Length ([PPL](https://arxiv.org/pdf/1812.04948.pdf))
+- Precision, Recall ([PRC](https://arxiv.org/pdf/1904.06991.pdf))
 
 **Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
 implementations up to machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
@@ -59,7 +60,7 @@ Inception Score of a directory of images stored in `~/images/`:
 
 ### Pro
 
-Efficient computation of ISC and PPL for `input1`, and FID and KID between a generative model stored in 
+Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC (Precision & Recall) between a generative model stored in 
 `~/generator.onnx` and CIFAR-10 training split:
 ```shell script
 > fidelity \
@@ -68,6 +69,7 @@ Efficient computation of ISC and PPL for `input1`, and FID and KID between a gen
   --fid \
   --kid \
   --ppl \
+  --prc \
   --input1 ~/generator.onnx \ 
   --input1-model-z-type normal \
   --input1-model-z-size 128 \
@@ -107,6 +109,7 @@ metrics_dict = torch_fidelity.calculate_metrics(
     isc=True, 
     fid=True, 
     kid=True, 
+    prc=True, 
     verbose=False,
 )
 ```
@@ -126,6 +129,8 @@ Output:
     'frechet_inception_distance': 18.12198,
     'kernel_inception_distance_mean': 0.01369556, 
     'kernel_inception_distance_std': 0.001310059
+    'precision': 0.51369556, 
+    'recall': 0.501310059
 }
 ```
 

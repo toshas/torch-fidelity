@@ -45,7 +45,7 @@ setup(
     keywords=[
         'reproducibility', 'fidelity', 'deep', 'generative', 'adversarial', 'networks', 'gan',
         'inception', 'score', 'frechet', 'distance', 'kernel', 'perceptual', 'path', 'length',
-        'isc', 'fid', 'kid', 'lpips', 'ppl',
+        'isc', 'fid', 'kid', 'lpips', 'ppl', 'prc', 'precision', 'recall'
     ],
     entry_points={
         'console_scripts': [

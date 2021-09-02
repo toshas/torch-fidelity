@@ -99,6 +99,7 @@ def train(args):
         'FID': (torch_fidelity.KEY_METRIC_FID, float('inf'), float.__lt__),
         'KID': (torch_fidelity.KEY_METRIC_KID_MEAN, float('inf'), float.__lt__),
         'PPL': (torch_fidelity.KEY_METRIC_PPL_MEAN, float('inf'), float.__lt__),
+        'PRC': (torch_fidelity.KEY_METRIC_PRECISION, 0.0, float.__gt__),
     }[args.leading_metric]
 
     # create Generator and Discriminator models
@@ -184,6 +185,7 @@ def train(args):
             ppl=True,
             ppl_epsilon=1e-2,
             ppl_sample_similarity_resize=64,
+            prc=True,
         )
         
         # log metrics
@@ -231,7 +233,7 @@ def main():
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--z_size', type=int, default=128, choices=(128,))
     parser.add_argument('--z_type', type=str, default='normal')
-    parser.add_argument('--leading_metric', type=str, default='ISC', choices=('ISC', 'FID', 'KID', 'PPL'))
+    parser.add_argument('--leading_metric', type=str, default='ISC', choices=('ISC', 'FID', 'KID', 'PPL', 'PRC'))
     parser.add_argument('--disable_sn', default=False, action='store_true')
     parser.add_argument('--conditional', default=False, action='store_true')
     parser.add_argument('--dir_dataset', type=str, default=os.path.join(dir, 'dataset'))

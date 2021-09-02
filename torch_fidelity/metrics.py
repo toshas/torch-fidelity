@@ -4,6 +4,7 @@ from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
 from torch_fidelity.metric_ppl import calculate_ppl
+from torch_fidelity.metric_prc import prc_featuresdict_to_metric
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
     get_cacheable_input_name
 
@@ -78,6 +79,8 @@ def calculate_metrics(**kwargs):
 
         ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
 
+        prc (bool): Calculate PRC_ (Precision, Recall). Default: `False`.
+
         feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
             `inception-v3-compat`.
 
@@ -86,6 +89,8 @@ def calculate_metrics(**kwargs):
         feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `"2048"`.
 
         feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `"2048"`.
+
+        feature_layer_prc (str): Name of the feature layer to use with Precision, Recall metrics. Default: `"2048"`.
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
 
@@ -119,6 +124,10 @@ def calculate_metrics(**kwargs):
         ppl_discard_percentile_higher (int): Removes the higher percentile of samples before reduction. Default: `99`.
 
         ppl_z_interp_mode (str): Noise interpolation mode in PPL (see :ref:`registry <Registry>`). Default: `lerp`.
+
+        prc_NN_k (int): Number of nearest neighbours to consider for Precision, Recall. Default: `3`.
+
+        prc_batch_size (int): Batch size for Precision, Recall. Default: `10000`.
 
         samples_shuffle (bool): Perform random samples shuffling before computing splits. Default: `True`.
 
@@ -188,6 +197,8 @@ def calculate_metrics(**kwargs):
             - :const:`torch_fidelity.KEY_METRIC_PPL_MEAN`
             - :const:`torch_fidelity.KEY_METRIC_PPL_STD`
             - :const:`torch_fidelity.KEY_METRIC_PPL_RAW`
+            - :const:`torch_fidelity.KEY_METRIC_PRECISION`
+            - :const:`torch_fidelity.KEY_METRIC_RECALL`
     """
 
     verbose = get_kwarg('verbose', kwargs)
@@ -197,22 +208,23 @@ def calculate_metrics(**kwargs):
     have_fid = get_kwarg('fid', kwargs)
     have_kid = get_kwarg('kid', kwargs)
     have_ppl = get_kwarg('ppl', kwargs)
+    have_prc = get_kwarg('prc', kwargs)
 
-    need_input1 = have_isc or have_fid or have_kid or have_ppl
-    need_input2 = have_fid or have_kid
+    need_input1 = have_isc or have_fid or have_kid or have_ppl or have_prc
+    need_input2 = have_fid or have_kid or have_prc
 
     vassert(
-        have_isc or have_fid or have_kid or have_ppl,
-        'At least one of "isc", "fid", "kid", "ppl" metrics must be specified'
+        have_isc or have_fid or have_kid or have_ppl or have_prc,
+        'At least one of "isc", "fid", "kid", "ppl", "prc" metrics must be specified'
     )
-    vassert(input1 is not None or not need_input1, 'First input is required for "isc", "fid", "kid", and "ppl" metrics')
-    vassert(input2 is not None or not need_input2, 'Second input is required for "fid" and "kid" metrics')
+    vassert(input1 is not None or not need_input1, 'First input is required for "isc", "fid", "kid", "ppl", and "prc" metrics')
+    vassert(input2 is not None or not need_input2, 'Second input is required for "fid", "kid", and "prc" metrics')
 
     metrics = {}
 
-    if have_isc or have_fid or have_kid:
+    if have_isc or have_fid or have_kid or have_prc:
         feature_extractor = get_kwarg('feature_extractor', kwargs)
-        feature_layer_isc, feature_layer_fid, feature_layer_kid = (None,) * 3
+        feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
         feature_layers = set()
         if have_isc:
             feature_layer_isc = get_kwarg('feature_layer_isc', kwargs)
@@ -223,6 +235,9 @@ def calculate_metrics(**kwargs):
         if have_kid:
             feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
             feature_layers.add(feature_layer_kid)
+        if have_prc:
+            feature_layer_prc = get_kwarg('feature_layer_prc', kwargs)
+            feature_layers.add(feature_layer_prc)
 
         feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
 
@@ -230,7 +245,7 @@ def calculate_metrics(**kwargs):
         # fid: input - featuresdict(cached) - statistics(cached) - metric
         # kid: input - featuresdict(cached) - metric
 
-        if (not have_isc) and have_fid and (not have_kid):
+        if (not have_isc) and have_fid and (not have_kid) and (not have_prc):
             # shortcut for a case when statistics are cached and features are not required on at least one input
             metric_fid = fid_inputs_to_metric(feat_extractor, **kwargs)
             metrics.update(metric_fid)
@@ -261,6 +276,10 @@ def calculate_metrics(**kwargs):
             if have_kid:
                 metric_kid = kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_kid, **kwargs)
                 metrics.update(metric_kid)
+
+            if have_prc:
+                metric_prc = prc_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_prc, **kwargs)
+                metrics.update(metric_pr)
 
     if have_ppl:
         metric_ppl = calculate_ppl(1, **kwargs)

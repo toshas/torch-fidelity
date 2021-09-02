@@ -9,6 +9,7 @@ from torch_fidelity import calculate_metrics
 from torch_fidelity.metric_fid import calculate_fid, KEY_METRIC_FID
 from torch_fidelity.metric_isc import calculate_isc, KEY_METRIC_ISC_MEAN
 from torch_fidelity.metric_kid import calculate_kid, KEY_METRIC_KID_MEAN
+from torch_fidelity.metric_prc import calculate_prc, KEY_METRIC_PRECISION, KEY_METRIC_RECALL
 
 
 class TransformAddNoise:
@@ -46,15 +47,18 @@ class TestMetricsAll(unittest.TestCase):
             'save_cpu_ram': True,
         }
 
-        all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, **kwargs)
+        all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, prc=True, **kwargs)
 
         isc = calculate_isc(1, **kwargs)
         fid = calculate_fid(**kwargs)
         kid = calculate_kid(**kwargs)
+        prc = calculate_prc(**kwargs)
 
         self.assertEqual(isc[KEY_METRIC_ISC_MEAN], all[KEY_METRIC_ISC_MEAN])
         self.assertEqual(fid[KEY_METRIC_FID], all[KEY_METRIC_FID])
         self.assertEqual(kid[KEY_METRIC_KID_MEAN], all[KEY_METRIC_KID_MEAN])
+        self.assertEqual(prc[KEY_METRIC_PRECISION], all[KEY_METRIC_PRECISION])
+        self.assertEqual(prc[KEY_METRIC_RECALL], all[KEY_METRIC_RECALL])
 
 
 if __name__ == '__main__':
