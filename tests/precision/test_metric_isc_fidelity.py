@@ -30,7 +30,7 @@ class TestMetricIscFidelity(unittest.TestCase):
 
     def test_isc_pt_tf_fidelity(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        limit = 5000
+        limit = 100
         cifar10_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
 
         res = subprocess.run(
