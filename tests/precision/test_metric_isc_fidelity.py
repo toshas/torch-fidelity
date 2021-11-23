@@ -59,7 +59,7 @@ class TestMetricIscFidelity(unittest.TestCase):
         err_rel_std = err_abs_std / res_ref[KEY_METRIC_ISC_STD]
         print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
 
-        self.assertLess(err_rel_mean, 1e-3)
+        self.assertLess(err_rel_mean, 5e-3)
         self.assertLess(err_rel_std, 5e-1)
 
         self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 10.7504627, delta=1e-5)
