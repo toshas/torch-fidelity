@@ -30,7 +30,7 @@ class TestMetricIscFidelity(unittest.TestCase):
 
     def test_isc_pt_tf_fidelity(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
-        limit = 5000
+        limit = 100
         cifar10_root = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
 
         res = subprocess.run(
@@ -59,10 +59,10 @@ class TestMetricIscFidelity(unittest.TestCase):
         err_rel_std = err_abs_std / res_ref[KEY_METRIC_ISC_STD]
         print(f'Error relative mean={err_rel_mean} std={err_rel_std}')
 
-        self.assertLess(err_rel_mean, 1e-3)
+        self.assertLess(err_rel_mean, 5e-3)
         self.assertLess(err_rel_std, 5e-1)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 10.7504627, delta=1e-5)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 4.51089784587268, delta=1e-5)
 
 
 if __name__ == '__main__':
