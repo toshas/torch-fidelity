@@ -41,6 +41,8 @@ def main():
                         help='Calculate KID (Kernel Inception Distance)')
     parser.add_argument('-p', '--ppl', action='store_true',
                         help='Calculate PPL (Perceptual Path Length)')
+    parser.add_argument('-r', '--prc', action='store_true',
+                        help='Calculate Precision, Recall')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
                         choices=FEATURE_EXTRACTORS_REGISTRY.keys(),
                         help='Name of the feature extractor')
@@ -50,6 +52,8 @@ def main():
                         help='Name of the feature layer to use with FID metric')
     parser.add_argument('--feature-layer-kid', default=DEFAULTS['feature_layer_kid'], type=str,
                         help='Name of the feature layer to use with KID metric')
+    parser.add_argument('--feature-layer-prc', default=DEFAULTS['feature_layer_prc'], type=str,
+                        help='Name of the feature layer to use with Precision, Recall metrics')
     parser.add_argument('--feature-extractor-weights-path',
                         default=DEFAULTS['feature_extractor_weights_path'], type=str,
                         help='Path to feature extractor weights (downloaded if None)')
@@ -84,6 +88,10 @@ def main():
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
                         choices=list(INTERPOLATION_REGISTRY.keys()),
                         help='Noise interpolation mode in PPL')
+    parser.add_argument('--prc-NN-k', default=DEFAULTS['prc_NN_k'], type=int,
+                        help='Number of nearest neighbours for Precision, Recall')
+    parser.add_argument('--prc-batch-size', default=DEFAULTS['prc_batch_size'], type=int,
+                        help='Batch size for Precision, Recall')
     parser.add_argument('--no-samples-shuffle', action='store_true',
                         help='Do not perform samples shuffling before computing splits')
     parser.add_argument('--samples-find-deep', action='store_true',
