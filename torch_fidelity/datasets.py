@@ -5,8 +5,8 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10, STL10
-
-from torch_fidelity.helpers import vassert
+from torchvision import transforms
+from torch_fidelity.helpers import vassert, get_kwarg
 
 
 class TransformPILtoRGBTensor:
@@ -19,9 +19,9 @@ class TransformPILtoRGBTensor:
 
 
 class ImagesPathDataset(Dataset):
-    def __init__(self, files, transforms=None):
+    def __init__(self, files, transforms=None, **kwargs):
         self.files = files
-        self.transforms = TransformPILtoRGBTensor() if transforms is None else transforms
+        self.transforms = get_transforms(**kwargs) if transforms is None else transforms
 
     def __len__(self):
         return len(self.files)
@@ -68,3 +68,20 @@ class RandomlyGeneratedDataset(Dataset):
 
     def __getitem__(self, i):
         return self.imgs[i]
+
+
+def get_transforms(**kwargs):
+    size = get_kwarg('size', kwargs)
+    crop = get_kwarg('crop', kwargs)
+
+    transform = []
+
+    if size is not None:
+        transform.append(transforms.Resize((size, size)))
+    if crop is not None:
+        transform.append(transforms.CenterCrop(crop))
+    transform.append(TransformPILtoRGBTensor())
+    
+    transform = transforms.Compose(transform)
+
+    return transform

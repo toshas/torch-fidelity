@@ -228,7 +228,7 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
             verbose = get_kwarg('verbose', kwargs)
             input = glob_samples_paths(input, samples_find_deep, samples_find_ext, samples_ext_lossy, verbose)
             vassert(len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}')
-            input = ImagesPathDataset(input)
+            input = ImagesPathDataset(input, **kwargs)
         elif os.path.isfile(input) and input.endswith('.onnx'):
             input = GenerativeModelONNX(
                 input,
