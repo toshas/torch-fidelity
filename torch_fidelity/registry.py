@@ -1,6 +1,6 @@
 import os
 
-from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, STL10_RGB
+from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, STL10_RGB, Cifar100_RGB
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
 from torch_fidelity.helpers import vassert
@@ -138,6 +138,14 @@ register_dataset(
 register_dataset(
     'cifar10-val',
     lambda root, download: Cifar10_RGB(root, train=False, transform=TransformPILtoRGBTensor(), download=download)
+)
+register_dataset(
+    'cifar100-train',
+    lambda root, download: Cifar100_RGB(root, train=True, transform=TransformPILtoRGBTensor(), download=download)
+)
+register_dataset(
+    'cifar100-val',
+    lambda root, download: Cifar100_RGB(root, train=False, transform=TransformPILtoRGBTensor(), download=download)
 )
 register_dataset(
     'stl10-train',
