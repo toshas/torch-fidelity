@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `samples_resize_and_crop`: Transform all images found in the directory to a given size and square shape
 - Command line
   - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
+- Registered inputs: `cifar100-train`, `cifar100-val`
 
 ## [0.3.0] - 2021-06-08
 ### Added

@@ -14,6 +14,8 @@ Can be used as values to :paramref:`~torch_fidelity.calculate_metrics.input1` an
 
 - `cifar10-train` - CIFAR-10 training split with 50000 images
 - `cifar10-val` - CIFAR-10 validation split with 10000 images
+- `cifar100-train` - CIFAR-100 training split with 50000 images
+- `cifar100-val` - CIFAR-100 validation split with 10000 images
 - `stl10-train` - STL-10 training split with 500 images
 - `stl10-test` - STL-10 testing split with 800 images
 - `stl10-unlabeled` - STL-10 unlabeled split with 100000 images

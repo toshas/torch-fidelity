@@ -1,6 +1,6 @@
 import os
 
-from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, STL10_RGB, Cifar100_RGB
+from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, Cifar100_RGB, STL10_RGB
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
 from torch_fidelity.helpers import vassert
