@@ -130,6 +130,9 @@ def calculate_metrics(**kwargs):
         samples_ext_lossy (str): List of comma-separated extensions (no blanks) to warn about lossy compression.
             Default: `jpg,jpeg`.
 
+        samples_resize_and_crop (int): Transform all images found in the directory to a given size and square shape.
+            Default: 0 (disabled).
+
         datasets_root (str): Path to built-in torchvision datasets root. Default: `$ENV_TORCH_HOME/fidelity_datasets`.
 
         datasets_download (bool): Download torchvision datasets to :paramref:`~calculate_metrics.dataset_root`.

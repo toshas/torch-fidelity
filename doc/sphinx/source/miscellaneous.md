@@ -36,6 +36,9 @@ To change file extensions picked up when traversing the path, specify `--samples
 the `samples_find_ext` keyword argument.
 After the files list is collected, it is sorted alpha-numerically, and then shuffled. If shuffling is not desired, it
 can be disabled by setting the `--no-samples-shuffle` key or using the `samples_shuffle` keyword argument.
+Since in-the-wild images can be of arbitrary shapes, it is necessary to bring them all to the same canonical size and
+square shape, compatible with the evaluation protocol. Specify `--samples_resize_and_crop` to resize all images to match
+the given size on the shorter side and then perform center cropping.
 
 ## Other Options
 

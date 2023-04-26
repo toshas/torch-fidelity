@@ -30,6 +30,7 @@ DEFAULTS = {
     'samples_find_deep': False,
     'samples_find_ext': 'png,jpg,jpeg',
     'samples_ext_lossy': 'jpg,jpeg',
+    'samples_resize_and_crop': 0,
     'datasets_root': None,
     'datasets_download': True,
     'cache_root': None,

@@ -142,6 +142,13 @@ Evolution of fixed generator latents in the example:
 A generator checkpoint resulting from training the example can be downloaded 
 [here](https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/example-sngan-cifar10-generator.pth). 
 
+## Troubleshooting
+
+###   WARNING: The script fidelity is installed in '<SOMEPATH>' which is not on PATH.
+
+Suggests that the standalone `fidelity` tool will not be available unless the above path is added to the PATH 
+environment variable. If modifying it is undesirable, the tool can still be called by its full path: `<SOMEPATH>/fidelity`.
+
 ## Citation
 
 Citation is recommended to reinforce the evaluation protocol in works relying on torch-fidelity. 

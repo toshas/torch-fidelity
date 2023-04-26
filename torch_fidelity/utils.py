@@ -6,11 +6,12 @@ import tempfile
 import numpy as np
 import torch
 import torch.hub
+import torchvision
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from torch_fidelity import GenerativeModelModuleWrapper
-from torch_fidelity.datasets import ImagesPathDataset
+from torch_fidelity.datasets import ImagesPathDataset, TransformPILtoRGBTensor
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.generative_model_base import GenerativeModelBase
@@ -225,10 +226,19 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
             samples_find_deep = get_kwarg('samples_find_deep', kwargs)
             samples_find_ext = get_kwarg('samples_find_ext', kwargs)
             samples_ext_lossy = get_kwarg('samples_ext_lossy', kwargs)
+            samples_resize_and_crop = get_kwarg('samples_resize_and_crop', kwargs)
             verbose = get_kwarg('verbose', kwargs)
             input = glob_samples_paths(input, samples_find_deep, samples_find_ext, samples_ext_lossy, verbose)
             vassert(len(input) > 0, f'No samples found in {input} with samples_find_deep={samples_find_deep}')
-            input = ImagesPathDataset(input)
+            transforms = []
+            if samples_resize_and_crop > 0:
+                transforms += [
+                    torchvision.transforms.Resize(samples_resize_and_crop),
+                    torchvision.transforms.CenterCrop(samples_resize_and_crop),
+                ]
+            transforms.append(TransformPILtoRGBTensor())
+            transforms = torchvision.transforms.Compose(transforms)
+            input = ImagesPathDataset(input, transforms)
         elif os.path.isfile(input) and input.endswith('.onnx'):
             input = GenerativeModelONNX(
                 input,
