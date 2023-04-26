@@ -4,7 +4,7 @@ from contextlib import redirect_stdout
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.datasets import CIFAR10, STL10
+from torchvision.datasets import CIFAR10, STL10, CIFAR100
 
 from torch_fidelity.helpers import vassert
 
@@ -34,6 +34,16 @@ class ImagesPathDataset(Dataset):
 
 
 class Cifar10_RGB(CIFAR10):
+    def __init__(self, *args, **kwargs):
+        with redirect_stdout(sys.stderr):
+            super().__init__(*args, **kwargs)
+
+    def __getitem__(self, index):
+        img, target = super().__getitem__(index)
+        return img
+    
+
+class Cifar100_RGB(CIFAR100):
     def __init__(self, *args, **kwargs):
         with redirect_stdout(sys.stderr):
             super().__init__(*args, **kwargs)
