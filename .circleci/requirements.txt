@@ -7,6 +7,6 @@ torchvision
 tqdm
 
 imageio
-sklearn
+scikit-learn
 tensorflow-gpu==1.15.2
-tensorflow-determinism
+framework-reproducibility

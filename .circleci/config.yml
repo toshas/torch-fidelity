@@ -20,7 +20,7 @@ jobs:
             python3 -m venv env_fidelity
             . env_fidelity/bin/activate
             pip3 install --upgrade pip
-            pip3 install -r code/tests/requirements.txt
+            pip3 install -r code/.circleci/requirements.txt
       - persist_to_workspace:
           root: .
           paths:
