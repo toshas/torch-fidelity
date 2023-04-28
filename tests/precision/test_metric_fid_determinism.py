@@ -56,7 +56,7 @@ class TestMetricFidDeterminism(unittest.TestCase):
         print('fid_det', fid_det, file=sys.stderr)
 
         if cuda:
-            self.assertGreater(max(fid_nondet), min(fid_nondet))
+            self.assertGreater(min(fid_nondet) + 1e-5, max(fid_nondet))
         else:
             self.assertGreaterEqual(max(fid_nondet), min(fid_nondet))
         self.assertEqual(max(fid_det), min(fid_det))

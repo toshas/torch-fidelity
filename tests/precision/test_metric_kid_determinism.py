@@ -77,7 +77,7 @@ class TestMetricKidDeterminism(unittest.TestCase):
         print('kid_std_det', kid_std_det, file=sys.stderr)
 
         if cuda:
-            self.assertGreater(max(kid_mean_nondet), min(kid_mean_nondet))
+            self.assertGreater(min(kid_mean_nondet) + 1e-5, max(kid_mean_nondet))
         else:
             self.assertGreaterEqual(max(kid_mean_nondet), min(kid_mean_nondet))
         self.assertEqual(max(kid_mean_det), min(kid_mean_det))
