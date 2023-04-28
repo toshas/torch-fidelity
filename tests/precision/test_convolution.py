@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 
 import numpy as np
 import tensorflow as tf
@@ -146,7 +147,8 @@ class TestConvolution(unittest.TestCase):
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
-            tf_determinism.enable_determinism()
+            with redirect_stdout(sys.stderr):
+                tf_determinism.enable_determinism()
 
             err_rel = self.estimate_implementation_exactness(cuda)
             self.assertEqual(err_rel, 0)

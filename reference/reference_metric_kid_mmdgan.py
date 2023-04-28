@@ -9,6 +9,7 @@ import os.path
 import sys
 import tarfile
 import tempfile
+from contextlib import redirect_stdout
 from urllib import request
 
 import numpy as np
@@ -421,7 +422,8 @@ def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     if args.determinism:
-        tf_determinism.enable_determinism()
+        with redirect_stdout(sys.stderr):
+            tf_determinism.enable_determinism()
 
     if (args.do_fid or args.do_mmd) and args.reference_feats is None:
         parser.error("Need REFERENCE_FEATS if you're doing FID or MMD")

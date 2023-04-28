@@ -13,6 +13,7 @@ import os.path
 import sys
 import tarfile
 import tempfile
+from contextlib import redirect_stdout
 from urllib import request
 
 import numpy as np
@@ -149,7 +150,8 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     if args.determinism:
-        tf_determinism.enable_determinism()
+        with redirect_stdout(sys.stderr):
+            tf_determinism.enable_determinism()
 
     metrics = get_inception_score_of_path(args.path[0])
 

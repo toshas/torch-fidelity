@@ -4,6 +4,7 @@ import tarfile
 import tempfile
 import unittest
 import urllib.request
+from contextlib import redirect_stdout
 
 import numpy as np
 import tensorflow as tf
@@ -151,7 +152,8 @@ class TestInception(unittest.TestCase):
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
-            tf_determinism.enable_determinism()
+            with redirect_stdout(sys.stderr):
+                tf_determinism.enable_determinism()
 
             fstats = get_statistics()
 
