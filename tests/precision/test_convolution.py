@@ -8,7 +8,7 @@ import tensorflow as tf
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from tfdeterminism import patch as patch_tensorflow_for_determinism
+import fwr13y.d9m.tensorflow as tf_determinism
 
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
@@ -146,7 +146,7 @@ class TestConvolution(unittest.TestCase):
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
-            patch_tensorflow_for_determinism()
+            tf_determinism.enable_determinism()
 
             err_rel = self.estimate_implementation_exactness(cuda)
             self.assertEqual(err_rel, 0)
