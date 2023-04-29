@@ -51,14 +51,40 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
     return files
 
 
+def torch_maybe_compile(module, dummy_input, verbose):
+    out = module
+    if int(torch.__version__.split('.')[0]) < 2:
+        vprint(verbose, 'Feature extractor cannot be compiled. Falling back to pure torch')
+        return out
+    try:
+        compiled = torch.compile(module)
+        try:
+            compiled(dummy_input)
+            vprint(verbose, 'Feature extractor compiled')
+            out = compiled
+        except Exception:
+            vprint(verbose, 'Feature extractor compiled, but failed to run. Falling back to pure torch')
+    except Exception as e:
+        vprint(verbose, 'Feature extractor compilation failed. Falling back to pure torch')
+    return out
+
+
 def create_feature_extractor(name, list_features, cuda=True, **kwargs):
+    verbose = get_kwarg('verbose', kwargs)
     vassert(name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered')
-    vprint(get_kwarg('verbose', kwargs), f'Creating feature extractor "{name}" with features {list_features}')
+    vprint(verbose, f'Creating feature extractor "{name}" with features {list_features}')
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.eval()
     if cuda:
         feat_extractor.cuda()
+    if False:
+        # Soon
+        feat_extractor = torch_maybe_compile(
+            feat_extractor,
+            torch.zeros([1, 3, 4, 4], dtype=torch.uint8, device='cuda' if cuda else 'cpu'),
+            verbose,
+        )
     return feat_extractor
 
 
