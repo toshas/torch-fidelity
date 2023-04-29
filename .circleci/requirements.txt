@@ -1,5 +1,5 @@
 numpy
-Pillow
+pillow
 requests
 scipy
 torch
