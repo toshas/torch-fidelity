@@ -12,7 +12,7 @@ class TestMetricKidDeterminism(unittest.TestCase):
     @staticmethod
     def call_ref_kid(input_1, input_2, cuda, determinism):
         args = [
-            'python3', 'tests/reference/reference_metric_kid_mmdgan.py', input_1, input_2,
+            'python3', 'tests/tf1/reference/reference_metric_kid_mmdgan.py', input_1, input_2,
             '--no-inception', '--do-mmd'
         ]
         if cuda:
@@ -46,7 +46,7 @@ class TestMetricKidDeterminism(unittest.TestCase):
         # this partucular reference app needs features pre-extracted
         if not os.path.exists(cifar10trainorig_codes):
             args = [
-                'python3', 'tests/reference/reference_metric_kid_mmdgan.py', cifar10trainorig_root,
+                'python3', 'tests/tf1/reference/reference_metric_kid_mmdgan.py', cifar10trainorig_root,
                 '--save-codes', cifar10trainorig_codes, '--determinism'
             ]
             if cuda:
