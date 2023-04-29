@@ -24,6 +24,7 @@ class FeatureExtractorBase(nn.Module):
             f'{self.get_provided_features_list()}'
         )
         vassert(len(features_list) == len(set(features_list)), 'Duplicate features requested')
+        vassert(len(features_list) > 0, 'No features requested')
         self.name = name
         self.features_list = features_list
 
@@ -34,6 +35,27 @@ class FeatureExtractorBase(nn.Module):
     def get_provided_features_list():
         """
         Returns a tuple of feature names, extracted by the subclassed feature extractor.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_default_feature_for_isc():
+        """
+        Returns a default feature name to be used for the ISC computation.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_default_feature_for_fid():
+        """
+        Returns a default feature name to be used for the FID computation.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_default_feature_for_kid():
+        """
+        Returns a default feature name to be used for the KID computation.
         """
         raise NotImplementedError
 

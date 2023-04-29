@@ -290,6 +290,36 @@ def get_cacheable_input_name(input_id, **kwargs):
     return input_desc['input_cache_name']
 
 
+def get_feature_layer_isc(**kwargs):
+    out = get_kwarg('feature_layer_isc', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_isc()
+    return out
+
+
+def get_feature_layer_fid(**kwargs):
+    out = get_kwarg('feature_layer_fid', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_fid()
+    return out
+
+
+def get_feature_layer_kid(**kwargs):
+    out = get_kwarg('feature_layer_kid', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_kid()
+    return out
+
+
 def atomic_torch_save(what, path):
     path = os.path.expanduser(path)
     path_dir = os.path.dirname(path)

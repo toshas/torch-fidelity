@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API
   - `calculate_metrics`
     - `samples_resize_and_crop`: Transform all images found in the directory to a given size and square shape
+    - 'feature_extractor': Accepts a new feature extractor `clip-vit-b-32`
 - Command line
   - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
+  - '--feature-extractor': Accepts a new feature extractor `clip-vit-b-32`
 - Registered inputs: `cifar100-train`, `cifar100-val`
+- Default features for all metrics are now read from the selected feature extractor
+- Tests run in docker now
 
 ## [0.3.0] - 2021-06-08
 ### Added
