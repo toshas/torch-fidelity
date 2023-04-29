@@ -1,5 +1,6 @@
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
+from torch_fidelity.feature_extractor_clip import FeatureExtractorCLIP
 from torch_fidelity.generative_model_base import GenerativeModelBase
 from torch_fidelity.generative_model_modulewrapper import GenerativeModelModuleWrapper
 from torch_fidelity.generative_model_onnx import GenerativeModelONNX
