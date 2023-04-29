@@ -196,6 +196,18 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
     def get_provided_features_list():
         return '64', '192', '768', '2048', 'logits_unbiased', 'logits'
 
+    @staticmethod
+    def get_default_feature_for_isc():
+        return 'logits_unbiased'
+
+    @staticmethod
+    def get_default_feature_for_fid():
+        return '2048'
+
+    @staticmethod
+    def get_default_feature_for_kid():
+        return '2048'
+
 
 class BasicConv2d(nn.Module):
     """Original BasicConv2d block"""

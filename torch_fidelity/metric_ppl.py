@@ -17,7 +17,7 @@ def calculate_ppl(input_id, **kwargs):
     Inspired by https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
     """
     batch_size = get_kwarg('batch_size', kwargs)
-    is_cuda = get_kwarg('cuda', kwargs)
+    cuda = get_kwarg('cuda', kwargs)
     verbose = get_kwarg('verbose', kwargs)
     epsilon = get_kwarg('ppl_epsilon', kwargs)
     interp = get_kwarg('ppl_z_interp_mode', kwargs)
@@ -37,7 +37,7 @@ def calculate_ppl(input_id, **kwargs):
         'model and a set of input1_model_* arguments'
     )
 
-    if is_cuda:
+    if cuda:
         model.cuda()
 
     input_model_num_samples = input_desc['input_model_num_samples']
@@ -88,7 +88,7 @@ def calculate_ppl(input_id, **kwargs):
             if is_cond:
                 batch_labels = labels[begin_id:end_id]
 
-            if is_cuda:
+            if cuda:
                 batch_lat_e0 = batch_lat_e0.cuda(non_blocking=True)
                 batch_lat_e1 = batch_lat_e1.cuda(non_blocking=True)
                 if is_cond:

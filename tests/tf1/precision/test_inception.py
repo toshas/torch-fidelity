@@ -4,11 +4,12 @@ import tarfile
 import tempfile
 import unittest
 import urllib.request
+from contextlib import redirect_stdout
 
 import numpy as np
 import tensorflow as tf
 import torch
-from tfdeterminism import patch as patch_tensorflow_for_determinism
+import fwr13y.d9m.tensorflow as tf_determinism
 
 from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
 
@@ -151,7 +152,8 @@ class TestInception(unittest.TestCase):
 
         if cuda:
             print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
-            patch_tensorflow_for_determinism()
+            with redirect_stdout(sys.stderr):
+                tf_determinism.enable_determinism()
 
             fstats = get_statistics()
 

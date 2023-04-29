@@ -5,7 +5,7 @@ from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
 from torch_fidelity.metric_ppl import calculate_ppl
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    get_cacheable_input_name
+    get_cacheable_input_name, get_feature_layer_isc, get_feature_layer_fid, get_feature_layer_kid
 
 
 def calculate_metrics(**kwargs):
@@ -81,11 +81,14 @@ def calculate_metrics(**kwargs):
         feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
             `inception-v3-compat`.
 
-        feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `logits_unbiased`.
+        feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `None` (defined by the
+            chosen feature extractor).
 
-        feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `"2048"`.
+        feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `None` (defined by the
+            chosen feature extractor).
 
-        feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `"2048"`.
+        feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `None` (defined by the
+            chosen feature extractor).
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
 
@@ -218,13 +221,13 @@ def calculate_metrics(**kwargs):
         feature_layer_isc, feature_layer_fid, feature_layer_kid = (None,) * 3
         feature_layers = set()
         if have_isc:
-            feature_layer_isc = get_kwarg('feature_layer_isc', kwargs)
+            feature_layer_isc = get_feature_layer_isc(**kwargs)
             feature_layers.add(feature_layer_isc)
         if have_fid:
-            feature_layer_fid = get_kwarg('feature_layer_fid', kwargs)
+            feature_layer_fid = get_feature_layer_fid(**kwargs)
             feature_layers.add(feature_layer_fid)
         if have_kid:
-            feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
+            feature_layer_kid = get_feature_layer_kid(**kwargs)
             feature_layers.add(feature_layer_kid)
 
         feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)

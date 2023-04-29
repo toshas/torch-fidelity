@@ -16,6 +16,7 @@ def main():
     parser.add_argument('dataset_dst_path', type=str, help='Where to dump dataset')
     parser.add_argument('-l', '--limit', default=None, type=int, help='Random subset of dataset of this size')
     parser.add_argument('-n', '--noise', action='store_true', help='Add image noise')
+    parser.add_argument('-r', '--resolution', type=int, default=None, help='Force this resolution')
     args = parser.parse_args()
 
     rng = np.random.RandomState(2020)
@@ -38,6 +39,8 @@ def main():
     for i in tqdm(indices):
         sample = dataset[i]
         img = sample[0]
+        if args.resolution:
+            img = img.resize((args.resolution, args.resolution))
         if args.noise:
             img = np.array(img).astype(np.float32)
             img += rng.randn(*img.shape) * 64

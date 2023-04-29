@@ -1,5 +1,5 @@
 numpy
-Pillow
+pillow
 scipy
 torch
 torchvision

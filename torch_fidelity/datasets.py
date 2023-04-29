@@ -5,6 +5,7 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10, STL10, CIFAR100
+import torchvision.transforms.functional as F
 
 from torch_fidelity.helpers import vassert
 
@@ -12,10 +13,7 @@ from torch_fidelity.helpers import vassert
 class TransformPILtoRGBTensor:
     def __call__(self, img):
         vassert(type(img) is Image.Image, 'Input is not a PIL.Image')
-        width, height = img.size
-        img = torch.ByteTensor(torch.ByteStorage.from_buffer(img.tobytes())).view(height, width, 3)
-        img = img.permute(2, 0, 1)
-        return img
+        return F.pil_to_tensor(img)
 
 
 class ImagesPathDataset(Dataset):

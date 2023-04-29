@@ -11,7 +11,7 @@ from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
 class TestMetricIscDeterminism(unittest.TestCase):
     @staticmethod
     def call_ref_isc(input, cuda, determinism):
-        args = ['python3', 'reference/reference_metric_isc_ttur.py', input]
+        args = ['python3', 'tests/tf1/reference/reference_metric_isc_ttur.py', input]
         if cuda:
             args.append('--gpu')
             args.append(os.environ['CUDA_VISIBLE_DEVICES'])
@@ -55,7 +55,7 @@ class TestMetricIscDeterminism(unittest.TestCase):
         print('isc_std_det', isc_std_det, file=sys.stderr)
 
         if cuda:
-            self.assertGreater(max(isc_mean_nondet), min(isc_mean_nondet))
+            self.assertGreater(min(isc_mean_nondet) + 1e-5, max(isc_mean_nondet))
         else:
             self.assertGreaterEqual(max(isc_mean_nondet), min(isc_mean_nondet))
         self.assertEqual(max(isc_mean_det), min(isc_mean_det))

@@ -51,14 +51,40 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
     return files
 
 
+def torch_maybe_compile(module, dummy_input, verbose):
+    out = module
+    if int(torch.__version__.split('.')[0]) < 2:
+        vprint(verbose, 'Feature extractor cannot be compiled. Falling back to pure torch')
+        return out
+    try:
+        compiled = torch.compile(module)
+        try:
+            compiled(dummy_input)
+            vprint(verbose, 'Feature extractor compiled')
+            out = compiled
+        except Exception:
+            vprint(verbose, 'Feature extractor compiled, but failed to run. Falling back to pure torch')
+    except Exception as e:
+        vprint(verbose, 'Feature extractor compilation failed. Falling back to pure torch')
+    return out
+
+
 def create_feature_extractor(name, list_features, cuda=True, **kwargs):
+    verbose = get_kwarg('verbose', kwargs)
     vassert(name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered')
-    vprint(get_kwarg('verbose', kwargs), f'Creating feature extractor "{name}" with features {list_features}')
+    vprint(verbose, f'Creating feature extractor "{name}" with features {list_features}')
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.eval()
     if cuda:
         feat_extractor.cuda()
+    if False:
+        # Soon
+        feat_extractor = torch_maybe_compile(
+            feat_extractor,
+            torch.zeros([1, 3, 4, 4], dtype=torch.uint8, device='cuda' if cuda else 'cpu'),
+            verbose,
+        )
     return feat_extractor
 
 
@@ -288,6 +314,36 @@ def prepare_input_from_id(input_id, **kwargs):
 def get_cacheable_input_name(input_id, **kwargs):
     input_desc = prepare_input_descriptor_from_input_id(input_id, **kwargs)
     return input_desc['input_cache_name']
+
+
+def get_feature_layer_isc(**kwargs):
+    out = get_kwarg('feature_layer_isc', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_isc()
+    return out
+
+
+def get_feature_layer_fid(**kwargs):
+    out = get_kwarg('feature_layer_fid', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_fid()
+    return out
+
+
+def get_feature_layer_kid(**kwargs):
+    out = get_kwarg('feature_layer_kid', kwargs)
+    if out is None:
+        name_fe = get_kwarg('feature_extractor', kwargs)
+        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
+        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
+        out = cls_fe.get_default_feature_for_kid()
+    return out
 
 
 def atomic_torch_save(what, path):

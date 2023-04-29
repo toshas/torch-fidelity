@@ -5,7 +5,7 @@ import unittest
 import torch
 import torch.nn.functional as F
 
-from reference.reference_lpips import LPIPS_reference
+from tests.tf1.reference.reference_lpips import LPIPS_reference
 from torch_fidelity.utils import prepare_input_from_id, create_sample_similarity
 
 

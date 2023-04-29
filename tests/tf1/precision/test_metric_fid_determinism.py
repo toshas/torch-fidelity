@@ -11,7 +11,7 @@ from torch_fidelity.metric_fid import KEY_METRIC_FID
 class TestMetricFidDeterminism(unittest.TestCase):
     @staticmethod
     def call_ref_fid(input_1, input_2, cuda, determinism):
-        args = ['python3', 'reference/reference_metric_fid_ttur.py', input_1, input_2]
+        args = ['python3', 'tests/tf1/reference/reference_metric_fid_ttur.py', input_1, input_2]
         if cuda:
             args.append('--gpu')
             args.append(os.environ['CUDA_VISIBLE_DEVICES'])
@@ -56,7 +56,7 @@ class TestMetricFidDeterminism(unittest.TestCase):
         print('fid_det', fid_det, file=sys.stderr)
 
         if cuda:
-            self.assertGreater(max(fid_nondet), min(fid_nondet))
+            self.assertGreater(min(fid_nondet) + 1e-5, max(fid_nondet))
         else:
             self.assertGreaterEqual(max(fid_nondet), min(fid_nondet))
         self.assertEqual(max(fid_det), min(fid_det))
