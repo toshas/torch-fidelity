@@ -8,5 +8,5 @@ tqdm
 
 imageio
 scikit-learn
-tensorflow-gpu==1.15.2
+tensorflow-gpu==2.12.0
 framework-reproducibility
