@@ -1,11 +1,11 @@
 numpy
 pillow
 requests
-scipy
 torch
 torchvision
 tqdm
 
+scipy
 imageio
 scikit-learn
 tensorflow-gpu==1.15.2

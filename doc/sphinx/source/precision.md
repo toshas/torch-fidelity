@@ -58,7 +58,7 @@ bit-exactness. Further troubleshooting reasons for inexact outputs of convolutio
 between CPU and GPU, and also between different CPUs.
 
 ### Computing metrics from features
-This step is usually performed on CPU using a math library like scipy. It is neither the bottleneck of computations,
+This step is usually performed on CPU using an established math library. It is neither the bottleneck of computations,
 nor the source of precision loss or non-determinism; torch-fidelity uses the original features-to-metric code for this 
 step in most cases.
 
