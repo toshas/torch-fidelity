@@ -1,9 +1,15 @@
+import torch
 import torch.nn as nn
 
 from torch_fidelity.helpers import vassert
 
 
 class FeatureExtractorBase(nn.Module):
+    SUPPORTED_DTYPES = {
+        'float32': torch.float32,
+        'float64': torch.float64,
+    }
+
     def __init__(self, name, features_list):
         """
         Base class for feature extractors that can be used in :func:`calculate_metrics`.

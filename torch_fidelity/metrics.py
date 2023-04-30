@@ -92,6 +92,9 @@ def calculate_metrics(**kwargs):
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
 
+        feature_extractor_internal_dtype (str): dtype to use inside the feature extractor. Default: `None` (defined by
+            the chosen feature extractor).
+
         isc_splits (int): Number of splits in ISC. Default: `10`.
 
         kid_subsets (int): Number of subsets in KID. Default: `100`.

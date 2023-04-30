@@ -28,6 +28,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             name,
             features_list,
             feature_extractor_weights_path=None,
+            feature_extractor_internal_dtype=None,
             **kwargs,
     ):
         """
@@ -50,8 +51,12 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
             feature_extractor_weights_path (str): Path to the pretrained InceptionV3 model weights in PyTorch format.
                 Refer to `util_convert_inception_weights` for making your own. Downloads from internet if `None`.
+
+            feature_extractor_internal_dtype (str): dtype to use inside the feature extractor. Specifying it may improve
+                numerical precision in some cases. Supported values are 'float32' (default), and 'float64'.
         """
         super(FeatureExtractorInceptionV3, self).__init__(name, features_list)
+        self.feature_extractor_internal_dtype = self.SUPPORTED_DTYPES[feature_extractor_internal_dtype or 'float32']
 
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
@@ -85,15 +90,17 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
 
+        self.to(self.feature_extractor_internal_dtype)
         for p in self.parameters():
             p.requires_grad_(False)
+        self.eval()
 
     def forward(self, x):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
         features = {}
         remaining_features = self.features_list.copy()
 
-        x = x.float()
+        x = x.to(self.feature_extractor_internal_dtype)
         # N x 3 x ? x ?
 
         x = interpolate_bilinear_2d_like_tensorflow1x(
@@ -117,7 +124,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 64 x 73 x 73
 
         if '64' in remaining_features:
-            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
+            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
             remaining_features.remove('64')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -130,7 +137,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 192 x 35 x 35
 
         if '192' in remaining_features:
-            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
+            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
             remaining_features.remove('192')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -153,7 +160,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 768 x 17 x 17
 
         if '768' in remaining_features:
-            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1)
+            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
             remaining_features.remove('768')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -171,7 +178,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         # N x 2048
 
         if '2048' in remaining_features:
-            features['2048'] = x
+            features['2048'] = x.to(torch.float32)
             remaining_features.remove('2048')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -179,7 +186,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         if 'logits_unbiased' in remaining_features:
             x = x.mm(self.fc.weight.T)
             # N x 1008 (num_classes)
-            features['logits_unbiased'] = x
+            features['logits_unbiased'] = x.to(torch.float32)
             remaining_features.remove('logits_unbiased')
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
@@ -189,7 +196,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             x = self.fc(x)
             # N x 1008 (num_classes)
 
-        features['logits'] = x
+        features['logits'] = x.to(torch.float32)
         return tuple(features[a] for a in self.features_list)
 
     @staticmethod
