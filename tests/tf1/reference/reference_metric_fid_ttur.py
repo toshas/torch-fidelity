@@ -11,12 +11,13 @@ import sys
 import tempfile
 import warnings
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from contextlib import redirect_stdout
 
 import numpy as np
 import tensorflow as tf
 from imageio import imread
 from scipy import linalg
-from tfdeterminism import patch as patch_tensorflow_for_determinism
+import fwr13y.d9m.tensorflow as tf_determinism
 from tqdm import tqdm
 
 # InceptionV3 pretrained weights from TensorFlow models library
@@ -306,7 +307,8 @@ if __name__ == "__main__":
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     if args.determinism:
-        patch_tensorflow_for_determinism()
+        with redirect_stdout(sys.stderr):
+            tf_determinism.enable_determinism()
 
     metrics = calculate_fid_given_paths(args.path, low_profile=args.lowprofile, verbose=not args.silent)
 

@@ -100,6 +100,8 @@ def main():
                         help=f'List of extensions to look for when traversing input path')
     parser.add_argument('--samples-ext-lossy', default=DEFAULTS['samples_ext_lossy'], type=str,
                         help=f'List of extensions to warn about lossy compression')
+    parser.add_argument('--samples-resize-and-crop', default=DEFAULTS['samples_resize_and_crop'], type=int,
+                        help=f'Transform all images found in the directory to a given size and square shape')
     parser.add_argument('--datasets-root', default=DEFAULTS['datasets_root'], type=str,
                         help='Path to built-in torchvision datasets root. '
                              'Defaults to $ENV_TORCH_HOME/fidelity_datasets')

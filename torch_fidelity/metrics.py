@@ -6,7 +6,7 @@ from torch_fidelity.metric_kid import kid_featuresdict_to_metric
 from torch_fidelity.metric_ppl import calculate_ppl
 from torch_fidelity.metric_prc import prc_featuresdict_to_metric
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    get_cacheable_input_name
+    get_cacheable_input_name, get_feature_layer_isc, get_feature_layer_fid, get_feature_layer_kid
 
 
 def calculate_metrics(**kwargs):
@@ -84,11 +84,14 @@ def calculate_metrics(**kwargs):
         feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
             `inception-v3-compat`.
 
-        feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `logits_unbiased`.
+        feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `None` (defined by the
+            chosen feature extractor).
 
-        feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `"2048"`.
+        feature_layer_fid (str): Name of the feature layer to use with FID metric. Default: `None` (defined by the
+            chosen feature extractor).
 
-        feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `"2048"`.
+        feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `None` (defined by the
+            chosen feature extractor).
 
         feature_layer_prc (str): Name of the feature layer to use with Precision, Recall metrics. Default: `"2048"`.
 
@@ -138,6 +141,9 @@ def calculate_metrics(**kwargs):
 
         samples_ext_lossy (str): List of comma-separated extensions (no blanks) to warn about lossy compression.
             Default: `jpg,jpeg`.
+
+        samples_resize_and_crop (int): Transform all images found in the directory to a given size and square shape.
+            Default: 0 (disabled).
 
         datasets_root (str): Path to built-in torchvision datasets root. Default: `$ENV_TORCH_HOME/fidelity_datasets`.
 
@@ -227,13 +233,13 @@ def calculate_metrics(**kwargs):
         feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
         feature_layers = set()
         if have_isc:
-            feature_layer_isc = get_kwarg('feature_layer_isc', kwargs)
+            feature_layer_isc = get_feature_layer_isc(**kwargs)
             feature_layers.add(feature_layer_isc)
         if have_fid:
-            feature_layer_fid = get_kwarg('feature_layer_fid', kwargs)
+            feature_layer_fid = get_feature_layer_fid(**kwargs)
             feature_layers.add(feature_layer_fid)
         if have_kid:
-            feature_layer_kid = get_kwarg('feature_layer_kid', kwargs)
+            feature_layer_kid = get_feature_layer_kid(**kwargs)
             feature_layers.add(feature_layer_kid)
         if have_prc:
             feature_layer_prc = get_kwarg('feature_layer_prc', kwargs)
