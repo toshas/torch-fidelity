@@ -292,7 +292,7 @@ def calculate_metrics(**kwargs):
 
             if have_prc:
                 metric_prc = prc_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_prc, **kwargs)
-                metrics.update(metric_pr)
+                metrics.update(metric_prc)
 
     if have_ppl:
         metric_ppl = calculate_ppl(1, **kwargs)
