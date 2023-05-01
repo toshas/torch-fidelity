@@ -10,6 +10,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 RUN pip3 install \
+    scipy \
     imageio \
     scikit-learn \
     tensorflow-gpu==1.15.2 \
