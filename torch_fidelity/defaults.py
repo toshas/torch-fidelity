@@ -7,7 +7,7 @@ DEFAULTS = {
     'fid': False,
     'kid': False,
     'ppl': False,
-    'feature_extractor': 'inception-v3-compat',
+    'feature_extractor': None,
     'feature_layer_isc': None,
     'feature_layer_fid': None,
     'feature_layer_kid': None,

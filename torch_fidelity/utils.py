@@ -21,6 +21,11 @@ from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGIST
     INTERPOLATION_REGISTRY, NOISE_SOURCE_REGISTRY
 
 
+DEFAULT_FEATURE_EXTRACTOR_ISC = 'inception-v3-compat'
+DEFAULT_FEATURE_EXTRACTOR_FID = 'inception-v3-compat'
+DEFAULT_FEATURE_EXTRACTOR_KID = 'inception-v3-compat'
+
+
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
     vassert(type(samples_find_ext) is str and samples_find_ext != '', 'Sample extensions not specified')
     vassert(
@@ -317,30 +322,47 @@ def get_cacheable_input_name(input_id, **kwargs):
     return input_desc['input_cache_name']
 
 
-def get_feature_layer_isc(**kwargs):
+def resolve_feature_extractor(**kwargs):
+    out = get_kwarg('feature_extractor', kwargs)
+    if out is None:
+        if get_kwarg('isc', kwargs):
+            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_ISC), 'Cannot have several feature extractors in one call')
+            out = DEFAULT_FEATURE_EXTRACTOR_ISC
+        if get_kwarg('fid', kwargs):
+            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_FID), 'Cannot have several feature extractors in one call')
+            out = DEFAULT_FEATURE_EXTRACTOR_FID
+        if get_kwarg('kid', kwargs):
+            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_KID), 'Cannot have several feature extractors in one call')
+            out = DEFAULT_FEATURE_EXTRACTOR_KID
+        vassert(out is not None, f'Feature extractor was not resolved')
+    vassert(out in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{out}" not registered')
+    return out
+
+
+def resolve_feature_layer_isc(**kwargs):
     out = get_kwarg('feature_layer_isc', kwargs)
     if out is None:
-        name_fe = get_kwarg('feature_extractor', kwargs)
+        name_fe = resolve_feature_extractor(**kwargs)
         vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
         cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
         out = cls_fe.get_default_feature_for_isc()
     return out
 
 
-def get_feature_layer_fid(**kwargs):
+def resolve_feature_layer_fid(**kwargs):
     out = get_kwarg('feature_layer_fid', kwargs)
     if out is None:
-        name_fe = get_kwarg('feature_extractor', kwargs)
+        name_fe = resolve_feature_extractor(**kwargs)
         vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
         cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
         out = cls_fe.get_default_feature_for_fid()
     return out
 
 
-def get_feature_layer_kid(**kwargs):
+def resolve_feature_layer_kid(**kwargs):
     out = get_kwarg('feature_layer_kid', kwargs)
     if out is None:
-        name_fe = get_kwarg('feature_extractor', kwargs)
+        name_fe = resolve_feature_extractor(**kwargs)
         vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
         cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
         out = cls_fe.get_default_feature_for_kid()

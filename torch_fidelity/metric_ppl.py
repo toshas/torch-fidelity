@@ -16,6 +16,7 @@ def calculate_ppl(input_id, **kwargs):
     """
     Inspired by https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
     """
+    kwargs['ppl'] = True
     batch_size = get_kwarg('batch_size', kwargs)
     cuda = get_kwarg('cuda', kwargs)
     verbose = get_kwarg('verbose', kwargs)
