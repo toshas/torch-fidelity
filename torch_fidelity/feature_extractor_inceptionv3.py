@@ -215,6 +215,14 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
     def get_default_feature_for_kid():
         return '2048'
 
+    @staticmethod
+    def can_be_compiled():
+        return True
+
+    @staticmethod
+    def get_dummy_input_for_compile():
+        return (torch.rand([1, 3, 4, 4]) * 255).to(torch.uint8)
+
 
 class BasicConv2d(nn.Module):
     """Original BasicConv2d block"""

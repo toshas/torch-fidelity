@@ -61,7 +61,8 @@ def torch_maybe_compile(module, dummy_input, verbose):
         try:
             compiled(dummy_input)
             vprint(verbose, 'Feature extractor compiled')
-            out = compiled
+            setattr(out, 'forward_pure', out.forward)
+            setattr(out, 'forward', compiled)
         except Exception:
             vprint(verbose, 'Feature extractor compiled, but failed to run. Falling back to pure torch')
     except Exception as e:
@@ -75,14 +76,14 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     vprint(verbose, f'Creating feature extractor "{name}" with features {list_features}')
     cls = FEATURE_EXTRACTORS_REGISTRY[name]
     feat_extractor = cls(name, list_features, **kwargs)
+    feat_extractor.requires_grad_(False)
     feat_extractor.eval()
     if cuda:
         feat_extractor.cuda()
-    if False:
-        # Soon
+    if get_kwarg('feature_extractor_compile', kwargs) and feat_extractor.can_be_compiled():
         feat_extractor = torch_maybe_compile(
             feat_extractor,
-            torch.zeros([1, 3, 4, 4], dtype=torch.uint8, device='cuda' if cuda else 'cpu'),
+            feat_extractor.get_dummy_input_for_compile().to(device='cuda' if cuda else 'cpu'),
             verbose,
         )
     return feat_extractor

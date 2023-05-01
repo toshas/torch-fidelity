@@ -65,6 +65,20 @@ class FeatureExtractorBase(nn.Module):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def can_be_compiled():
+        """
+        Indicates whether the subclass can be safely wrapped with torch.compile.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_dummy_input_for_compile():
+        """
+        Returns a dummy input for compilation
+        """
+        raise NotImplementedError
+
     def get_requested_features_list(self):
         return self.features_list
 

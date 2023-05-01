@@ -95,6 +95,9 @@ def calculate_metrics(**kwargs):
         feature_extractor_internal_dtype (str): dtype to use inside the feature extractor. Default: `None` (defined by
             the chosen feature extractor).
 
+        feature_extractor_compile (bool): Compile feature extractor (experimental: may have negative effect on the
+            metrics precision). Default: False.
+
         isc_splits (int): Number of splits in ISC. Default: `10`.
 
         kid_subsets (int): Number of subsets in KID. Default: `100`.
