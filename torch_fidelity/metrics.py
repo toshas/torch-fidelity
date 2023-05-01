@@ -79,7 +79,7 @@ def calculate_metrics(**kwargs):
 
         ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
 
-        prc (bool): Calculate PRC_ (Precision, Recall). Default: `False`.
+        prc (bool): Calculate PRC_ (Precision and Recall). Default: `False`.
 
         feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
             `inception-v3-compat`.
@@ -93,7 +93,8 @@ def calculate_metrics(**kwargs):
         feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `None` (defined by the
             chosen feature extractor).
 
-        feature_layer_prc (str): Name of the feature layer to use with Precision, Recall metrics. Default: `"2048"`.
+        feature_layer_prc (str): Name of the feature layer to use with PRC metrics. Default: `None` (defined by the
+            chosen feature extractor).
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
 
@@ -101,7 +102,7 @@ def calculate_metrics(**kwargs):
             the chosen feature extractor).
 
         feature_extractor_compile (bool): Compile feature extractor (experimental: may have negative effect on the
-            metrics precision). Default: False.
+            metrics numerical precision). Default: False.
 
         isc_splits (int): Number of splits in ISC. Default: `10`.
 
@@ -134,9 +135,9 @@ def calculate_metrics(**kwargs):
 
         ppl_z_interp_mode (str): Noise interpolation mode in PPL (see :ref:`registry <Registry>`). Default: `lerp`.
 
-        prc_NN_k (int): Number of nearest neighbours to consider for Precision, Recall. Default: `3`.
+        prc_NN_k (int): Number of nearest neighbours to consider in PRC. Default: `3`.
 
-        prc_batch_size (int): Batch size for Precision, Recall. Default: `10000`.
+        prc_batch_size (int): Batch size in PRC. Default: `10000`.
 
         samples_shuffle (bool): Perform random samples shuffling before computing splits. Default: `True`.
 
@@ -219,8 +220,8 @@ def calculate_metrics(**kwargs):
     have_isc = get_kwarg('isc', kwargs)
     have_fid = get_kwarg('fid', kwargs)
     have_kid = get_kwarg('kid', kwargs)
-    have_ppl = get_kwarg('ppl', kwargs)
     have_prc = get_kwarg('prc', kwargs)
+    have_ppl = get_kwarg('ppl', kwargs)
 
     need_input1 = have_isc or have_fid or have_kid or have_ppl or have_prc
     need_input2 = have_fid or have_kid or have_prc

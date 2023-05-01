@@ -11,12 +11,12 @@ generative model evaluation, including:
 - Inception Score ([ISC](https://arxiv.org/pdf/1606.03498.pdf))
 - Fréchet Inception Distance ([FID](https://arxiv.org/pdf/1706.08500.pdf))
 - Kernel Inception Distance ([KID](https://arxiv.org/pdf/1801.01401.pdf))
+- Precision and Recall ([PRC](https://arxiv.org/pdf/1904.06991.pdf))
 - Perceptual Path Length ([PPL](https://arxiv.org/pdf/1812.04948.pdf))
-- Precision, Recall ([PRC](https://arxiv.org/pdf/1904.06991.pdf))
 
-**Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
-implementations up to machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
-scattered and slow reference implementations. [Read more about precision](https://torch-fidelity.readthedocs.io/en/latest/precision.html) 
+**Numerical Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
+implementations up to floating point's machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
+scattered and slow reference implementations. [Read more about numerical precision](https://torch-fidelity.readthedocs.io/en/latest/precision.html) 
 
 **Efficiency**: Feature sharing between different metrics saves recomputation time, and an additional caching 
 level avoids recomputing features and statistics whenever possible. High efficiency allows using torch-fidelity in the 
@@ -60,8 +60,7 @@ Inception Score of a directory of images stored in `~/images/`:
 
 ### Pro
 
-Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC (Precision & Recall) between a generative model stored in 
-`~/generator.onnx` and CIFAR-10 training split:
+Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC between a generative model stored in `~/generator.onnx` and CIFAR-10 training split:
 ```shell script
 > fidelity \
   --gpu 0 \

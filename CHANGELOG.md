@@ -11,12 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `samples_resize_and_crop`: Transform all images found in the directory to a given size and square shape
     - `feature_extractor`: Accepts a new feature extractor `clip-vit-b-32`
     - `feature_extractor_internal_dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
-    - `feature_extractor_compile`: Compile feature extractor (experimental: may have negative effect on the metrics precision)
+    - `feature_extractor_compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 - Command line
   - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
   - `--feature-extractor`: Accepts a new feature extractor `clip-vit-b-32`
   - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
-  - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics precision)
+  - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 - Registered inputs: `cifar100-train`, `cifar100-val`
 - Default features for all metrics are now read from the selected feature extractor
 - Tests run in docker now
@@ -100,5 +100,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release with Inception Score (ISC), Frechet Inception Distance (FID),
   and Kernel Inception Distance (KID) metrics
-- Precision unit tests for all three metrics
+- Numerical precision unit tests for all three metrics
 - Command line tool and Python API

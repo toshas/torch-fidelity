@@ -35,7 +35,7 @@ jobs:
           name: Test interpolation
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_interpolation.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_interpolation.py
   test_convolution:
     executor: executor_python
     steps:
@@ -45,7 +45,7 @@ jobs:
           name: Test convolution
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_convolution.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_convolution.py
   test_feature_extractor:
     executor: executor_python
     steps:
@@ -56,7 +56,7 @@ jobs:
           no_output_timeout: 120m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_inception.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_inception.py
   test_ISC_determinism:
     executor: executor_python
     steps:
@@ -67,7 +67,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_isc_determinism.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_isc_determinism.py
   test_ISC_fidelity:
     executor: executor_python
     steps:
@@ -78,7 +78,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_isc_fidelity.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_isc_fidelity.py
   test_FID_determinism:
     executor: executor_python
     steps:
@@ -89,7 +89,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_fid_determinism.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_fid_determinism.py
   test_FID_fidelity:
     executor: executor_python
     steps:
@@ -100,7 +100,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_fid_fidelity.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_fid_fidelity.py
   test_KID_determinism:
     executor: executor_python
     steps:
@@ -111,7 +111,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_kid_determinism.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_kid_determinism.py
   test_KID_fidelity:
     executor: executor_python
     steps:
@@ -122,7 +122,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metric_kid_fidelity.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_kid_fidelity.py
   test_all_metrics:
     executor: executor_python
     steps:
@@ -133,7 +133,7 @@ jobs:
           no_output_timeout: 180m
           command: |
             . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/precision/test_metrics_all.py
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metrics_all.py
 
 
 aliases:
