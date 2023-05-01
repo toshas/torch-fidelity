@@ -46,15 +46,15 @@ def main():
                         help='Calculate PPL (Perceptual Path Length)')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
                         choices=FEATURE_EXTRACTORS_REGISTRY.keys(),
-                        help='Name of the feature extractor')
+                        help='Name of the feature extractor (default if None)')
     parser.add_argument('--feature-layer-isc', default=DEFAULTS['feature_layer_isc'], type=str,
-                        help='Name of the feature layer to use with ISC metric')
+                        help='Name of the feature layer to use with ISC metric (default if None)')
     parser.add_argument('--feature-layer-fid', default=DEFAULTS['feature_layer_fid'], type=str,
-                        help='Name of the feature layer to use with FID metric')
+                        help='Name of the feature layer to use with FID metric (default if None)')
     parser.add_argument('--feature-layer-kid', default=DEFAULTS['feature_layer_kid'], type=str,
-                        help='Name of the feature layer to use with KID metric')
+                        help='Name of the feature layer to use with KID metric (default if None)')
     parser.add_argument('--feature-layer-prc', default=DEFAULTS['feature_layer_prc'], type=str,
-                        help='Name of the feature layer to use with PRC metrics')
+                        help='Name of the feature layer to use with PRC metrics (default if None)')
     parser.add_argument('--feature-extractor-weights-path',
                         default=DEFAULTS['feature_extractor_weights_path'], type=str,
                         help='Path to feature extractor weights (downloaded if None)')

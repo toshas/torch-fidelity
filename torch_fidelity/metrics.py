@@ -3,10 +3,11 @@ from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_
     fid_statistics_to_metric
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
-from torch_fidelity.metric_ppl import calculate_ppl
 from torch_fidelity.metric_prc import prc_featuresdict_to_metric
+from torch_fidelity.metric_ppl import calculate_ppl
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    get_cacheable_input_name, get_feature_layer_isc, get_feature_layer_fid, get_feature_layer_kid
+    get_cacheable_input_name, resolve_feature_layer_isc, resolve_feature_layer_fid, resolve_feature_layer_kid, \
+    resolve_feature_extractor
 
 
 def calculate_metrics(**kwargs):
@@ -77,12 +78,12 @@ def calculate_metrics(**kwargs):
 
         kid (bool): Calculate KID_ (Kernel Inception Distance). Default: `False`.
 
-        ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
-
         prc (bool): Calculate PRC_ (Precision and Recall). Default: `False`.
 
-        feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default:
-            `inception-v3-compat`.
+        ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
+
+        feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default: `None`
+            (defined by the chosen set of metrics to compute).
 
         feature_layer_isc (str): Name of the feature layer to use with ISC metric. Default: `None` (defined by the
             chosen feature extractor).
@@ -93,7 +94,7 @@ def calculate_metrics(**kwargs):
         feature_layer_kid (str): Name of the feature layer to use with KID metric. Default: `None` (defined by the
             chosen feature extractor).
 
-        feature_layer_prc (str): Name of the feature layer to use with PRC metrics. Default: `None` (defined by the
+        feature_layer_prc (str): Name of the feature layer to use with PRC metric. Default: `None` (defined by the
             chosen feature extractor).
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
@@ -223,33 +224,36 @@ def calculate_metrics(**kwargs):
     have_prc = get_kwarg('prc', kwargs)
     have_ppl = get_kwarg('ppl', kwargs)
 
-    need_input1 = have_isc or have_fid or have_kid or have_ppl or have_prc
-    need_input2 = have_fid or have_kid or have_prc
+    have_unary = have_isc or have_ppl
+    have_binary = have_fid or have_kid or have_prc
+    have_any = have_unary or have_binary
+    have_any_shared_fe = have_isc or have_binary
+    have_only_fid = (not have_isc) and have_fid and (not have_kid) and (not have_prc)
 
-    vassert(
-        have_isc or have_fid or have_kid or have_ppl or have_prc,
-        'At least one of "isc", "fid", "kid", "ppl", "prc" metrics must be specified'
-    )
-    vassert(input1 is not None or not need_input1, 'First input is required for "isc", "fid", "kid", "ppl", and "prc" metrics')
-    vassert(input2 is not None or not need_input2, 'Second input is required for "fid", "kid", and "prc" metrics')
+    need_input1 = True
+    need_input2 = have_binary
+
+    vassert(have_any, 'At least one metric must be specified')
+    vassert(input1 is not None or not need_input1, 'First input is required for all metrics')
+    vassert(input2 is not None or not need_input2, 'Second input is required for binary metrics')
 
     metrics = {}
 
-    if have_isc or have_fid or have_kid or have_prc:
-        feature_extractor = get_kwarg('feature_extractor', kwargs)
+    if have_any_shared_fe:
+        feature_extractor = resolve_feature_extractor(**kwargs)
         feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
         feature_layers = set()
         if have_isc:
-            feature_layer_isc = get_feature_layer_isc(**kwargs)
+            feature_layer_isc = resolve_feature_layer_isc(**kwargs)
             feature_layers.add(feature_layer_isc)
         if have_fid:
-            feature_layer_fid = get_feature_layer_fid(**kwargs)
+            feature_layer_fid = resolve_feature_layer_fid(**kwargs)
             feature_layers.add(feature_layer_fid)
         if have_kid:
-            feature_layer_kid = get_feature_layer_kid(**kwargs)
+            feature_layer_kid = resolve_feature_layer_kid(**kwargs)
             feature_layers.add(feature_layer_kid)
         if have_prc:
-            feature_layer_prc = get_kwarg('feature_layer_prc', kwargs)
+            feature_layer_prc = resolve_feature_layer_prc(**kwargs)
             feature_layers.add(feature_layer_prc)
 
         feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
@@ -258,7 +262,7 @@ def calculate_metrics(**kwargs):
         # fid: input - featuresdict(cached) - statistics(cached) - metric
         # kid: input - featuresdict(cached) - metric
 
-        if (not have_isc) and have_fid and (not have_kid) and (not have_prc):
+        if have_only_fid:
             # shortcut for a case when statistics are cached and features are not required on at least one input
             metric_fid = fid_inputs_to_metric(feat_extractor, **kwargs)
             metrics.update(metric_fid)

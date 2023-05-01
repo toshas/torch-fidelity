@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 - Registered inputs: `cifar100-train`, `cifar100-val`
 - Default features for all metrics are now read from the selected feature extractor
+- Default feature extractor is now inferred based on the selected metrics
 - Tests run in docker now
 
 ## [0.3.0] - 2021-06-08
