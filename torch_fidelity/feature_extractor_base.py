@@ -1,9 +1,15 @@
+import torch
 import torch.nn as nn
 
 from torch_fidelity.helpers import vassert
 
 
 class FeatureExtractorBase(nn.Module):
+    SUPPORTED_DTYPES = {
+        'float32': torch.float32,
+        'float64': torch.float64,
+    }
+
     def __init__(self, name, features_list):
         """
         Base class for feature extractors that can be used in :func:`calculate_metrics`.
@@ -56,6 +62,20 @@ class FeatureExtractorBase(nn.Module):
     def get_default_feature_for_kid():
         """
         Returns a default feature name to be used for the KID computation.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def can_be_compiled():
+        """
+        Indicates whether the subclass can be safely wrapped with torch.compile.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def get_dummy_input_for_compile():
+        """
+        Returns a dummy input for compilation
         """
         raise NotImplementedError
 

@@ -12,6 +12,8 @@ DEFAULTS = {
     'feature_layer_fid': None,
     'feature_layer_kid': None,
     'feature_extractor_weights_path': None,
+    'feature_extractor_internal_dtype': None,
+    'feature_extractor_compile': False,
     'isc_splits': 10,
     'kid_subsets': 100,
     'kid_subset_size': 1000,
