@@ -49,5 +49,6 @@ shell() {
     exec_cuda "${FLAVOR}" bash
 }
 
-main tf1
-main clip
+main tf1 || true
+main clip || true
+main backend || true

@@ -3,7 +3,6 @@
 #   Distributed under Apache License 2.0: https://github.com/bioinf-jku/TTUR/blob/master/LICENSE
 
 import numpy as np
-import scipy.linalg
 import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
@@ -25,45 +24,17 @@ def fid_features_to_statistics(features):
 
 
 def fid_statistics_to_metric(stat_1, stat_2, verbose):
-    eps = 1e-6
-
     mu1, sigma1 = stat_1['mu'], stat_1['sigma']
     mu2, sigma2 = stat_2['mu'], stat_2['sigma']
-    assert mu1.shape == mu2.shape and mu1.dtype == mu2.dtype
-    assert sigma1.shape == sigma2.shape and sigma1.dtype == sigma2.dtype
-
-    mu1 = np.atleast_1d(mu1)
-    mu2 = np.atleast_1d(mu2)
-
-    sigma1 = np.atleast_2d(sigma1)
-    sigma2 = np.atleast_2d(sigma2)
-
-    assert mu1.shape == mu2.shape, 'Training and test mean vectors have different lengths'
-    assert sigma1.shape == sigma2.shape, 'Training and test covariances have different dimensions'
+    assert mu1.ndim == 1 and mu1.shape == mu2.shape and mu1.dtype == mu2.dtype
+    assert sigma1.ndim == 2 and sigma1.shape == sigma2.shape and sigma1.dtype == sigma2.dtype
 
     diff = mu1 - mu2
-
-    # Product might be almost singular
-    covmean, _ = scipy.linalg.sqrtm(sigma1.dot(sigma2), disp=False)
-    if not np.isfinite(covmean).all():
-        vprint(verbose,
-            f'WARNING: fid calculation produces singular product; '
-            f'adding {eps} to diagonal of cov estimates'
-        )
-        offset = np.eye(sigma1.shape[0]) * eps
-        covmean = scipy.linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset), disp=verbose)
-
-    # Numerical error might give slight imaginary component
-    if np.iscomplexobj(covmean):
-        if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
-            m = np.max(np.abs(covmean.imag))
-            assert False, 'Imaginary component {}'.format(m)
-        covmean = covmean.real
-
-    tr_covmean = np.trace(covmean)
+    tr_covmean = np.sum(np.sqrt(np.linalg.eigvals(sigma1.dot(sigma2))).real)
+    fid = float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
 
     out = {
-        KEY_METRIC_FID: float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
+        KEY_METRIC_FID: fid
     }
 
     vprint(verbose, f'Frechet Inception Distance: {out[KEY_METRIC_FID]}')

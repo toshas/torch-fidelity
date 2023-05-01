@@ -210,10 +210,16 @@ class ModifiedResNet(nn.Module):
 class LayerNorm(nn.LayerNorm):
     """Subclass torch's LayerNorm to handle fp16."""
 
-    def forward(self, x: torch.Tensor):
-        orig_type = x.dtype
-        ret = super().forward(x.type(torch.float32))
-        return ret.type(orig_type)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        orig_dtype = x.dtype
+        if orig_dtype == torch.float16:
+            out = F.layer_norm(
+                x.to(torch.float32), self.normalized_shape, self.weight.to(torch.float32),
+                self.bias.to(torch.float32), self.eps
+            ).to(orig_dtype)
+        else:
+            out = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        return out
 
 
 class QuickGELU(nn.Module):
@@ -345,7 +351,7 @@ def convert_weights(model: nn.Module):
     model.apply(_convert_weights_to_fp16)
 
 
-def build_model(state_dict: dict):
+def build_model(state_dict, feature_extractor_internal_dtype):
     vit = "visual.proj" in state_dict
 
     if vit:
@@ -385,7 +391,9 @@ def build_model(state_dict: dict):
 
     convert_weights(model)
     model.load_state_dict(state_dict)
-    model.float()
+    model.to(feature_extractor_internal_dtype)
+    for p in model.parameters():
+        p.requires_grad_(False)
     model.eval()
     return model
 
@@ -397,6 +405,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
             name,
             features_list,
             feature_extractor_weights_path=None,
+            feature_extractor_internal_dtype=None,
             **kwargs,
     ):
         """
@@ -414,9 +423,13 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
 
             feature_extractor_weights_path (str): Path to the pretrained CLIP model weights in PyTorch format.
                 Downloads from internet if `None`.
+
+            feature_extractor_internal_dtype (str): dtype to use inside the feature extractor. Specifying it may improve
+                numerical precision in some cases. Supported values are 'float32' (default), and 'float64'.
         """
         super(FeatureExtractorCLIP, self).__init__(name, features_list)
         vassert(name in MODEL_URLS, f'Model {name} not found; available models = {list(MODEL_URLS.keys())}')
+        self.feature_extractor_internal_dtype = self.SUPPORTED_DTYPES[feature_extractor_internal_dtype or 'float32']
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
@@ -433,7 +446,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         else:
             model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")
 
-        self.model = build_model(model_jit.state_dict())
+        self.model = build_model(model_jit.state_dict(), self.feature_extractor_internal_dtype)
         self.resolution = self.model.visual.input_resolution
 
         for p in self.parameters():
@@ -443,8 +456,9 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
         features = {}
 
+        x = x.to(self.feature_extractor_internal_dtype)
         x = torchvision.transforms.functional.normalize(
-            x.float(),
+            x,
             (255 * 0.48145466, 255 * 0.4578275, 255 * 0.40821073),
             (255 * 0.26862954, 255 * 0.26130258, 255 * 0.27577711),
             inplace=False,
@@ -459,7 +473,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         # N x 3 x R x R
 
         x = self.model.visual(x)
-        features['clip'] = x
+        features['clip'] = x.to(torch.float32)
 
         return tuple(features[a] for a in self.features_list)
 
@@ -478,3 +492,11 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
     @staticmethod
     def get_default_feature_for_kid():
         return 'clip'
+
+    @staticmethod
+    def can_be_compiled():
+        return True
+
+    @staticmethod
+    def get_dummy_input_for_compile():
+        return (torch.rand([1, 3, 4, 4]) * 255).to(torch.uint8)

@@ -4,6 +4,7 @@ import json
 import os
 import sys
 
+from torch_fidelity import FeatureExtractorBase
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
@@ -57,6 +58,12 @@ def main():
     parser.add_argument('--feature-extractor-weights-path',
                         default=DEFAULTS['feature_extractor_weights_path'], type=str,
                         help='Path to feature extractor weights (downloaded if None)')
+    parser.add_argument('--feature-extractor-internal-dtype',
+                        default=DEFAULTS['feature_extractor_internal_dtype'], type=str,
+                        choices=FeatureExtractorBase.SUPPORTED_DTYPES,
+                        help='dtype to use inside the feature extractor (default if None)')
+    parser.add_argument('--feature-extractor-compile', action='store_true',
+                        help='Compile feature extractor (experimental: may have negative effect on metrics precision)')
     parser.add_argument('--isc-splits', default=DEFAULTS['isc_splits'], type=int,
                         help='Number of splits in ISC')
     parser.add_argument('--kid-subsets', default=DEFAULTS['kid_subsets'], type=int,

@@ -10,9 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `calculate_metrics`
     - `samples_resize_and_crop`: Transform all images found in the directory to a given size and square shape
     - `feature_extractor`: Accepts a new feature extractor `clip-vit-b-32`
+    - `feature_extractor_internal_dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
+    - `feature_extractor_compile`: Compile feature extractor (experimental: may have negative effect on the metrics precision)
 - Command line
   - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
   - `--feature-extractor`: Accepts a new feature extractor `clip-vit-b-32`
+  - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
+  - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics precision)
 - Registered inputs: `cifar100-train`, `cifar100-val`
 - Default features for all metrics are now read from the selected feature extractor
 - Tests run in docker now
