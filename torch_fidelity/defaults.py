@@ -30,7 +30,7 @@ DEFAULTS = {
     'ppl_discard_percentile_lower': 1,
     'ppl_discard_percentile_higher': 99,
     'ppl_z_interp_mode': 'lerp',
-    'prc_NN_k': 3,
+    'prc_neighborhood': 3,
     'prc_batch_size': 10000,
     'samples_shuffle': True,
     'samples_find_deep': False,

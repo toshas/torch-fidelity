@@ -50,5 +50,6 @@ shell() {
 }
 
 main tf1 || true
+main torch_pure || true
 main clip || true
 main backend || true

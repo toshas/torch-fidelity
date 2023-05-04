@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert
+from torch_fidelity.helpers import vassert, text_to_dtype
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 # InceptionV3 weights converted from the official TensorFlow weights using utils/util_convert_inception_weights.py
@@ -56,7 +56,11 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
                 numerical precision in some cases. Supported values are 'float32' (default), and 'float64'.
         """
         super(FeatureExtractorInceptionV3, self).__init__(name, features_list)
-        self.feature_extractor_internal_dtype = self.SUPPORTED_DTYPES[feature_extractor_internal_dtype or 'float32']
+        vassert(
+            feature_extractor_internal_dtype in ('float32', 'float64', None),
+            'Only 32 and 64 bit floats are supported for internal dtype of this feature extractor'
+        )
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
 
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
@@ -97,6 +101,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
     def forward(self, x):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
+        vassert(x.dim() == 4 and x.shape[1] == 3, 'Input is not Bx3xHxW')
         features = {}
         remaining_features = self.features_list.copy()
 
@@ -204,16 +209,13 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         return '64', '192', '768', '2048', 'logits_unbiased', 'logits'
 
     @staticmethod
-    def get_default_feature_for_isc():
-        return 'logits_unbiased'
-
-    @staticmethod
-    def get_default_feature_for_fid():
-        return '2048'
-
-    @staticmethod
-    def get_default_feature_for_kid():
-        return '2048'
+    def get_default_feature_layer_for_metric(metric):
+        return {
+            'isc': 'logits_unbiased',
+            'fid': '2048',
+            'kid': '2048',
+            'prc': '2048',
+        }[metric]
 
     @staticmethod
     def can_be_compiled():

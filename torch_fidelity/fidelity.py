@@ -4,7 +4,6 @@ import json
 import os
 import sys
 
-from torch_fidelity import FeatureExtractorBase
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
@@ -60,7 +59,7 @@ def main():
                         help='Path to feature extractor weights (downloaded if None)')
     parser.add_argument('--feature-extractor-internal-dtype',
                         default=DEFAULTS['feature_extractor_internal_dtype'], type=str,
-                        choices=FeatureExtractorBase.SUPPORTED_DTYPES,
+                        choices=['float32', 'float64'],
                         help='dtype to use inside the feature extractor (default if None)')
     parser.add_argument('--feature-extractor-compile', action='store_true',
                         help='Compile feature extractor (experimental: may have negative effect on metrics numerical '
@@ -96,7 +95,7 @@ def main():
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
                         choices=list(INTERPOLATION_REGISTRY.keys()),
                         help='Noise interpolation mode in PPL')
-    parser.add_argument('--prc-NN-k', default=DEFAULTS['prc_NN_k'], type=int,
+    parser.add_argument('--prc-neighborhood', default=DEFAULTS['prc_neighborhood'], type=int,
                         help='Number of nearest neighbours in PRC')
     parser.add_argument('--prc-batch-size', default=DEFAULTS['prc_batch_size'], type=int,
                         help='Batch size in PRC')

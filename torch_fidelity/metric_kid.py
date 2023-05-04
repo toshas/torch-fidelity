@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    resolve_feature_layer_kid, resolve_feature_extractor
+    resolve_feature_extractor, resolve_feature_layer_for_metric
 
 KEY_METRIC_KID_MEAN = 'kernel_inception_distance_mean'
 KEY_METRIC_KID_STD = 'kernel_inception_distance_std'
@@ -128,7 +128,7 @@ def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, 
 def calculate_kid(**kwargs):
     kwargs['kid'] = True
     feature_extractor = resolve_feature_extractor(**kwargs)
-    feat_layer_name = resolve_feature_layer_kid(**kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric('kid', **kwargs)
     feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
     featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
     featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
