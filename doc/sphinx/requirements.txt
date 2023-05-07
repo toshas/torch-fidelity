@@ -1,6 +1,4 @@
-setuptools
 recommonmark
 sphinx
 sphinx-markdown-tables
-sphinx-paramlinks
 sphinx-rtd-theme
