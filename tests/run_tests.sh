@@ -43,6 +43,14 @@ main() {
     exec_cpu "${FLAVOR}" python3 -m unittest discover "tests/${FLAVOR}"
 }
 
+main_sh() {
+    FLAVOR="${1}"
+    build "${FLAVOR}"
+    for test in tests/${FLAVOR}/test_*.sh; do
+        exec_cpu "${FLAVOR}" sh ${test}
+    done
+}
+
 shell() {
     FLAVOR="${1}"
     build "${FLAVOR}"
