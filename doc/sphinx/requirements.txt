@@ -1,5 +1,5 @@
 recommonmark
-sphinx<4.0
-sphinx-markdown-tables
+sphinx
+# sphinx-markdown-tables
 sphinx-paramlinks
 sphinx-rtd-theme
