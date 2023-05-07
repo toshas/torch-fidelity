@@ -7,12 +7,11 @@ from contextlib import redirect_stdout
 
 import torch
 import torch.nn as nn
-import torchvision
 from torch.hub import load_state_dict_from_url
-from torchvision.models import VGG16_Weights
 
 from torch_fidelity.helpers import vassert, text_to_dtype
 from torch_fidelity.sample_similarity_base import SampleSimilarityBase
+from torch_fidelity.utils_torchvision import torchvision_load_pretrained_vgg16
 
 # VGG16 LPIPS original weights re-uploaded from the following location:
 #   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/weights/v0.1/vgg.pth
@@ -23,9 +22,7 @@ URL_VGG16_LPIPS = 'https://github.com/toshas/torch-fidelity/releases/download/v0
 class VGG16features(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        with redirect_stdout(sys.stderr):
-            vgg_pretrained_features = torchvision.models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
-        vgg_pretrained_features = vgg_pretrained_features.features
+        vgg_pretrained_features = torchvision_load_pretrained_vgg16().features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()

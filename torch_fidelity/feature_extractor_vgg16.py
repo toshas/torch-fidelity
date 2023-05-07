@@ -1,15 +1,12 @@
-import sys
-from contextlib import redirect_stdout
-
 import torch
 import torch.nn.functional as F
 import torchvision
-from torchvision.models import VGG16_Weights
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import vassert, text_to_dtype
 
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+from torch_fidelity.utils_torchvision import torchvision_load_pretrained_vgg16
 
 
 class FeatureExtractorVGG16(FeatureExtractorBase):
@@ -51,11 +48,10 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
 
         if feature_extractor_weights_path is None:
-            with redirect_stdout(sys.stderr):
-                self.model = torchvision.models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
+            self.model = torchvision_load_pretrained_vgg16()
         else:
             state_dict = torch.load(feature_extractor_weights_path)
-            self.model = torchvision.models.vgg16(weights=None)
+            self.model = torchvision.models.vgg16()
             self.model.load_state_dict(state_dict)
         for cls_tail_id in (6, 5, 4):
             del self.model.classifier[cls_tail_id]

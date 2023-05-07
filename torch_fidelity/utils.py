@@ -1,7 +1,6 @@
 import multiprocessing
 import os
 import sys
-import tempfile
 
 import numpy as np
 import torch
@@ -19,6 +18,7 @@ from torch_fidelity.generative_model_onnx import GenerativeModelONNX
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
     INTERPOLATION_REGISTRY, NOISE_SOURCE_REGISTRY
+from torch_fidelity.utils_torch import torch_maybe_compile, torch_atomic_save
 
 DEFAULT_FEATURE_EXTRACTOR = {
     'isc': 'inception-v3-compat',
@@ -56,25 +56,6 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
     vprint(verbose, f'Found {len(files)} samples'
                     f'{", some are lossy-compressed - this may affect metrics" if have_lossy else ""}')
     return files
-
-
-def torch_maybe_compile(module, dummy_input, verbose):
-    out = module
-    if int(torch.__version__.split('.')[0]) < 2:
-        vprint(verbose, 'Feature extractor cannot be compiled. Falling back to pure torch')
-        return out
-    try:
-        compiled = torch.compile(module)
-        try:
-            compiled(dummy_input)
-            vprint(verbose, 'Feature extractor compiled')
-            setattr(out, 'forward_pure', out.forward)
-            setattr(out, 'forward', compiled)
-        except Exception:
-            vprint(verbose, 'Feature extractor compiled, but failed to run. Falling back to pure torch')
-    except Exception as e:
-        vprint(verbose, 'Feature extractor compilation failed. Falling back to pure torch')
-    return out
 
 
 def create_feature_extractor(name, list_features, cuda=True, **kwargs):
@@ -348,20 +329,6 @@ def resolve_feature_layer_for_metric(metric, **kwargs):
     return out
 
 
-def atomic_torch_save(what, path):
-    path = os.path.expanduser(path)
-    path_dir = os.path.dirname(path)
-    fp = tempfile.NamedTemporaryFile(delete=False, dir=path_dir)
-    try:
-        torch.save(what, fp)
-        fp.close()
-        os.rename(fp.name, path)
-    finally:
-        fp.close()
-        if os.path.exists(fp.name):
-            os.remove(fp.name)
-
-
 def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     if not get_kwarg('cache', kwargs):
         return fn_recompute()
@@ -376,7 +343,7 @@ def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     item = fn_recompute()
     if get_kwarg('verbose', kwargs):
         print(f'Caching {item_path}', file=sys.stderr)
-    atomic_torch_save(item, item_path)
+    torch_atomic_save(item, item_path)
     return item
 
 
@@ -398,7 +365,7 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
     items = fn_recompute()
     for n, p in zip(item_names, cached_paths):
         vprint(verbose, f'Caching {p}')
-        atomic_torch_save(items[n], p)
+        torch_atomic_save(items[n], p)
     return items
 
 
