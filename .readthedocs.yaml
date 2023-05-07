@@ -2,10 +2,10 @@ version: 2
 
 python:
   install:
+    - requirements: doc/sphinx/requirements.txt
     - method: pip
       path: .
       extra_requirements: []
-    - requirements: doc/sphinx/requirements.txt
   system_packages: true
 build:
   os: ubuntu-22.04
