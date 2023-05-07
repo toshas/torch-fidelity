@@ -4,14 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-### Added
+## [0.4.0] - Unreleased
+### Added in 0.4.0
 - New metrics: Precision, Recall, F-score
 - New registered inputs: `cifar100-train`, `cifar100-val`
 - New registered feature extractors: `clip-vit-b-32`, `vgg16`
-- Default features for all metrics are now read from the selected feature extractor
-- Default feature extractor is now inferred based on the selected metrics
-- All tests run in docker now
 - API
   - `calculate_metrics`
     - `prc`: Calculate PRC (Precision and Recall)
@@ -32,8 +29,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
   - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 
+### Changed in 0.4.0
+- Default features for all metrics are now read from the selected feature extractor
+- Default feature extractor is now inferred based on the selected metrics
+- All tests run in docker now
+
+### Fixed in 0.4.0
+- [#19](https://github.com/toshas/torch-fidelity/issues/19): Adds Precision and Recall metrics
+- [#42](https://github.com/toshas/torch-fidelity/issues/42): Fixes missing files in the wheel
+- [#46](https://github.com/toshas/torch-fidelity/issues/46): Adds new FID computation code and removed scipy dependency
+- [#47](https://github.com/toshas/torch-fidelity/issues/47): Adds new CLIP-based feature extractor
+
 ## [0.3.0] - 2021-06-08
-### Added
+### Added in 0.3.0
 - API
   - `calculate_metrics`
     - `ppl`: Calculate PPL (Perceptual Path Length)
@@ -83,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unrecognized command line arguments warning
 - Added ReadTheDocs documentation
 
-### Changed
+### Changed in 0.3.0
 - API
   - First input positional argument of `calculate_metrics` is now expected as a value to kwarg `input1`
   - Second input (optional) positional argument of `calculate_metrics` is now expected as a value to kwarg argument 
@@ -102,13 +110,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change `torch.save` to an atomic saving operation in all functions of the caching layer, which makes it 
   safe to use torch-fidelity in multiprocessing environment, such as a compute cluster with a shared file system.
 
-### Fixed
+### Fixed in 0.3.0
 - [#15](https://github.com/toshas/torch-fidelity/issues/15): Fix '64', '192', and '768' feature layers usage in all metrics
 - [#8](https://github.com/toshas/torch-fidelity/issues/8): Fix a missing exception for when KID subset size is larger than the number of samples in one of the inputs
 - Fix a missing check that the elements of inputs are actually instances of `torch.Tensor`
 
 ## [0.2.0] - 2020-05-05
-### Added
+### Added in 0.2.0
 - Initial release with Inception Score (ISC), Frechet Inception Distance (FID),
   and Kernel Inception Distance (KID) metrics
 - Numerical precision unit tests for all three metrics
