@@ -109,6 +109,7 @@ def calculate_metrics(**kwargs):
     .. _FID: https://arxiv.org/pdf/1706.08500.pdf
     .. _KID: https://arxiv.org/pdf/1801.01401.pdf
     .. _PPL: https://arxiv.org/pdf/1812.04948.pdf
+    .. _PRC: https://arxiv.org/pdf/1904.06991.pdf
 
     Args:
 

@@ -28,6 +28,8 @@ Can be used as values to the :paramref:`~torch_fidelity.calculate_metrics.featur
 - `inception-v3-compat` - a standard InceptionV3 feature extractor from the original reference implementations of the
   Inception Score. This feature extractor is carefully ported to reproduce the original extractor's bilinear
   interpolation and neural architecture quirks.
+- `vgg16` - a legacy VGG-based feature extractor used in the reference implementation of the Precision and Recall metrics.
+- `clip-vit-b-32` - a modern CLIP-based feature extractor for evaluation of more realistic image generators, such as DDPMs.
 
 Preregistered sample similarities
 ---------------------------------

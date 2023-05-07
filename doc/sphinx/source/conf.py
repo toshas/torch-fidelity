@@ -44,7 +44,7 @@ extensions = [
   'sphinx.ext.napoleon',
   'sphinx.ext.autosectionlabel',
   'sphinx_paramlinks',
-  'sphinx_markdown_tables',
+  # 'sphinx_markdown_tables',
   'recommonmark',
 ]
 

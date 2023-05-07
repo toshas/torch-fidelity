@@ -40,7 +40,7 @@ class TestTorchCompile(unittest.TestCase):
         discrepancy = math.fabs(metrics_normal - metrics_compiled)
         self.assertTrue(
             discrepancy < 1e-5,
-            f'Compilation affects metrics outputs: {metrics_normal=}, {metrics_compiled=}',
+            f'Compilation affects metrics outputs: normal={metrics_normal}, compiled={metrics_compiled}',
         )
 
     def test_torch_compile_inceptionfe_cpu(self):
