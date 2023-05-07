@@ -101,7 +101,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
     def forward(self, x):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
-        vassert(x.dim() == 4 and x.shape[1] == 3, 'Input is not Bx3xHxW')
+        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
         features = {}
         remaining_features = self.features_list.copy()
 
