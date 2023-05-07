@@ -9,14 +9,10 @@ import torch
 import torch.nn as nn
 import torchvision
 from torch.hub import load_state_dict_from_url
+from torchvision.models import VGG16_Weights
 
 from torch_fidelity.helpers import vassert, text_to_dtype
 from torch_fidelity.sample_similarity_base import SampleSimilarityBase
-
-# VGG16 pretrained weights from torchvision models hub
-#   Distributed under BSD 3-Clause: https://github.com/pytorch/vision/blob/master/LICENSE
-#   Original weights distributed under CC-BY: https://www.robots.ox.ac.uk/~vgg/research/very_deep/
-URL_VGG16_BASE = 'https://download.pytorch.org/models/vgg16-397923af.pth'
 
 # VGG16 LPIPS original weights re-uploaded from the following location:
 #   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/weights/v0.1/vgg.pth
@@ -27,9 +23,8 @@ URL_VGG16_LPIPS = 'https://github.com/toshas/torch-fidelity/releases/download/v0
 class VGG16features(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        vgg_pretrained_features = torchvision.models.vgg16(pretrained=False)
         with redirect_stdout(sys.stderr):
-            vgg_pretrained_features.load_state_dict(load_state_dict_from_url(URL_VGG16_BASE))
+            vgg_pretrained_features = torchvision.models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
         vgg_pretrained_features = vgg_pretrained_features.features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()

@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 import torch
 import torch.nn.functional as F
 import torchvision
+from torchvision.models import VGG16_Weights
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import vassert, text_to_dtype
@@ -51,10 +52,10 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr):
-                self.model = torchvision.models.vgg16(pretrained=True)
+                self.model = torchvision.models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
         else:
             state_dict = torch.load(feature_extractor_weights_path)
-            self.model = torchvision.models.vgg16(pretrained=False)
+            self.model = torchvision.models.vgg16(weights=None)
             self.model.load_state_dict(state_dict)
         for cls_tail_id in (6, 5, 4):
             del self.model.classifier[cls_tail_id]
