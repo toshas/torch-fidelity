@@ -4,7 +4,6 @@ import json
 import os
 import sys
 
-from torch_fidelity import FeatureExtractorBase
 from torch_fidelity.defaults import DEFAULTS
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import FEATURE_EXTRACTORS_REGISTRY, DATASETS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
@@ -40,6 +39,8 @@ def main():
                         help='Calculate FID (Frechet Inception Distance)')
     parser.add_argument('-k', '--kid', action='store_true',
                         help='Calculate KID (Kernel Inception Distance)')
+    parser.add_argument('-r', '--prc', action='store_true',
+                        help='Calculate PRC (Precision and Recall)')
     parser.add_argument('-p', '--ppl', action='store_true',
                         help='Calculate PPL (Perceptual Path Length)')
     parser.add_argument('--feature-extractor', default=DEFAULTS['feature_extractor'], type=str,
@@ -51,15 +52,18 @@ def main():
                         help='Name of the feature layer to use with FID metric (default if None)')
     parser.add_argument('--feature-layer-kid', default=DEFAULTS['feature_layer_kid'], type=str,
                         help='Name of the feature layer to use with KID metric (default if None)')
+    parser.add_argument('--feature-layer-prc', default=DEFAULTS['feature_layer_prc'], type=str,
+                        help='Name of the feature layer to use with PRC metrics (default if None)')
     parser.add_argument('--feature-extractor-weights-path',
                         default=DEFAULTS['feature_extractor_weights_path'], type=str,
                         help='Path to feature extractor weights (downloaded if None)')
     parser.add_argument('--feature-extractor-internal-dtype',
                         default=DEFAULTS['feature_extractor_internal_dtype'], type=str,
-                        choices=FeatureExtractorBase.SUPPORTED_DTYPES,
+                        choices=['float32', 'float64'],
                         help='dtype to use inside the feature extractor (default if None)')
     parser.add_argument('--feature-extractor-compile', action='store_true',
-                        help='Compile feature extractor (experimental: may have negative effect on metrics precision)')
+                        help='Compile feature extractor (experimental: may have negative effect on metrics numerical '
+                             'precision)')
     parser.add_argument('--isc-splits', default=DEFAULTS['isc_splits'], type=int,
                         help='Number of splits in ISC')
     parser.add_argument('--kid-subsets', default=DEFAULTS['kid_subsets'], type=int,
@@ -91,6 +95,10 @@ def main():
     parser.add_argument('--ppl-z-interp-mode', default=DEFAULTS['ppl_z_interp_mode'], type=str,
                         choices=list(INTERPOLATION_REGISTRY.keys()),
                         help='Noise interpolation mode in PPL')
+    parser.add_argument('--prc-neighborhood', default=DEFAULTS['prc_neighborhood'], type=int,
+                        help='Number of nearest neighbours in PRC')
+    parser.add_argument('--prc-batch-size', default=DEFAULTS['prc_batch_size'], type=int,
+                        help='Batch size in PRC')
     parser.add_argument('--no-samples-shuffle', action='store_true',
                         help='Do not perform samples shuffling before computing splits')
     parser.add_argument('--samples-find-deep', action='store_true',

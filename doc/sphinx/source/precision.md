@@ -1,4 +1,4 @@
-# Precision of torch-fidelity
+# Numerical Precision of torch-fidelity
 
 Evaluation of generative models such as GANs is an important part of the deep learning research. 
 In the domain of 2D image generation, three approaches became widely spread: 
@@ -13,14 +13,14 @@ These design decisions were effectively baked into the evaluation protocol and b
 metrics specification.
 As a result, researchers wishing to compare against state of the art in generative modeling are forced to perform 
 evaluation using codebases of the original metric authors. 
-Reimplementations of metrics in PyTorch and other frameworks exist, but they do not provide a proper level of precision, 
+Reimplementations of metrics in PyTorch and other frameworks exist, but they do not provide a proper level of numerical precision, 
 thus making them unsuitable for reporting results and comparing them to other methods.   
 
 This software aims to provide epsilon-exact implementations of the said metrics in PyTorch, and thus remove
 inconveniences associated with generative models evaluation and development. All steps of the evaluation pipeline are
 correctly tested, with relative errors and sources of remaining non-determinism summarized below.  
 
-## Precision Breakdown
+## Numerical Precision Breakdown
 
 The path from inputs to metrics contains the following steps:
 1. Image interpolation (resizing) and normalization (bringing RGB values to the range acceptable by the pre-trained 
@@ -59,12 +59,12 @@ between CPU and GPU, and also between different CPUs.
 
 ### Computing metrics from features
 This step is usually performed on CPU using an established math library. It is neither the bottleneck of computations,
-nor the source of precision loss or non-determinism; torch-fidelity uses the original features-to-metric code for this 
+nor the source of numerical precision loss or non-determinism; torch-fidelity uses the original features-to-metric code for this 
 step in most cases.
 
 ### Relative Errors Summary
 
-The tests are performed using fixed pseudo-random subsets of 5000 CIFAR10 images (see `tests/precision`). Below is a 
+The tests are performed using fixed pseudo-random subsets of 5000 CIFAR10 images (see `tests/tf1/numerical_precision`). Below is a 
 list of pixel-, feature-, or metric-wise relative errors of different steps of the computational pipeline, between 
 reference implementations and torch-fidelity:
 - Interpolation: 1e-5

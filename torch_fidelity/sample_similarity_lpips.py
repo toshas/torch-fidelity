@@ -10,7 +10,7 @@ import torch.nn as nn
 import torchvision
 from torch.hub import load_state_dict_from_url
 
-from torch_fidelity.helpers import vassert
+from torch_fidelity.helpers import vassert, text_to_dtype
 from torch_fidelity.sample_similarity_base import SampleSimilarityBase
 
 # VGG16 pretrained weights from torchvision models hub
@@ -83,11 +83,6 @@ class NetLinLayer(nn.Module):
 
 
 class SampleSimilarityLPIPS(SampleSimilarityBase):
-    SUPPORTED_DTYPES = {
-        'uint8': torch.uint8,
-        'float32': torch.float32,
-    }
-
     def __init__(
             self,
             name,
@@ -149,7 +144,7 @@ class SampleSimilarityLPIPS(SampleSimilarityBase):
         vassert(in0.dim() == 4 and in0.shape[1] == 3, 'Input 0 is not Bx3xHxW')
         vassert(in1.dim() == 4 and in1.shape[1] == 3, 'Input 1 is not Bx3xHxW')
         if self.sample_similarity_dtype is not None:
-            dtype = self.SUPPORTED_DTYPES.get(self.sample_similarity_dtype, None)
+            dtype = text_to_dtype(self.sample_similarity_dtype, None)
             vassert(dtype is not None and in0.dtype == dtype and in1.dtype == dtype,
                     f'Unexpected input dtype ({in0.dtype})')
         in0_input = self.normalize(in0)

@@ -7,8 +7,8 @@ import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
 from torch_fidelity.utils import get_cacheable_input_name, cache_lookup_one_recompute_on_miss, \
-    extract_featuresdict_from_input_id_cached, create_feature_extractor, resolve_feature_layer_fid, \
-    resolve_feature_extractor
+    extract_featuresdict_from_input_id_cached, create_feature_extractor, resolve_feature_extractor, \
+    resolve_feature_layer_for_metric
 
 KEY_METRIC_FID = 'frechet_inception_distance'
 
@@ -87,7 +87,7 @@ def fid_input_id_to_statistics_cached(input_id, feat_extractor, feat_layer_name,
 
 
 def fid_inputs_to_metric(feat_extractor, **kwargs):
-    feat_layer_name = resolve_feature_layer_fid(**kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric('fid', **kwargs)
     verbose = get_kwarg('verbose', kwargs)
 
     vprint(verbose, f'Extracting statistics from input 1')
@@ -103,7 +103,7 @@ def fid_inputs_to_metric(feat_extractor, **kwargs):
 def calculate_fid(**kwargs):
     kwargs['fid'] = True
     feature_extractor = resolve_feature_extractor(**kwargs)
-    feat_layer_name = resolve_feature_layer_fid(**kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric('fid', **kwargs)
     feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
     metric = fid_inputs_to_metric(feat_extractor, **kwargs)
     return metric

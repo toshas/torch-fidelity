@@ -4,6 +4,7 @@ from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, Cifar1
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_clip import FeatureExtractorCLIP
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
+from torch_fidelity.feature_extractor_vgg16 import FeatureExtractorVGG16
 from torch_fidelity.helpers import vassert
 from torch_fidelity.noise import random_normal, random_unit, random_uniform_0_1, batch_lerp, batch_slerp_any, \
     batch_slerp_unit
@@ -162,6 +163,7 @@ register_dataset(
 )
 
 register_feature_extractor('inception-v3-compat', FeatureExtractorInceptionV3)
+register_feature_extractor('vgg16', FeatureExtractorVGG16)
 register_feature_extractor('clip-vit-b-32', FeatureExtractorCLIP)
 
 register_sample_similarity('lpips-vgg16', SampleSimilarityLPIPS)

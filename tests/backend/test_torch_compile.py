@@ -18,6 +18,7 @@ class TestTorchCompile(unittest.TestCase):
 
         feat = {
             'inception-v3-compat': '2048',
+            'vgg16': 'fc2_relu',
             'clip-vit-b-32': 'clip',
         }[fe]
 
@@ -47,6 +48,12 @@ class TestTorchCompile(unittest.TestCase):
 
     def test_torch_compile_inceptionfe_cuda(self):
         self._test_torch_compile('inception-v3-compat', True)
+
+    def test_torch_compile_vgg16fe_cpu(self):
+        self._test_torch_compile('vgg16', False)
+
+    def test_torch_compile_vgg16fe_cuda(self):
+        self._test_torch_compile('vgg16', True)
 
     def test_torch_compile_clipfe_cpu(self):
         self._test_torch_compile('clip-vit-b-32', False)

@@ -3,7 +3,7 @@ import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
 from torch_fidelity.utils import extract_featuresdict_from_input_id_cached, create_feature_extractor, \
-    resolve_feature_layer_isc, resolve_feature_extractor
+    resolve_feature_extractor, resolve_feature_layer_for_metric
 
 KEY_METRIC_ISC_MEAN = 'inception_score_mean'
 KEY_METRIC_ISC_STD = 'inception_score_std'
@@ -58,7 +58,7 @@ def isc_input_id_to_metric(input_id, feat_extractor, feat_layer_name, **kwargs):
 def calculate_isc(input_id, **kwargs):
     kwargs['isc'] = True
     feature_extractor = resolve_feature_extractor(**kwargs)
-    feat_layer_name = resolve_feature_layer_isc(**kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric('isc', **kwargs)
     feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
     metric = isc_input_id_to_metric(input_id, feat_extractor, feat_layer_name, **kwargs)
     return metric

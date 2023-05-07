@@ -15,7 +15,7 @@ from torch import nn
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert
+from torch_fidelity.helpers import vassert, text_to_dtype
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 MODEL_BASE_URL = 'https://openaipublic.azureedge.net/clip/models/'
@@ -429,7 +429,11 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         """
         super(FeatureExtractorCLIP, self).__init__(name, features_list)
         vassert(name in MODEL_URLS, f'Model {name} not found; available models = {list(MODEL_URLS.keys())}')
-        self.feature_extractor_internal_dtype = self.SUPPORTED_DTYPES[feature_extractor_internal_dtype or 'float32']
+        vassert(
+            feature_extractor_internal_dtype in ('float32', 'float64', None),
+            'Only 32-bit floats are supported for internal dtype of this feature extractor'
+        )
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
@@ -454,21 +458,24 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
 
     def forward(self, x):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
+        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
         features = {}
 
         x = x.to(self.feature_extractor_internal_dtype)
-        x = torchvision.transforms.functional.normalize(
-            x,
-            (255 * 0.48145466, 255 * 0.4578275, 255 * 0.40821073),
-            (255 * 0.26862954, 255 * 0.26130258, 255 * 0.27577711),
-            inplace=False,
-        )
         # N x 3 x ? x ?
 
         x = interpolate_bilinear_2d_like_tensorflow1x(
             x,
             size=(self.resolution, self.resolution),
             align_corners=False,
+        )
+        # N x 3 x R x R
+
+        x = torchvision.transforms.functional.normalize(
+            x,
+            (255 * 0.48145466, 255 * 0.4578275, 255 * 0.40821073),
+            (255 * 0.26862954, 255 * 0.26130258, 255 * 0.27577711),
+            inplace=False,
         )
         # N x 3 x R x R
 
@@ -482,16 +489,13 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         return 'clip',
 
     @staticmethod
-    def get_default_feature_for_isc():
-        return 'clip'
-
-    @staticmethod
-    def get_default_feature_for_fid():
-        return 'clip'
-
-    @staticmethod
-    def get_default_feature_for_kid():
-        return 'clip'
+    def get_default_feature_layer_for_metric(metric):
+        return {
+            'isc': 'clip',
+            'fid': 'clip',
+            'kid': 'clip',
+            'prc': 'clip',
+        }[metric]
 
     @staticmethod
     def can_be_compiled():

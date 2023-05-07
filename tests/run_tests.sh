@@ -2,7 +2,7 @@
 set -e
 set -x
 
-ROOT=$(realpath $(dirname "$0")/..)
+ROOT_DIR=$(realpath $(dirname "$0")/..)
 
 build() {
     FLAVOR="${1}"
@@ -12,16 +12,16 @@ build() {
         --build-arg UID=$(id -u) \
         --build-arg GID=$(id -g) \
         --tag "torch-fidelity-test-${FLAVOR}" \
-        -f "${ROOT}/tests/${FLAVOR}/Dockerfile" \
-        "${ROOT}"
+        -f "${ROOT_DIR}/tests/${FLAVOR}/Dockerfile" \
+        "${ROOT_DIR}"
 }
 
 exec_cpu() {
     FLAVOR="${1}"
     shift
-    cd ${ROOT} && nvidia-docker run \
+    cd ${ROOT_DIR} && nvidia-docker run \
         -it --rm --network=host \
-        -v "${ROOT}":/work \
+        -v "${ROOT_DIR}":/work \
         "torch-fidelity-test-${FLAVOR}" \
         $@
 }
@@ -29,10 +29,10 @@ exec_cpu() {
 exec_cuda() {
     FLAVOR="${1}"
     shift
-    cd ${ROOT} && nvidia-docker run \
+    cd ${ROOT_DIR} && nvidia-docker run \
         -it --rm --network=host \
         --env CUDA_VISIBLE_DEVICES=0 \
-        -v "${ROOT}":/work \
+        -v "${ROOT_DIR}":/work \
         "torch-fidelity-test-${FLAVOR}" \
         $@
 }
@@ -50,5 +50,7 @@ shell() {
 }
 
 main tf1 || true
+main torch_pure || true
 main clip || true
 main backend || true
+main prc_ppl_reference || true

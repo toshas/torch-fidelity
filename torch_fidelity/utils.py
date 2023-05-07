@@ -20,10 +20,12 @@ from torch_fidelity.helpers import get_kwarg, vassert, vprint
 from torch_fidelity.registry import DATASETS_REGISTRY, FEATURE_EXTRACTORS_REGISTRY, SAMPLE_SIMILARITY_REGISTRY, \
     INTERPOLATION_REGISTRY, NOISE_SOURCE_REGISTRY
 
-
-DEFAULT_FEATURE_EXTRACTOR_ISC = 'inception-v3-compat'
-DEFAULT_FEATURE_EXTRACTOR_FID = 'inception-v3-compat'
-DEFAULT_FEATURE_EXTRACTOR_KID = 'inception-v3-compat'
+DEFAULT_FEATURE_EXTRACTOR = {
+    'isc': 'inception-v3-compat',
+    'fid': 'inception-v3-compat',
+    'kid': 'inception-v3-compat',
+    'prc': 'vgg16',
+}
 
 
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
@@ -325,47 +327,24 @@ def get_cacheable_input_name(input_id, **kwargs):
 def resolve_feature_extractor(**kwargs):
     out = get_kwarg('feature_extractor', kwargs)
     if out is None:
-        if get_kwarg('isc', kwargs):
-            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_ISC), 'Cannot have several feature extractors in one call')
-            out = DEFAULT_FEATURE_EXTRACTOR_ISC
-        if get_kwarg('fid', kwargs):
-            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_FID), 'Cannot have several feature extractors in one call')
-            out = DEFAULT_FEATURE_EXTRACTOR_FID
-        if get_kwarg('kid', kwargs):
-            vassert(out in (None, DEFAULT_FEATURE_EXTRACTOR_KID), 'Cannot have several feature extractors in one call')
-            out = DEFAULT_FEATURE_EXTRACTOR_KID
+        for metric in ('isc', 'fid', 'kid', 'prc'):
+            if get_kwarg(metric, kwargs):
+                default_fe = DEFAULT_FEATURE_EXTRACTOR[metric]
+                vassert(out in (None, default_fe), 'Cannot have several feature extractors in one call')
+                out = default_fe
         vassert(out is not None, f'Feature extractor was not resolved')
     vassert(out in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{out}" not registered')
     return out
 
 
-def resolve_feature_layer_isc(**kwargs):
-    out = get_kwarg('feature_layer_isc', kwargs)
+def resolve_feature_layer_for_metric(metric, **kwargs):
+    feature_layer_metric_key = f'feature_layer_{metric}'
+    out = get_kwarg(feature_layer_metric_key, kwargs)
     if out is None:
         name_fe = resolve_feature_extractor(**kwargs)
         vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
         cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
-        out = cls_fe.get_default_feature_for_isc()
-    return out
-
-
-def resolve_feature_layer_fid(**kwargs):
-    out = get_kwarg('feature_layer_fid', kwargs)
-    if out is None:
-        name_fe = resolve_feature_extractor(**kwargs)
-        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
-        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
-        out = cls_fe.get_default_feature_for_fid()
-    return out
-
-
-def resolve_feature_layer_kid(**kwargs):
-    out = get_kwarg('feature_layer_kid', kwargs)
-    if out is None:
-        name_fe = resolve_feature_extractor(**kwargs)
-        vassert(name_fe in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name_fe}" not registered')
-        cls_fe = FEATURE_EXTRACTORS_REGISTRY[name_fe]
-        out = cls_fe.get_default_feature_for_kid()
+        out = cls_fe.get_default_feature_layer_for_metric(metric)
     return out
 
 

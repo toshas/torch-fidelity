@@ -45,8 +45,8 @@ setup(
     keywords=[
         'generative', 'models', 'evaluation', 'metrics' 
         'deep', 'adversarial', 'networks', 'gan', 'diffusion', 'ddpm',
-        'inception', 'score', 'frechet', 'distance', 'kernel', 'perceptual', 'path', 'length', 'clip',
-        'isc', 'fid', 'kid', 'lpips', 'ppl',
+        'inception', 'score', 'frechet', 'distance', 'kernel', 'precision', 'recall', 'f-score',
+        'perceptual', 'path', 'length', 'clip', 'isc', 'fid', 'kid', 'lpips', 'prc', 'ppl',
         'reproducibility', 'fidelity'
     ],
     entry_points={
