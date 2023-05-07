@@ -43,9 +43,11 @@ setup(
     license='Apache License 2.0',
     url='https://www.github.com/toshas/torch-fidelity',
     keywords=[
-        'reproducibility', 'fidelity', 'deep', 'generative', 'adversarial', 'networks', 'gan',
-        'inception', 'score', 'frechet', 'distance', 'kernel', 'perceptual', 'path', 'length',
-        'isc', 'fid', 'kid', 'lpips', 'ppl', 'prc', 'precision', 'recall'
+        'generative', 'models', 'evaluation', 'metrics' 
+        'deep', 'adversarial', 'networks', 'gan', 'diffusion', 'ddpm',
+        'inception', 'score', 'frechet', 'distance', 'kernel', 'precision', 'recall', 'f-score',
+        'perceptual', 'path', 'length', 'clip', 'isc', 'fid', 'kid', 'lpips', 'prc', 'ppl',
+        'reproducibility', 'fidelity'
     ],
     entry_points={
         'console_scripts': [
