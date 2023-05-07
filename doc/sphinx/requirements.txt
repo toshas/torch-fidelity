@@ -1,3 +1,4 @@
+setuptools
 recommonmark
 sphinx
 sphinx-markdown-tables
