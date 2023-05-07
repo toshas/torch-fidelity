@@ -57,8 +57,7 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
             del self.model.classifier[cls_tail_id]
 
         self.to(self.feature_extractor_internal_dtype)
-        for p in self.parameters():
-            p.requires_grad_(False)
+        self.requires_grad_(False)
         self.eval()
 
     def forward(self, x):

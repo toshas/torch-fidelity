@@ -392,8 +392,7 @@ def build_model(state_dict, feature_extractor_internal_dtype):
     convert_weights(model)
     model.load_state_dict(state_dict)
     model.to(feature_extractor_internal_dtype)
-    for p in model.parameters():
-        p.requires_grad_(False)
+    model.requires_grad_(False)
     model.eval()
     return model
 
@@ -452,9 +451,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
 
         self.model = build_model(model_jit.state_dict(), self.feature_extractor_internal_dtype)
         self.resolution = self.model.visual.input_resolution
-
-        for p in self.parameters():
-            p.requires_grad_(False)
+        self.requires_grad_(False)
 
     def forward(self, x):
         vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')

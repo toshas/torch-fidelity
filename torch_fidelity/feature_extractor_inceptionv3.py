@@ -95,8 +95,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         self.load_state_dict(state_dict)
 
         self.to(self.feature_extractor_internal_dtype)
-        for p in self.parameters():
-            p.requires_grad_(False)
+        self.requires_grad_(False)
         self.eval()
 
     def forward(self, x):
