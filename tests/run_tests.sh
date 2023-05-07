@@ -53,3 +53,4 @@ main tf1 || true
 main torch_pure || true
 main clip || true
 main backend || true
+main prc_ppl_reference || true
