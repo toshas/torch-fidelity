@@ -31,7 +31,7 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
     assert sigma1.ndim == 2 and sigma1.shape == sigma2.shape and sigma1.dtype == sigma2.dtype
 
     diff = mu1 - mu2
-    tr_covmean = np.sum(np.sqrt(np.linalg.eigvals(sigma1.dot(sigma2))).real)
+    tr_covmean = np.sum(np.sqrt(np.linalg.eigvals(sigma1.dot(sigma2)).astype('complex128')).real)
     fid = float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
 
     out = {

@@ -8,7 +8,8 @@ RUN pip3 install --upgrade pip
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
-RUN pip install -U torch
+RUN pip3 install -U torch
+RUN pip3 install scipy
 
 RUN ln -fs /usr/share/zoneinfo/Europe/Zurich /etc/localtime
 RUN groupadd --gid $GID $UNAME-group
