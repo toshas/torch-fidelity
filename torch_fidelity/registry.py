@@ -3,6 +3,7 @@ import os
 from torch_fidelity.datasets import TransformPILtoRGBTensor, Cifar10_RGB, Cifar100_RGB, STL10_RGB
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.feature_extractor_clip import FeatureExtractorCLIP
+from torch_fidelity.feature_extractor_dinov2 import FeatureExtractorDinoV2
 from torch_fidelity.feature_extractor_inceptionv3 import FeatureExtractorInceptionV3
 from torch_fidelity.feature_extractor_vgg16 import FeatureExtractorVGG16
 from torch_fidelity.helpers import vassert
@@ -165,6 +166,10 @@ register_dataset(
 register_feature_extractor('inception-v3-compat', FeatureExtractorInceptionV3)
 register_feature_extractor('vgg16', FeatureExtractorVGG16)
 register_feature_extractor('clip-vit-b-32', FeatureExtractorCLIP)
+register_feature_extractor('dinov2-vit-s-14', FeatureExtractorDinoV2)
+register_feature_extractor('dinov2-vit-b-14', FeatureExtractorDinoV2)
+register_feature_extractor('dinov2-vit-l-14', FeatureExtractorDinoV2)
+register_feature_extractor('dinov2-vit-g-14', FeatureExtractorDinoV2)
 
 register_sample_similarity('lpips-vgg16', SampleSimilarityLPIPS)
 
