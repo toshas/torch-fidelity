@@ -3,13 +3,10 @@ version: 2
 python:
   install:
     - requirements: doc/sphinx/requirements.txt
-    - method: pip
-      path: .
-      extra_requirements: []
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
-    python: "3.6"
+    python: "3.10"
 sphinx:
   builder: html
   configuration: doc/sphinx/source/conf.py
