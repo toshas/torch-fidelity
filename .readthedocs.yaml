@@ -6,7 +6,6 @@ python:
     - method: pip
       path: .
       extra_requirements: []
-  system_packages: true
 build:
   os: ubuntu-20.04
   tools:
