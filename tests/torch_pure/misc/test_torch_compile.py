@@ -20,6 +20,10 @@ class TestTorchCompile(unittest.TestCase):
             'inception-v3-compat': '2048',
             'vgg16': 'fc2_relu',
             'clip-vit-b-32': 'clip',
+            'dinov2-vit-s-14': 'dinov2',
+            'dinov2-vit-b-14': 'dinov2',
+            'dinov2-vit-l-14': 'dinov2',
+            'dinov2-vit-g-14': 'dinov2',
         }[fe]
 
         dummy_feat_extractor = create_feature_extractor(
@@ -60,6 +64,30 @@ class TestTorchCompile(unittest.TestCase):
 
     def test_torch_compile_clipfe_cuda(self):
         self._test_torch_compile('clip-vit-b-32', True)
+
+    def test_torch_compile_dinov2sfe_cpu(self):
+        self._test_torch_compile('dinov2-vit-s-14', False)
+
+    def test_torch_compile_dinov2sfe_cuda(self):
+        self._test_torch_compile('dinov2-vit-s-14', True)
+
+    def test_torch_compile_dinov2bfe_cpu(self):
+        self._test_torch_compile('dinov2-vit-b-14', False)
+
+    def test_torch_compile_dinov2bfe_cuda(self):
+        self._test_torch_compile('dinov2-vit-b-14', True)
+
+    def test_torch_compile_dinov2lfe_cpu(self):
+        self._test_torch_compile('dinov2-vit-l-14', False)
+
+    def test_torch_compile_dinov2lfe_cuda(self):
+        self._test_torch_compile('dinov2-vit-l-14', True)
+
+    def test_torch_compile_dinov2gfe_cpu(self):
+        self._test_torch_compile('dinov2-vit-g-14', False)
+
+    def test_torch_compile_dinov2gfe_cuda(self):
+        self._test_torch_compile('dinov2-vit-g-14', True)
 
 
 if __name__ == '__main__':

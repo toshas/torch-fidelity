@@ -38,3 +38,22 @@ def text_to_dtype(name, default=None):
     if default in DTYPES:
         default = DTYPES[default]
     return DTYPES.get(name, default)
+
+
+class CleanStderr:
+    def __init__(self, filter_phrases, stream=sys.stderr):
+        self.filter_phrases = filter_phrases
+        self.stream = stream
+
+    def __enter__(self):
+        sys.stderr = self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stderr = self.stream
+
+    def write(self, msg):
+        if not any(phrase in msg for phrase in self.filter_phrases):
+            self.stream.write(msg)
+
+    def flush(self):
+        self.stream.flush()

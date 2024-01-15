@@ -1,12 +1,14 @@
 import sys
+import warnings
 
 import torch
 import torchvision
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert, text_to_dtype
+from torch_fidelity.helpers import vassert, text_to_dtype, CleanStderr
 
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
+
 
 MODEL_METADATA = {
     'dinov2-vit-s-14': 'dinov2_vits14',  # dim=384
@@ -55,23 +57,8 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         vassert(name in MODEL_METADATA, f'Model {name} not found; available models = {list(MODEL_METADATA.keys())}')
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
 
-        class CleanStderr:
-            def __enter__(self):
-                self.filter_phrases = ["xFormers not available", "Using cache found in"]
-                self.stream = sys.stderr
-                sys.stderr = self
-
-            def __exit__(self, exc_type, exc_value, traceback):
-                sys.stderr = self.stream
-
-            def write(self, msg):
-                if not any(phrase in msg for phrase in self.filter_phrases):
-                    self.stream.write(msg)
-
-            def flush(self):
-                self.stream.flush()
-
-        with CleanStderr() as _:
+        warnings.filterwarnings("ignore", message="xFormers is not available")
+        with CleanStderr(["xFormers not available", "Using cache found in"], sys.stderr) as _:
             if feature_extractor_weights_path is None:
                 self.model = torch.hub.load('facebookresearch/dinov2', MODEL_METADATA[name])
             else:

@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/pytorch:20.11-py3
+FROM nvcr.io/nvidia/pytorch:23.12-py3
 
 ARG UNAME=testuser
 ARG UID=1000
@@ -8,11 +8,12 @@ RUN pip3 install --upgrade pip
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
-RUN pip install -U torch
-
-RUN pip3 install \
+RUN pip3 install -U \
+    torch \
+    torchvision \
     ftfy \
     regex \
+    setuptools\<=65.6.3 \
     tqdm \
     git+https://github.com/openai/CLIP.git@a9b1bf5920416aaeaec965c25dd9e8f98c864f16 \
     clean-fid==0.1.35

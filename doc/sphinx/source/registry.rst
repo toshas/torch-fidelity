@@ -30,6 +30,8 @@ Can be used as values to the :paramref:`~torch_fidelity.calculate_metrics.featur
   interpolation and neural architecture quirks.
 - `vgg16` - a legacy VGG-based feature extractor used in the reference implementation of the Precision and Recall metrics.
 - `clip-vit-b-32` - a modern CLIP-based feature extractor for evaluation of more realistic image generators, such as DDPMs.
+- `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14` - a modern self-supervised feature extractor,
+also suitable for state-of-the-art image generators evaluation.
 
 Preregistered sample similarities
 ---------------------------------
