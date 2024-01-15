@@ -99,6 +99,78 @@ class TestBatchSizeIndependence(unittest.TestCase):
     def test_batch_size_independence_inceptionfe_128_fp64_cuda(self):
         self._test_batch_size_independence('inception-v3-compat', 128, 'float64', True)
 
+    def test_batch_size_independence_vgg16fe_4_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 4, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_8_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 8, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_16_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 16, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_32_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 32, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_64_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 64, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_128_fp32_cpu(self):
+        self._test_batch_size_independence('vgg16', 128, 'float32', False)
+
+    def test_batch_size_independence_vgg16fe_4_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 4, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_8_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 8, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_16_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 16, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_32_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 32, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_64_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 64, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_128_fp32_cuda(self):
+        self._test_batch_size_independence('vgg16', 128, 'float32', True)
+
+    def test_batch_size_independence_vgg16fe_4_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 4, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_8_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 8, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_16_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 16, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_32_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 32, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_64_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 64, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_128_fp64_cpu(self):
+        self._test_batch_size_independence('vgg16', 128, 'float64', False)
+
+    def test_batch_size_independence_vgg16fe_4_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 4, 'float64', True)
+
+    def test_batch_size_independence_vgg16fe_8_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 8, 'float64', True)
+
+    def test_batch_size_independence_vgg16fe_16_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 16, 'float64', True)
+
+    def test_batch_size_independence_vgg16fe_32_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 32, 'float64', True)
+
+    def test_batch_size_independence_vgg16fe_64_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 64, 'float64', True)
+
+    def test_batch_size_independence_vgg16fe_128_fp64_cuda(self):
+        self._test_batch_size_independence('vgg16', 128, 'float64', True)
+
     def test_batch_size_independence_clipfe_4_fp32_cpu(self):
         self._test_batch_size_independence('clip-vit-b-32', 4, 'float32', False)
 
@@ -170,6 +242,78 @@ class TestBatchSizeIndependence(unittest.TestCase):
 
     def test_batch_size_independence_clipfe_128_fp64_cuda(self):
         self._test_batch_size_independence('clip-vit-b-32', 128, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_4_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 4, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_8_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 8, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_16_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 16, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_32_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 32, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_64_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 64, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_128_fp32_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 128, 'float32', False)
+
+    def test_batch_size_independence_dinov2fe_4_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 4, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_8_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 8, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_16_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 16, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_32_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 32, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_64_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 64, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_128_fp32_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 128, 'float32', True)
+
+    def test_batch_size_independence_dinov2fe_4_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 4, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_8_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 8, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_16_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 16, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_32_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 32, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_64_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 64, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_128_fp64_cpu(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 128, 'float64', False)
+
+    def test_batch_size_independence_dinov2fe_4_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 4, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_8_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 8, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_16_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 16, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_32_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 32, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_64_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 64, 'float64', True)
+
+    def test_batch_size_independence_dinov2fe_128_fp64_cuda(self):
+        self._test_batch_size_independence('dinov2-vit-b-14', 128, 'float64', True)
 
 
 if __name__ == '__main__':

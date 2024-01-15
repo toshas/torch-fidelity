@@ -19,7 +19,7 @@ from urllib import request
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-import fwr13y.d9m.tensorflow as tf_determinism
+from tfdeterminism import patch as patch_tensorflow_for_determinism
 from tqdm import tqdm
 
 # InceptionV3 pretrained weights from TensorFlow models library
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     if args.determinism:
         with redirect_stdout(sys.stderr):
-            tf_determinism.enable_determinism()
+            patch_tensorflow_for_determinism()
 
     metrics = get_inception_score_of_path(args.path[0])
 

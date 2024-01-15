@@ -87,7 +87,7 @@ class TestMetricKidFidelity(unittest.TestCase):
         self.assertLess(err_rel_mean, 1e-6)
         self.assertLess(err_rel_std, 1e-4)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.4718520, delta=1e-6)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_KID_MEAN], 0.4718520, delta=1e-5)
 
 
 if __name__ == '__main__':

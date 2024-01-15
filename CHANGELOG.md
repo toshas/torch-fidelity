@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added in 0.4.0
 - New metrics: Precision, Recall, F-score
 - New registered inputs: `cifar100-train`, `cifar100-val`
-- New registered feature extractors: `clip-vit-b-32`, `vgg16`
+- New registered feature extractors: `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
 - API
   - `calculate_metrics`
     - `prc`: Calculate PRC (Precision and Recall)
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `prc_batch_size`: Batch size in PRC
     - `feature_layer_prc`: Name of the feature layer to use with PRC metric
     - `samples_resize_and_crop`: Transform all images found in the directory to a given size and square shape
-    - `feature_extractor`: Accepts a new feature extractor `clip-vit-b-32`
+    - `feature_extractor`: Accepts a new feature extractors `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
     - `feature_extractor_internal_dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
     - `feature_extractor_compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 - Command line
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `prc-batch-size`: Batch size in PRC
     - `feature-layer-prc`: Name of the feature layer to use with PRC metric
   - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
-  - `--feature-extractor`: Accepts a new feature extractor `clip-vit-b-32`
+  - `--feature-extractor`: Accepts a new feature extractors `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
   - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
   - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
 

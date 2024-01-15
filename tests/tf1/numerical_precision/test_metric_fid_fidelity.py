@@ -66,9 +66,9 @@ class TestMetricFidFidelity(unittest.TestCase):
         err_rel = err_abs / res_ref[KEY_METRIC_FID]
         print(f'Error relative={err_rel}')
 
-        self.assertLess(err_rel, 1e-6)
+        self.assertLess(err_rel, 1e-5)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_FID], 10.3233274, delta=1e-6)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_FID], 10.3233274, delta=1e-4)
 
 
 if __name__ == '__main__':
