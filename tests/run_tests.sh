@@ -2,6 +2,11 @@
 set -e
 set -x
 
+if ! type source > /dev/null 2>&1; then
+    bash "$0" "$@"
+    exit $?
+fi
+
 ROOT_DIR=$(realpath $(dirname "$0")/..)
 
 build() {
@@ -44,8 +49,13 @@ exec_cuda() {
 
 main() {
     FLAVOR="${1}"
+    ARCH="${2}"
+    WERR=""
+    if [ ! -z "${3}" ]; then
+        WERR="-W error"
+    fi
     build "${FLAVOR}"
-    exec_cuda "${FLAVOR}" python3 -W error -m unittest discover "tests/${FLAVOR}"
+    exec_${ARCH} "${FLAVOR}" python3 ${WERR} -m unittest discover "tests/${FLAVOR}"
 }
 
 main_sh() {
@@ -62,10 +72,13 @@ shell() {
     exec_cuda "${FLAVOR}" bash
 }
 
-main tf1
-main torch_pure
-main clip
-main prc_ppl_reference
-main_sh sphinx_doc
+run_all() {
+    time main tf1 cuda               # fighting warnings here is futile
+    time main torch_pure cuda werr
+    time main clip cuda werr
+    time main prc_ppl_reference cuda werr
+    time main_sh sphinx_doc
+}
 
+time run_all
 echo "=== TESTS FINISHED ==="

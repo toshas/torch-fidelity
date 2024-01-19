@@ -5,6 +5,7 @@ import unittest
 
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity import calculate_metrics
 from torch_fidelity.metric_fid import calculate_fid, KEY_METRIC_FID
 from torch_fidelity.metric_isc import calculate_isc, KEY_METRIC_ISC_MEAN
@@ -21,7 +22,7 @@ class TransformAddNoise:
         return img
 
 
-class TestMetricsAll(unittest.TestCase):
+class TestMetricsAll(TimeTrackingTestCase):
     def test_all(self):
         cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
 

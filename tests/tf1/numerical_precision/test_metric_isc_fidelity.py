@@ -4,11 +4,12 @@ import sys
 import tempfile
 import unittest
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
 
 
-class TestMetricIscFidelity(unittest.TestCase):
+class TestMetricIscFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_ref_isc(input, cuda, determinism):
         args = ['python3', 'tests/tf1/reference/reference_metric_isc_ttur.py', input]

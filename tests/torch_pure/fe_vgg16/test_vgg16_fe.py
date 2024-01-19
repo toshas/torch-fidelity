@@ -3,10 +3,11 @@ import unittest
 import torch
 from torch.hub import load_state_dict_from_url
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.feature_extractor_vgg16 import FeatureExtractorVGG16
 
 
-class TestVGG16FE(unittest.TestCase):
+class TestVGG16FE(TimeTrackingTestCase):
 
     def _test_vgg16_fe_res(self, fe_us, fe_nv, res, seed=2023):
         rng = torch.Generator()

@@ -6,6 +6,7 @@ import unittest
 
 from torch.hub import download_url_to_file
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN
 
@@ -13,7 +14,7 @@ URL_SNGAN_MODEL = \
     'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/example-sngan-cifar10-generator.pth'
 
 
-class TestMetricIscGenModel(unittest.TestCase):
+class TestMetricIscGenModel(TimeTrackingTestCase):
     @staticmethod
     def call_fidelity_isc(input, nsamples):
         args = ['python3', '-m', 'torch_fidelity.fidelity', '--isc', '--json', '--save-cpu-ram', '--input1', input,

@@ -1,35 +1,19 @@
-import math
 import unittest
 
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity import calculate_metrics, KEY_METRIC_ISC_MEAN
 from torch_fidelity.datasets import RandomlyGeneratedDataset
-from torch_fidelity.utils import create_feature_extractor
 
 
-class TestTorchCompile(unittest.TestCase):
+class TestTorchCompile(TimeTrackingTestCase):
 
     def _test_torch_compile(self, fe, cuda):
         if not torch.cuda.is_available():
             raise RuntimeError('CUDA not available')
         if int(torch.__version__.split('.')[0]) < 2 or not hasattr(torch, 'compile') or not callable(torch.compile):
             raise RuntimeError('compile function not resolved')
-
-        feat = {
-            'inception-v3-compat': '2048',
-            'vgg16': 'fc2_relu',
-            'clip-vit-b-32': 'clip',
-            'dinov2-vit-s-14': 'dinov2',
-            'dinov2-vit-b-14': 'dinov2',
-            'dinov2-vit-l-14': 'dinov2',
-            'dinov2-vit-g-14': 'dinov2',
-        }[fe]
-
-        dummy_feat_extractor = create_feature_extractor(
-            fe, [feat], cuda=cuda, verbose=True, feature_extractor_compile=True
-        )
-        self.assertTrue(hasattr(dummy_feat_extractor, 'forward_pure'))
 
         input1 = RandomlyGeneratedDataset(128, 3, 299, 299, dtype=torch.uint8, seed=2023)
         metrics_normal = calculate_metrics(
@@ -41,10 +25,8 @@ class TestTorchCompile(unittest.TestCase):
             feature_extractor=fe, feature_extractor_compile=True, cuda=cuda,
         )[KEY_METRIC_ISC_MEAN]
 
-        discrepancy = math.fabs(metrics_normal - metrics_compiled)
-        self.assertTrue(
-            discrepancy < 1e-5,
-            f'Compilation affects metrics outputs: normal={metrics_normal}, compiled={metrics_compiled}',
+        self.assertAlmostEqual(metrics_normal, metrics_compiled, delta=1e-5,
+            msg=f'Compilation affects metrics outputs: normal={metrics_normal}, compiled={metrics_compiled}',
         )
 
     def test_torch_compile_inceptionfe_cpu(self):

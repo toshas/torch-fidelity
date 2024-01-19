@@ -2,12 +2,13 @@ import unittest
 
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity import calculate_metrics
 from torch_fidelity.datasets import RandomlyGeneratedDataset
 from torch_fidelity.metric_fid import KEY_METRIC_FID
 
 
-class TestFeatureLayer(unittest.TestCase):
+class TestFeatureLayer(TimeTrackingTestCase):
 
     def _test_fid_feature_layer(self, feature_size):
         input1 = RandomlyGeneratedDataset(10, 3, 299, 299, dtype=torch.uint8, seed=2021)

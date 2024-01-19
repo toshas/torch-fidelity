@@ -5,11 +5,12 @@ import numpy as np
 import scipy.linalg
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import vprint
 from torch_fidelity.metric_fid import fid_statistics_to_metric as impl_lib, KEY_METRIC_FID, fid_features_to_statistics
 
 
-class TestFIDStatsFunction(unittest.TestCase):
+class TestFIDStatsFunction(TimeTrackingTestCase):
     @staticmethod
     def impl_ref_torch_fidelity_less_equal_ver_0_3_0(stat_1, stat_2, verbose):
         eps = 1e-6

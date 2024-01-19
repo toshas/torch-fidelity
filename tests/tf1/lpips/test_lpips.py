@@ -5,11 +5,12 @@ import unittest
 import torch
 import torch.nn.functional as F
 
+from tests import TimeTrackingTestCase
 from tests.tf1.reference.reference_lpips import LPIPS_reference
 from torch_fidelity.utils import prepare_input_from_id, create_sample_similarity
 
 
-class TestLPIPS(unittest.TestCase):
+class TestLPIPS(TimeTrackingTestCase):
     @staticmethod
     def _get_sample(batch, index=0, size=None):
         ds = prepare_input_from_id('cifar10-val', datasets_root=tempfile.gettempdir())

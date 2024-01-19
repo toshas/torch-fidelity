@@ -7,10 +7,11 @@ import tensorflow as tf
 import torch
 from PIL import Image
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 
-class TestInterpolation(unittest.TestCase):
+class TestInterpolation(TimeTrackingTestCase):
     @staticmethod
     def checkerboard(side):
         side_e = side

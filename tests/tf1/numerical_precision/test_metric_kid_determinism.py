@@ -4,11 +4,12 @@ import sys
 import tempfile
 import unittest
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_kid import KEY_METRIC_KID_MEAN, KEY_METRIC_KID_STD
 
 
-class TestMetricKidDeterminism(unittest.TestCase):
+class TestMetricKidDeterminism(TimeTrackingTestCase):
     @staticmethod
     def call_ref_kid(input_1, input_2, cuda, determinism):
         args = [

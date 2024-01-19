@@ -4,11 +4,12 @@ import sys
 import tempfile
 import unittest
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_fid import KEY_METRIC_FID
 
 
-class TestMetricFidFidelity(unittest.TestCase):
+class TestMetricFidFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_ref_fid(input_1, input_2, cuda, determinism):
         args = ['python3', 'tests/tf1/reference/reference_metric_fid_ttur.py', input_1, input_2]

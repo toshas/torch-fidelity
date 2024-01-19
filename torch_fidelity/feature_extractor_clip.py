@@ -7,6 +7,7 @@ import warnings
 from collections import OrderedDict
 from contextlib import redirect_stdout
 from typing import Tuple, Union
+from distutils.version import LooseVersion
 
 import torch
 import torch.nn.functional as F
@@ -435,6 +436,8 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
 
         if feature_extractor_weights_path is None:
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            check_hash = LooseVersion(torch.__version__) >= LooseVersion("1.7.1")
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="'torch.load' received a zip file that looks like a TorchScript archive"
@@ -443,7 +446,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                     MODEL_URLS[name],
                     map_location="cpu",
                     progress=True,
-                    check_hash=True,
+                    check_hash=check_hash,
                     file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
                 )
         else:

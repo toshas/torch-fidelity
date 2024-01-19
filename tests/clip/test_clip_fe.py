@@ -4,13 +4,14 @@ import sys
 import tempfile
 import unittest
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.helpers import json_decode_string
 from torch_fidelity.metric_fid import KEY_METRIC_FID
 
 from cleanfid import fid as cleanfid_fid
 
 
-class TestMetricFidClipFidelity(unittest.TestCase):
+class TestMetricFidClipFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_ref_fid(input_1, input_2, cuda):
         res = cleanfid_fid.compute_fid(
