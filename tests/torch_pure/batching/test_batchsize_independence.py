@@ -3,11 +3,12 @@ import unittest
 
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity import calculate_metrics, KEY_METRIC_ISC_MEAN
 from torch_fidelity.datasets import RandomlyGeneratedDataset
 
 
-class TestBatchSizeIndependence(unittest.TestCase):
+class TestBatchSizeIndependence(TimeTrackingTestCase):
 
     def _test_batch_size_independence(self, fe, num_samples, dtype, cuda):
         if cuda and not torch.cuda.is_available():

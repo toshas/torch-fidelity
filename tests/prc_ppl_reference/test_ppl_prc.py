@@ -2,8 +2,10 @@ import json
 import os
 import unittest
 
+from tests import TimeTrackingTestCase
 
-class TestMetricPplPrc(unittest.TestCase):
+
+class TestMetricPplPrc(TimeTrackingTestCase):
     def test_ppl_prc(self):
         path_sg2ada = os.path.expanduser(os.path.expandvars('../workspace/torch-fidelity-stylegan2-ada'))
         res = os.system(f'bash -c "pip install -e . && cd {path_sg2ada} && sh run_fidelity_comparison_reduced.sh"')

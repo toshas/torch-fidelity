@@ -11,11 +11,12 @@ import torch.nn.functional as F
 from PIL import Image
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
 
 
-class TestConvolution(unittest.TestCase):
+class TestConvolution(TimeTrackingTestCase):
     @staticmethod
     def save(img, name):
         if torch.is_tensor(img):

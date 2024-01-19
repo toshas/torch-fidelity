@@ -2,10 +2,11 @@ import unittest
 
 import torch
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.feature_extractor_dinov2 import FeatureExtractorDinoV2
 
 
-class TestDINOv2FE(unittest.TestCase):
+class TestDINOv2FE(TimeTrackingTestCase):
 
     def test_dinov2_fe(self):
         fe_us = FeatureExtractorDinoV2('dinov2-vit-b-14', ['dinov2'])

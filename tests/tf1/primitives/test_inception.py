@@ -11,12 +11,13 @@ import tensorflow as tf
 import torch
 from tfdeterminism import patch as patch_tensorflow_for_determinism
 
+from tests import TimeTrackingTestCase
 from torch_fidelity.utils import prepare_input_from_id, create_feature_extractor
 
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 
 
-class TestInception(unittest.TestCase):
+class TestInception(TimeTrackingTestCase):
     @staticmethod
     def get_inception_tf():
         model_dir = tempfile.gettempdir()
