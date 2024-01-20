@@ -37,7 +37,7 @@ class TestMetricsAll(TimeTrackingTestCase):
         self.assertEqual(res.returncode, 0, msg=res)
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-valid', input_2,
-             '-l', str(limit), '-n'),
+             '-l', str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
 
@@ -49,6 +49,11 @@ class TestMetricsAll(TimeTrackingTestCase):
         }
 
         all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, prc=True, **kwargs)
+
+        self.assertGreater(all[KEY_METRIC_ISC_MEAN], 0)
+        self.assertGreater(all[KEY_METRIC_FID], 0)
+        self.assertGreater(all[KEY_METRIC_PRECISION], 0)
+        self.assertGreater(all[KEY_METRIC_RECALL], 0)
 
         isc = calculate_isc(1, **kwargs)
         fid = calculate_fid(**kwargs)
