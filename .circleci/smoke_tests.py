@@ -27,18 +27,18 @@ class SmokeTests(TimeTrackingTestCase):
             text=True,
         )
         print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}\n')
-        # self.assertEqual(res.returncode, 0, msg="Non-zero return code")
-        # self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
-        # self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
-        # metrics = json.loads(res.stdout)
-        # self.assertAlmostEqual(metrics['inception_score_mean'], 10.75051, delta=1e-4)
-        # self.assertAlmostEqual(metrics['inception_score_std'], 0.5778723, delta=1e-4)
-        # self.assertAlmostEqual(metrics['frechet_inception_distance'], 10.32333, delta=1e-4)
-        # self.assertAlmostEqual(metrics['kernel_inception_distance_mean'], -2.907863e-05, delta=1e-7)
-        # self.assertAlmostEqual(metrics['kernel_inception_distance_std'], 0.0001023118, delta=1e-7)
-        # self.assertAlmostEqual(metrics['precision'], 0.6908, delta=1e-3)
-        # self.assertAlmostEqual(metrics['recall'], 0.6852, delta=1e-3)
-        # self.assertAlmostEqual(metrics['f_score'], 0.6879886, delta=1e-3)
+        self.assertEqual(res.returncode, 0, msg="Non-zero return code")
+        self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
+        self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
+        metrics = json.loads(res.stdout)
+        self.assertAlmostEqual(metrics['inception_score_mean'], 6.675409920681458, delta=1e-3)
+        self.assertAlmostEqual(metrics['inception_score_std'], 0.9399683668381174, delta=1e-3)
+        self.assertAlmostEqual(metrics['frechet_inception_distance'], 110.28082617202443, delta=1e-2)
+        self.assertAlmostEqual(metrics['kernel_inception_distance_mean'], -0.0006792521855187905, delta=1e-4)
+        self.assertAlmostEqual(metrics['kernel_inception_distance_std'], 0.0017778231588294379, delta=1e-4)
+        self.assertAlmostEqual(metrics['precision'], 0.7109375, delta=1e-3)
+        self.assertAlmostEqual(metrics['recall'], 0.71484375, delta=1e-3)
+        self.assertAlmostEqual(metrics['f_score'], 0.7128852739726027, delta=1e-3)
 
         res = subprocess.run(
             (
@@ -54,12 +54,12 @@ class SmokeTests(TimeTrackingTestCase):
             text=True,
         )
         print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}\n')
-        # self.assertEqual(res.returncode, 0, msg="Non-zero return code")
-        # self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
-        # self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
-        # metrics = json.loads(res.stdout)
-        # self.assertAlmostEqual(metrics['inception_score_mean'], 1.034257746757046, delta=1e-5)
-        # self.assertAlmostEqual(metrics['inception_score_std'], 0.00041031304234824675, delta=1e-8)
+        self.assertEqual(res.returncode, 0, msg="Non-zero return code")
+        self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
+        self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
+        metrics = json.loads(res.stdout)
+        self.assertAlmostEqual(metrics['inception_score_mean'], 1.0322264848429967, delta=1e-3)
+        self.assertAlmostEqual(metrics['inception_score_std'], 0.0012455888960011387, delta=1e-3)
 
         res = subprocess.run(
             (
@@ -75,12 +75,12 @@ class SmokeTests(TimeTrackingTestCase):
             text=True,
         )
         print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}\n')
-        # self.assertEqual(res.returncode, 0, msg="Non-zero return code")
-        # self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
-        # self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
-        # metrics = json.loads(res.stdout)
-        # self.assertAlmostEqual(metrics['inception_score_mean'], 3.701889394966352, delta=1e-4)
-        # self.assertAlmostEqual(metrics['inception_score_std'], 0.051992151563281505, delta=1e-5)
+        self.assertEqual(res.returncode, 0, msg="Non-zero return code")
+        self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
+        self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
+        metrics = json.loads(res.stdout)
+        self.assertAlmostEqual(metrics['inception_score_mean'], 3.2955061842255757, delta=1e-3)
+        self.assertAlmostEqual(metrics['inception_score_std'], 0.23961402932647136, delta=1e-3)
 
 
 if __name__ == '__main__':
