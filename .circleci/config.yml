@@ -3,7 +3,7 @@ version: 2.1
 executors:
   executor_python:
     docker:
-      - image: cimg/python:3.12.1
+      - image: cimg/python:3.11.7
     working_directory: /tmp
 
 jobs:
