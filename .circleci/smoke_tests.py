@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 import unittest
-from pathlib import Path
 
 from tests import TimeTrackingTestCase
 
@@ -26,14 +25,19 @@ class SmokeTests(TimeTrackingTestCase):
         else:
             version_torchvision = ""
 
-        path_base = Path(__file__).parent.parent.parent / "data"
-        path_input1 = str(path_base / "cifar10-train-256")
-        path_input2 = str(path_base / "cifar10-valid-256")
+        path_input1 = "cifar10-train-256"
+        path_input2 = "cifar10-valid-256"
 
         try:
             print(f'Setting up torch={version_torch} torchvision={version_torchvision}')
-            res = os.system(f'bash -c "pip3 install -U torch{version_torch} torchvision{version_torchvision}"')
+            res = os.system(f'pip3 install -U torch{version_torch} torchvision{version_torchvision}')
             self.assertEqual(res, 0, msg=res)
+
+            if not (os.path.isdir(path_input1) and os.path.isdir(path_input2)):
+                res = os.system(f'python3 utils/util_dump_dataset_as_images.py cifar10-train {path_input1} -l 256')
+                self.assertEqual(res, 0, msg=res)
+                res = os.system(f'python3 utils/util_dump_dataset_as_images.py cifar10-valid {path_input2} -l 256')
+                self.assertEqual(res, 0, msg=res)
 
             res = subprocess.run(
                 (
