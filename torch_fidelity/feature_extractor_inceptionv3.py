@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert, text_to_dtype
+from torch_fidelity.helpers import vassert, text_to_dtype, get_kwarg
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 # InceptionV3 weights converted from the official TensorFlow weights using utils/util_convert_inception_weights.py
@@ -89,7 +89,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr):
-                state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=True)
+                state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=get_kwarg('verbose', kwargs))
         else:
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)

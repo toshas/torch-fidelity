@@ -16,7 +16,7 @@ from torch import nn
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert, text_to_dtype
+from torch_fidelity.helpers import vassert, text_to_dtype, get_kwarg
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 MODEL_BASE_URL = 'https://openaipublic.azureedge.net/clip/models/'
@@ -445,7 +445,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                 model_jit = load_state_dict_from_url(
                     MODEL_URLS[name],
                     map_location="cpu",
-                    progress=True,
+                    progress=get_kwarg('verbose', kwargs),
                     check_hash=check_hash,
                     file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
                 )

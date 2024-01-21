@@ -77,6 +77,7 @@ run_all() {
     time main torch_pure cuda werr
     time main clip cuda werr
     time main prc_ppl_reference cuda werr
+    time main torch_versions cuda werr
     time main_sh sphinx_doc
 }
 
