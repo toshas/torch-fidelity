@@ -14,6 +14,7 @@ class SmokeTests(TimeTrackingTestCase):
 
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "-m", "torch_fidelity.fidelity",
                 "--input1", path_input1,
                 "--input2", path_input2,
@@ -24,6 +25,7 @@ class SmokeTests(TimeTrackingTestCase):
                 "--kid-subset-size", "64",
                 "--silent",
                 "--json",
+                # fmt: on
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -45,12 +47,14 @@ class SmokeTests(TimeTrackingTestCase):
 
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "-m", "torch_fidelity.fidelity",
                 "--input1", path_input1,
                 "--isc",
                 "--silent",
                 "--json",
                 "--feature-extractor", "clip-vit-b-32",
+                # fmt: on
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -66,12 +70,14 @@ class SmokeTests(TimeTrackingTestCase):
 
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "-m", "torch_fidelity.fidelity",
                 "--input1", path_input1,
                 "--isc",
                 "--silent",
                 "--json",
                 "--feature-extractor", "dinov2-vit-b-14",
+                # fmt: on
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

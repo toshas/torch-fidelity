@@ -39,9 +39,7 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
     tr_covmean = np.sum(np.sqrt(np.linalg.eigvals(sigma1.dot(sigma2)).astype("complex128")).real)
     fid = float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
 
-    out = {
-        KEY_METRIC_FID: fid
-    }
+    out = {KEY_METRIC_FID: fid}
 
     vprint(verbose, f"Frechet Inception Distance: {out[KEY_METRIC_FID]}")
 

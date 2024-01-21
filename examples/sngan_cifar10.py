@@ -69,7 +69,7 @@ class Discriminator(torch.nn.Module):
 def hinge_loss_dis(fake, real):
     assert fake.dim() == 2 and fake.shape[1] == 1 and real.shape == fake.shape, f"{fake.shape} {real.shape}"
     loss = torch.nn.functional.relu(1.0 - real).mean() + \
-           torch.nn.functional.relu(1.0 + fake).mean()
+           torch.nn.functional.relu(1.0 + fake).mean()  # fmt: skip
     return loss
 
 

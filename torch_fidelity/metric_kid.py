@@ -49,7 +49,7 @@ def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est="unbiased"):
     if mmd_est == "biased":
         mmd2 = (Kt_XX_sum + sum_diag_X) / (m * m) \
              + (Kt_YY_sum + sum_diag_Y) / (m * m) \
-             - 2 * K_XY_sum / (m * m)
+             - 2 * K_XY_sum / (m * m)  # fmt: skip
     else:
         mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m - 1))
         if mmd_est == "unbiased":

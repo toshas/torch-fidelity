@@ -19,6 +19,7 @@ class TestMetricPplGenModel(TimeTrackingTestCase):
     @staticmethod
     def call_fidelity_ppl(input, nsamples):
         args = [
+            # fmt: off
             "python3", "-m", "torch_fidelity.fidelity",
             "--ppl",
             "--json",
@@ -26,6 +27,7 @@ class TestMetricPplGenModel(TimeTrackingTestCase):
             "--input1", input,
             "--input1-model-z-size", "128",
             "--input1-model-num-samples", str(nsamples),
+            # fmt: on
         ]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res

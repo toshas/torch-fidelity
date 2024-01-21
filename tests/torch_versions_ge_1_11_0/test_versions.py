@@ -31,6 +31,7 @@ class TestVersions(TimeTrackingTestCase):
 
             res = subprocess.run(
                 (
+                    # fmt: off
                     "python3", "-m", "torch_fidelity.fidelity",
                     "--input1", "/tmp/cifar10-train-5000",
                     "--input2", "/tmp/cifar10-valid-5000",
@@ -41,6 +42,7 @@ class TestVersions(TimeTrackingTestCase):
                     "--prc",
                     "--silent",
                     "--json",
+                    # fmt: on
                 ),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -62,6 +64,7 @@ class TestVersions(TimeTrackingTestCase):
 
             res = subprocess.run(
                 (
+                    # fmt: off
                     "python3", "-m", "torch_fidelity.fidelity",
                     "--input1", "/tmp/cifar10-train-5000",
                     "--gpu", "0",
@@ -69,6 +72,7 @@ class TestVersions(TimeTrackingTestCase):
                     "--silent",
                     "--json",
                     "--feature-extractor", "clip-vit-b-32",
+                    # fmt: on
                 ),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -84,6 +88,7 @@ class TestVersions(TimeTrackingTestCase):
 
             res = subprocess.run(
                 (
+                    # fmt: off
                     "python3", "-m", "torch_fidelity.fidelity",
                     "--input1", "/tmp/cifar10-train-5000",
                     "--gpu", "0",
@@ -91,6 +96,7 @@ class TestVersions(TimeTrackingTestCase):
                     "--silent",
                     "--json",
                     "--feature-extractor", "dinov2-vit-b-14",
+                    # fmt: on
                 ),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

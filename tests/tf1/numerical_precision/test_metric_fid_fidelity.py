@@ -26,12 +26,14 @@ class TestMetricFidFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_fidelity_fid(input_1, input_2):
         args = [
+            # fmt: off
             "python3", "-m", "torch_fidelity.fidelity",
             "--fid",
             "--json",
             "--save-cpu-ram",
             "--input1", input_1,
             "--input2", input_2,
+            # fmt: on
         ]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
