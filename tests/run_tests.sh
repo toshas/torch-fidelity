@@ -73,11 +73,11 @@ shell() {
 }
 
 run_all() {
-    time main tf1 cuda               # fighting warnings here is futile
+    time main torch_versions_ge_1_11_0 cuda werr
+    time main tf1 cuda               # fighting warnings in legacy/tensorflow is futile
     time main torch_pure cuda werr
     time main clip cuda werr
     time main prc_ppl_reference cuda werr
-    time main torch_versions cuda werr
     time main_sh sphinx_doc
 }
 
