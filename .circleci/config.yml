@@ -4,7 +4,7 @@ version: 2.1
 executors:
   executor_python:
     docker:
-      - image: circleci/python:3.6.9
+      - image: cimg/python:3.12.1
     working_directory: /tmp
 
 
@@ -15,88 +15,39 @@ jobs:
       - checkout:
           path: code
       - run:
-          name: Create virtual environment and install test dependencies
+          name: Create virtual environment
           command: |
-            python3 -m venv env_fidelity
-            . env_fidelity/bin/activate
+            python3 -m venv venv_fidelity
+            . venv_fidelity/bin/activate
             pip3 install --upgrade pip
-            pip3 install -r code/.circleci/requirements.txt
+            pip3 install numpy pillow tqdm
+      - dataset:
+          name: Download datasets
+          command: |
+            python3 code/utils/util_dump_dataset_as_images.py cifar10-train data/cifar10-train-256 -l 256
+            python3 code/utils/util_dump_dataset_as_images.py cifar10-valid data/cifar10-valid-256 -l 256
       - persist_to_workspace:
           root: .
           paths:
-            - env_fidelity
+            - venv_fidelity
             - code
-  test_interpolation:
+            - data
+  smoke_tests:
     executor: executor_python
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Test interpolation
+          name: Smoke tests
           command: |
-            . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/primitives/test_interpolation.py
-  test_convolution:
-    executor: executor_python
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Test convolution
-          command: |
-            . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/primitives/test_convolution.py
-  test_feature_extractor:
-    executor: executor_python
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Test feature extractor (Inception)
-          no_output_timeout: 120m
-          command: |
-            . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/primitives/test_inception.py
-  test_ISC_determinism:
-    executor: executor_python
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Test Inception Score (ISC) determinism
-          no_output_timeout: 180m
-          command: |
-            . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_isc_determinism.py
-  test_ISC_fidelity:
-    executor: executor_python
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Test Inception Score (ISC) fidelity
-          no_output_timeout: 180m
-          command: |
-            . env_fidelity/bin/activate
-            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./tests/tf1/numerical_precision/test_metric_isc_fidelity.py
+            . venv_fidelity/bin/activate
+            cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./.circleci/smoke_tests.py
 
 
 aliases:
   - &jobs_all_tests
     - venv
-    - test_interpolation:
-        requires:
-          - venv
-    - test_convolution:
-        requires:
-          - venv
-    - test_feature_extractor:
-        requires:
-          - venv
-    - test_ISC_determinism:
-        requires:
-          - venv
-    - test_ISC_fidelity:
+    - smoke_tests:
         requires:
           - venv
 
