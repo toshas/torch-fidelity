@@ -2,7 +2,7 @@ import torch
 
 
 def batch_normalize_last_dim(v, eps=1e-7):
-    return v / (v ** 2).sum(dim=-1, keepdim=True).sqrt().clamp_min(eps)
+    return v / (v**2).sum(dim=-1, keepdim=True).sqrt().clamp_min(eps)
 
 
 def random_normal(rng, shape):

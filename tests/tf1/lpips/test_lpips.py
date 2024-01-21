@@ -13,18 +13,18 @@ from torch_fidelity.utils import prepare_input_from_id, create_sample_similarity
 class TestLPIPS(TimeTrackingTestCase):
     @staticmethod
     def _get_sample(batch, index=0, size=None):
-        ds = prepare_input_from_id('cifar10-val', datasets_root=tempfile.gettempdir())
-        x = torch.cat([ds[i].unsqueeze(0) for i in range(index, index+batch)], dim=0)
+        ds = prepare_input_from_id("cifar10-val", datasets_root=tempfile.gettempdir())
+        x = torch.cat([ds[i].unsqueeze(0) for i in range(index, index + batch)], dim=0)
         if size is not None:
-            x = F.interpolate(x.float(), size=(size, size), mode='bicubic', align_corners=False).to(torch.uint8)
+            x = F.interpolate(x.float(), size=(size, size), mode="bicubic", align_corners=False).to(torch.uint8)
         return x
 
     def _test_lpips_raw(self, batch, size):
-        cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
+        cuda = os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
         x = self._get_sample(batch, 0, size)
         y = self._get_sample(batch, 5000, size)
         m_nv = LPIPS_reference()
-        m_us = create_sample_similarity('lpips-vgg16', cuda=cuda)
+        m_us = create_sample_similarity("lpips-vgg16", cuda=cuda)
         if cuda:
             x = x.cuda()
             y = y.cuda()
@@ -66,5 +66,5 @@ class TestLPIPS(TimeTrackingTestCase):
         return self._test_lpips_raw(2, 299)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

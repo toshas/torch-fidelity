@@ -15,12 +15,12 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
     INPUT_IMAGE_SIZE = 224
 
     def __init__(
-            self,
-            name,
-            features_list,
-            feature_extractor_weights_path=None,
-            feature_extractor_internal_dtype=None,
-            **kwargs,
+        self,
+        name,
+        features_list,
+        feature_extractor_weights_path=None,
+        feature_extractor_internal_dtype=None,
+        **kwargs,
     ):
         """
         VGG16 feature extractor for 2D RGB 24bit images.
@@ -44,13 +44,16 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         """
         super(FeatureExtractorVGG16, self).__init__(name, features_list)
         vassert(
-            feature_extractor_internal_dtype in ('float32', 'float64', None),
-            'Only 32-bit floats are supported for internal dtype of this feature extractor'
+            feature_extractor_internal_dtype in ("float32", "float64", None),
+            "Only 32-bit floats are supported for internal dtype of this feature extractor",
         )
-        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
-        warnings.filterwarnings("ignore", message="'torch.load' received a zip file that looks like a TorchScript "
-                                                  "archive dispatching to 'torch.jit.load'")
+        warnings.filterwarnings(
+            "ignore",
+            message="'torch.load' received a zip file that looks like a TorchScript "
+            "archive dispatching to 'torch.jit.load'",
+        )
         if feature_extractor_weights_path is None:
             self.model = torchvision_load_pretrained_vgg16(**kwargs)
         else:
@@ -65,8 +68,8 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         self.eval()
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
-        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, "Expecting image as torch.Tensor with dtype=torch.uint8")
+        vassert(x.dim() == 4 and x.shape[1] == 3, f"Input is not Bx3xHxW: {x.shape}")
         features = {}
         remaining_features = self.features_list.copy()
 
@@ -90,27 +93,27 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
 
         x = self.model(x)
 
-        if 'fc2' in remaining_features:
-            features['fc2'] = x.to(torch.float32)
-            remaining_features.remove('fc2')
+        if "fc2" in remaining_features:
+            features["fc2"] = x.to(torch.float32)
+            remaining_features.remove("fc2")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
-        features['fc2_relu'] = F.relu(x).to(torch.float32)
+        features["fc2_relu"] = F.relu(x).to(torch.float32)
 
         return tuple(features[a] for a in self.features_list)
 
     @staticmethod
     def get_provided_features_list():
-        return 'fc2', 'fc2_relu'
+        return "fc2", "fc2_relu"
 
     @staticmethod
     def get_default_feature_layer_for_metric(metric):
         return {
-            'isc': 'fc2_relu',
-            'fid': 'fc2_relu',
-            'kid': 'fc2_relu',
-            'prc': 'fc2_relu',
+            "isc": "fc2_relu",
+            "fid": "fc2_relu",
+            "kid": "fc2_relu",
+            "prc": "fc2_relu",
         }[metric]
 
     @staticmethod

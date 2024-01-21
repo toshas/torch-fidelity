@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.nn.modules.utils import _ntuple
 
 
-def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None, method='slow'):
+def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=None, align_corners=None, method="slow"):
     r"""Down/up samples the input to either the given :attr:`size` or the given :attr:`scale_factor`
 
     Epsilon-exact bilinear interpolation as it is implemented in TensorFlow 1.x:
@@ -33,29 +33,31 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
             'slow' (1e-4 L_inf error on GPU, bit-exact on CPU, with checkerboard 32x32->299x299), or
             'fast' (1e-3 L_inf error on GPU and CPU, with checkerboard 32x32->299x299)
     """
-    if method not in ('slow', 'fast'):
+    if method not in ("slow", "fast"):
         raise ValueError('how_exact can only be one of "slow", "fast"')
 
     if input.dim() != 4:
-        raise ValueError('input must be a 4-D tensor')
+        raise ValueError("input must be a 4-D tensor")
 
     if not torch.is_floating_point(input):
-        raise ValueError('input must be of floating point dtype')
+        raise ValueError("input must be of floating point dtype")
 
     if size is not None and (type(size) not in (tuple, list) or len(size) != 2):
-        raise ValueError('size must be a list or a tuple of two elements')
+        raise ValueError("size must be a list or a tuple of two elements")
 
     if align_corners is None:
-        raise ValueError('align_corners is not specified (use this function for a complete determinism)')
+        raise ValueError("align_corners is not specified (use this function for a complete determinism)")
 
     def _check_size_scale_factor(dim):
         if size is None and scale_factor is None:
-            raise ValueError('either size or scale_factor should be defined')
+            raise ValueError("either size or scale_factor should be defined")
         if size is not None and scale_factor is not None:
-            raise ValueError('only one of size or scale_factor should be defined')
+            raise ValueError("only one of size or scale_factor should be defined")
         if scale_factor is not None and isinstance(scale_factor, tuple) and len(scale_factor) != dim:
-            raise ValueError('scale_factor shape must match input shape. '
-                             'Input is {}D, scale_factor size is {}'.format(dim, len(scale_factor)))
+            raise ValueError(
+                "scale_factor shape must match input shape. "
+                "Input is {}D, scale_factor size is {}".format(dim, len(scale_factor))
+            )
 
     is_tracing = torch._C._get_tracing_state()
 
@@ -107,7 +109,7 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
         grid_xy = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=2).unsqueeze(0)
         grid_xy = grid_xy.repeat(input.shape[0], 1, 1, 1)
 
-        out = F.grid_sample(input, grid_xy, mode='bilinear', padding_mode='border', align_corners=True)
+        out = F.grid_sample(input, grid_xy, mode="bilinear", padding_mode="border", align_corners=True)
         return out
 
     def resample_manually():
@@ -135,7 +137,7 @@ def interpolate_bilinear_2d_like_tensorflow1x(input, size=None, scale_factor=Non
 
         return out
 
-    if method == 'slow':
+    if method == "slow":
         out = resample_manually()
     else:
         out = resample_using_grid_sample()

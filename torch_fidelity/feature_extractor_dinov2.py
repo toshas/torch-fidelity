@@ -11,10 +11,10 @@ from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d
 
 
 MODEL_METADATA = {
-    'dinov2-vit-s-14': 'dinov2_vits14',  # dim=384
-    'dinov2-vit-b-14': 'dinov2_vitb14',  # dim=768
-    'dinov2-vit-l-14': 'dinov2_vitl14',  # dim=1024
-    'dinov2-vit-g-14': 'dinov2_vitg14',  # dim=1536
+    "dinov2-vit-s-14": "dinov2_vits14",  # dim=384
+    "dinov2-vit-b-14": "dinov2_vitb14",  # dim=768
+    "dinov2-vit-l-14": "dinov2_vitl14",  # dim=1024
+    "dinov2-vit-g-14": "dinov2_vitg14",  # dim=1536
 }
 
 
@@ -22,12 +22,12 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
     INPUT_IMAGE_SIZE = 224
 
     def __init__(
-            self,
-            name,
-            features_list,
-            feature_extractor_weights_path=None,
-            feature_extractor_internal_dtype=None,
-            **kwargs,
+        self,
+        name,
+        features_list,
+        feature_extractor_weights_path=None,
+        feature_extractor_internal_dtype=None,
+        **kwargs,
     ):
         """
         DinoV2 feature extractor for 2D RGB 24bit images.
@@ -50,17 +50,17 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         """
         super(FeatureExtractorDinoV2, self).__init__(name, features_list)
         vassert(
-            feature_extractor_internal_dtype in ('float32', 'float64', None),
-            'Only 32-bit floats are supported for internal dtype of this feature extractor'
+            feature_extractor_internal_dtype in ("float32", "float64", None),
+            "Only 32-bit floats are supported for internal dtype of this feature extractor",
         )
 
-        vassert(name in MODEL_METADATA, f'Model {name} not found; available models = {list(MODEL_METADATA.keys())}')
-        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
+        vassert(name in MODEL_METADATA, f"Model {name} not found; available models = {list(MODEL_METADATA.keys())}")
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
         warnings.filterwarnings("ignore", message="xFormers is not available")
         with CleanStderr(["xFormers not available", "Using cache found in"], sys.stderr) as _:
             if feature_extractor_weights_path is None:
-                self.model = torch.hub.load('facebookresearch/dinov2', MODEL_METADATA[name])
+                self.model = torch.hub.load("facebookresearch/dinov2", MODEL_METADATA[name])
             else:
                 raise NotImplementedError
 
@@ -69,8 +69,8 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         self.eval()
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
-        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, "Expecting image as torch.Tensor with dtype=torch.uint8")
+        vassert(x.dim() == 4 and x.shape[1] == 3, f"Input is not Bx3xHxW: {x.shape}")
 
         x = x.to(self.feature_extractor_internal_dtype)
         # N x 3 x ? x ?
@@ -93,22 +93,22 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         x = self.model(x)
 
         out = {
-            'dinov2': x.to(torch.float32),
+            "dinov2": x.to(torch.float32),
         }
 
         return tuple(out[a] for a in self.features_list)
 
     @staticmethod
     def get_provided_features_list():
-        return 'dinov2',
+        return ("dinov2",)
 
     @staticmethod
     def get_default_feature_layer_for_metric(metric):
         return {
-            'isc': 'dinov2',
-            'fid': 'dinov2',
-            'kid': 'dinov2',
-            'prc': 'dinov2',
+            "isc": "dinov2",
+            "fid": "dinov2",
+            "kid": "dinov2",
+            "prc": "dinov2",
         }[metric]
 
     @staticmethod

@@ -14,7 +14,7 @@ class SampleSimilarityBase(nn.Module):
                 :func:`register_sample_similarity`.
         """
         super(SampleSimilarityBase, self).__init__()
-        vassert(type(name) is str, 'Sample similarity name must be a string')
+        vassert(type(name) is str, "Sample similarity name must be a string")
         self.name = name
 
     def get_name(self):

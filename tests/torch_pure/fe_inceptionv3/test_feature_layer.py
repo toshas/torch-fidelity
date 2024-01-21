@@ -9,7 +9,6 @@ from torch_fidelity.metric_fid import KEY_METRIC_FID
 
 
 class TestFeatureLayer(TimeTrackingTestCase):
-
     def _test_fid_feature_layer(self, feature_size):
         input1 = RandomlyGeneratedDataset(10, 3, 299, 299, dtype=torch.uint8, seed=2021)
         input2 = RandomlyGeneratedDataset(10, 3, 299, 299, dtype=torch.uint8, seed=2022)
@@ -24,20 +23,20 @@ class TestFeatureLayer(TimeTrackingTestCase):
 
     def test_fid_feature_layer_65(self):
         with self.assertRaises(ValueError) as e:
-            self._test_fid_feature_layer('65')
+            self._test_fid_feature_layer("65")
 
     def test_fid_feature_layer_64(self):
-        self._test_fid_feature_layer('64')
+        self._test_fid_feature_layer("64")
 
     def test_fid_feature_layer_192(self):
-        self._test_fid_feature_layer('192')
+        self._test_fid_feature_layer("192")
 
     def test_fid_feature_layer_768(self):
-        self._test_fid_feature_layer('768')
+        self._test_fid_feature_layer("768")
 
     def test_fid_feature_layer_2048(self):
-        self._test_fid_feature_layer('2048')
+        self._test_fid_feature_layer("2048")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

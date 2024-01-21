@@ -19,7 +19,7 @@ from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import vassert, text_to_dtype, get_kwarg
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
-MODEL_BASE_URL = 'https://openaipublic.azureedge.net/clip/models/'
+MODEL_BASE_URL = "https://openaipublic.azureedge.net/clip/models/"
 MODEL_METADATA = {
     "clip-rn50": {
         "hash": "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762",
@@ -87,11 +87,15 @@ class Bottleneck(nn.Module):
 
         if stride > 1 or inplanes != planes * Bottleneck.expansion:
             # downsampling layer is prepended with an avgpool, and the subsequent convolution has stride 1
-            self.downsample = nn.Sequential(OrderedDict([
-                ("-1", nn.AvgPool2d(stride)),
-                ("0", nn.Conv2d(inplanes, planes * self.expansion, 1, stride=1, bias=False)),
-                ("1", nn.BatchNorm2d(planes * self.expansion))
-            ]))
+            self.downsample = nn.Sequential(
+                OrderedDict(
+                    [
+                        ("-1", nn.AvgPool2d(stride)),
+                        ("0", nn.Conv2d(inplanes, planes * self.expansion, 1, stride=1, bias=False)),
+                        ("1", nn.BatchNorm2d(planes * self.expansion)),
+                    ]
+                )
+            )
 
     def forward(self, x: torch.Tensor):
         identity = x
@@ -112,7 +116,7 @@ class Bottleneck(nn.Module):
 class AttentionPool2d(nn.Module):
     def __init__(self, spacial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None):
         super().__init__()
-        self.positional_embedding = nn.Parameter(torch.randn(spacial_dim ** 2 + 1, embed_dim) / embed_dim ** 0.5)
+        self.positional_embedding = nn.Parameter(torch.randn(spacial_dim**2 + 1, embed_dim) / embed_dim**0.5)
         self.k_proj = nn.Linear(embed_dim, embed_dim)
         self.q_proj = nn.Linear(embed_dim, embed_dim)
         self.v_proj = nn.Linear(embed_dim, embed_dim)
@@ -124,7 +128,9 @@ class AttentionPool2d(nn.Module):
         x = torch.cat([x.mean(dim=0, keepdim=True), x], dim=0)  # (HW+1)NC
         x = x + self.positional_embedding[:, None, :].to(x.dtype)  # (HW+1)NC
         x, _ = F.multi_head_attention_forward(
-            query=x[:1], key=x, value=x,
+            query=x[:1],
+            key=x,
+            value=x,
             embed_dim_to_check=x.shape[-1],
             num_heads=self.num_heads,
             q_proj_weight=self.q_proj.weight,
@@ -140,7 +146,7 @@ class AttentionPool2d(nn.Module):
             out_proj_bias=self.c_proj.bias,
             use_separate_proj_weight=True,
             training=self.training,
-            need_weights=False
+            need_weights=False,
         )
         return x.squeeze(0)
 
@@ -215,8 +221,11 @@ class LayerNorm(nn.LayerNorm):
         orig_dtype = x.dtype
         if orig_dtype == torch.float16:
             out = F.layer_norm(
-                x.to(torch.float32), self.normalized_shape, self.weight.to(torch.float32),
-                self.bias.to(torch.float32), self.eps
+                x.to(torch.float32),
+                self.normalized_shape,
+                self.weight.to(torch.float32),
+                self.bias.to(torch.float32),
+                self.eps,
             ).to(orig_dtype)
         else:
             out = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
@@ -234,11 +243,15 @@ class ResidualAttentionBlock(nn.Module):
 
         self.attn = nn.MultiheadAttention(d_model, n_head)
         self.ln_1 = LayerNorm(d_model)
-        self.mlp = nn.Sequential(OrderedDict([
-            ("c_fc", nn.Linear(d_model, d_model * 4)),
-            ("gelu", QuickGELU()),
-            ("c_proj", nn.Linear(d_model * 4, d_model))
-        ]))
+        self.mlp = nn.Sequential(
+            OrderedDict(
+                [
+                    ("c_fc", nn.Linear(d_model, d_model * 4)),
+                    ("gelu", QuickGELU()),
+                    ("c_proj", nn.Linear(d_model * 4, d_model)),
+                ]
+            )
+        )
         self.ln_2 = LayerNorm(d_model)
         self.attn_mask = attn_mask
 
@@ -270,7 +283,7 @@ class VisionTransformer(nn.Module):
         self.output_dim = output_dim
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=width, kernel_size=patch_size, stride=patch_size, bias=False)
 
-        scale = width ** -0.5
+        scale = width**-0.5
         self.class_embedding = nn.Parameter(scale * torch.randn(width))
         self.positional_embedding = nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
         self.ln_pre = LayerNorm(width)
@@ -284,10 +297,14 @@ class VisionTransformer(nn.Module):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
         x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
         x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
-        x = torch.cat([
-            self.class_embedding.to(x.dtype) +
-            torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x
-        ], dim=1)  # shape = [*, grid ** 2 + 1, width]
+        x = torch.cat(
+            [
+                self.class_embedding.to(x.dtype)
+                + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device),
+                x,
+            ],
+            dim=1,
+        )  # shape = [*, grid ** 2 + 1, width]
         x = x + self.positional_embedding.to(x.dtype)
         x = self.ln_pre(x)
 
@@ -305,12 +322,12 @@ class VisionTransformer(nn.Module):
 
 class CLIPVisual(nn.Module):
     def __init__(
-            self,
-            embed_dim: int,
-            image_resolution: int,
-            vision_layers: Union[Tuple[int, int, int, int], int],
-            vision_width: int,
-            vision_patch_size: int,
+        self,
+        embed_dim: int,
+        image_resolution: int,
+        vision_layers: Union[Tuple[int, int, int, int], int],
+        vision_width: int,
+        vision_patch_size: int,
     ):
         super().__init__()
         if isinstance(vision_layers, (tuple, list)):
@@ -320,7 +337,7 @@ class CLIPVisual(nn.Module):
                 output_dim=embed_dim,
                 heads=vision_heads,
                 input_resolution=image_resolution,
-                width=vision_width
+                width=vision_width,
             )
         else:
             vision_heads = vision_width // 64
@@ -330,7 +347,7 @@ class CLIPVisual(nn.Module):
                 width=vision_width,
                 layers=vision_layers,
                 heads=vision_heads,
-                output_dim=embed_dim
+                output_dim=embed_dim,
             )
 
 
@@ -357,37 +374,46 @@ def build_model(state_dict, feature_extractor_internal_dtype):
 
     if vit:
         vision_width = state_dict["visual.conv1.weight"].shape[0]
-        vision_layers = \
-            len([k for k in state_dict.keys() if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")])
+        vision_layers = len(
+            [k for k in state_dict.keys() if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")]
+        )
         vision_patch_size = state_dict["visual.conv1.weight"].shape[-1]
         grid_size = round((state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5)
         image_resolution = vision_patch_size * grid_size
     else:
-        counts: list = \
-            [len(set(k.split(".")[2] for k in state_dict if k.startswith(f"visual.layer{b}"))) for b in [1, 2, 3, 4]]
+        counts: list = [
+            len(set(k.split(".")[2] for k in state_dict if k.startswith(f"visual.layer{b}"))) for b in [1, 2, 3, 4]
+        ]
         vision_layers = tuple(counts)
         vision_width = state_dict["visual.layer1.0.conv1.weight"].shape[0]
         output_width = round((state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5)
         vision_patch_size = None
-        vassert(output_width ** 2 + 1 == state_dict["visual.attnpool.positional_embedding"].shape[0], "Bad checkpoint")
+        vassert(output_width**2 + 1 == state_dict["visual.attnpool.positional_embedding"].shape[0], "Bad checkpoint")
         image_resolution = output_width * 32
 
     embed_dim = state_dict["text_projection"].shape[1]
 
     model = CLIPVisual(
         embed_dim,
-        image_resolution, vision_layers, vision_width, vision_patch_size,
+        image_resolution,
+        vision_layers,
+        vision_width,
+        vision_patch_size,
     )
 
     for key in {
-        "input_resolution", "context_length", "vocab_size",
-        "positional_embedding", "text_projection", "logit_scale", "token_embedding.weight"
+        "input_resolution",
+        "context_length",
+        "vocab_size",
+        "positional_embedding",
+        "text_projection",
+        "logit_scale",
+        "token_embedding.weight",
     }:
         if key in state_dict:
             del state_dict[key]
     state_dict = {
-        k: v for k, v in state_dict.items()
-        if not (k.startswith('transformer.') or k.startswith('ln_final.'))
+        k: v for k, v in state_dict.items() if not (k.startswith("transformer.") or k.startswith("ln_final."))
     }
 
     convert_weights(model)
@@ -399,14 +425,13 @@ def build_model(state_dict, feature_extractor_internal_dtype):
 
 
 class FeatureExtractorCLIP(FeatureExtractorBase):
-
     def __init__(
-            self,
-            name,
-            features_list,
-            feature_extractor_weights_path=None,
-            feature_extractor_internal_dtype=None,
-            **kwargs,
+        self,
+        name,
+        features_list,
+        feature_extractor_weights_path=None,
+        feature_extractor_internal_dtype=None,
+        **kwargs,
     ):
         """
         CLIP feature extractor for 2D RGB 24bit images.
@@ -428,15 +453,15 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                 numerical precision in some cases. Supported values are 'float32' (default), and 'float64'.
         """
         super(FeatureExtractorCLIP, self).__init__(name, features_list)
-        vassert(name in MODEL_URLS, f'Model {name} not found; available models = {list(MODEL_URLS.keys())}')
+        vassert(name in MODEL_URLS, f"Model {name} not found; available models = {list(MODEL_URLS.keys())}")
         vassert(
-            feature_extractor_internal_dtype in ('float32', 'float64', None),
-            'Only 32-bit floats are supported for internal dtype of this feature extractor'
+            feature_extractor_internal_dtype in ("float32", "float64", None),
+            "Only 32-bit floats are supported for internal dtype of this feature extractor",
         )
-        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
         if feature_extractor_weights_path is None:
-            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
             check_hash = LooseVersion(torch.__version__) >= LooseVersion("1.7.1")
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
                 warnings.filterwarnings(
@@ -445,7 +470,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                 model_jit = load_state_dict_from_url(
                     MODEL_URLS[name],
                     map_location="cpu",
-                    progress=get_kwarg('verbose', kwargs),
+                    progress=get_kwarg("verbose", kwargs),
                     check_hash=check_hash,
                     file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
                 )
@@ -457,8 +482,8 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         self.requires_grad_(False)
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
-        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, "Expecting image as torch.Tensor with dtype=torch.uint8")
+        vassert(x.dim() == 4 and x.shape[1] == 3, f"Input is not Bx3xHxW: {x.shape}")
         features = {}
 
         x = x.to(self.feature_extractor_internal_dtype)
@@ -480,21 +505,21 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         # N x 3 x R x R
 
         x = self.model.visual(x)
-        features['clip'] = x.to(torch.float32)
+        features["clip"] = x.to(torch.float32)
 
         return tuple(features[a] for a in self.features_list)
 
     @staticmethod
     def get_provided_features_list():
-        return 'clip',
+        return ("clip",)
 
     @staticmethod
     def get_default_feature_layer_for_metric(metric):
         return {
-            'isc': 'clip',
-            'fid': 'clip',
-            'kid': 'clip',
-            'prc': 'clip',
+            "isc": "clip",
+            "fid": "clip",
+            "kid": "clip",
+            "prc": "clip",
         }[metric]
 
     @staticmethod

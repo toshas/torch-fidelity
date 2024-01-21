@@ -16,7 +16,7 @@ from torch_fidelity.utils_torchvision import torchvision_load_pretrained_vgg16
 # VGG16 LPIPS original weights re-uploaded from the following location:
 #   https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/weights/v0.1/vgg.pth
 #   Distributed under BSD 2-Clause: https://github.com/richzhang/PerceptualSimilarity/blob/master/LICENSE
-URL_VGG16_LPIPS = 'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-vgg16-lpips.pth'
+URL_VGG16_LPIPS = "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-vgg16-lpips.pth"
 
 
 class VGG16features(torch.nn.Module):
@@ -62,26 +62,28 @@ def spatial_average(in_tensor):
 
 
 def normalize_tensor(in_features, eps=1e-10):
-    norm_factor = torch.sqrt(torch.sum(in_features ** 2, dim=1, keepdim=True))
+    norm_factor = torch.sqrt(torch.sum(in_features**2, dim=1, keepdim=True))
     return in_features / (norm_factor + eps)
 
 
 class NetLinLayer(nn.Module):
     def __init__(self, chn_in, chn_out=1, use_dropout=False):
         super(NetLinLayer, self).__init__()
-        layers = [nn.Dropout(), ] if use_dropout else []
-        layers += [nn.Conv2d(chn_in, chn_out, 1, stride=1, padding=0, bias=False), ]
+        layers = (
+            [
+                nn.Dropout(),
+            ]
+            if use_dropout
+            else []
+        )
+        layers += [
+            nn.Conv2d(chn_in, chn_out, 1, stride=1, padding=0, bias=False),
+        ]
         self.model = nn.Sequential(*layers)
 
 
 class SampleSimilarityLPIPS(SampleSimilarityBase):
-    def __init__(
-            self,
-            name,
-            sample_similarity_resize=None,
-            sample_similarity_dtype=None,
-            **kwargs
-    ):
+    def __init__(self, name, sample_similarity_resize=None, sample_similarity_dtype=None, **kwargs):
         """
         LPIPS sample similarity measure for 2D RGB 24bit images.
 
@@ -108,7 +110,7 @@ class SampleSimilarityLPIPS(SampleSimilarityBase):
         self.lin4 = NetLinLayer(self.chns[4], use_dropout=True)
         self.lins = [self.lin0, self.lin1, self.lin2, self.lin3, self.lin4]
         with redirect_stdout(sys.stderr):
-            state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, map_location='cpu', progress=True)
+            state_dict = load_state_dict_from_url(URL_VGG16_LPIPS, map_location="cpu", progress=True)
         self.load_state_dict(state_dict)
         self.net = VGG16features()
         self.eval()
@@ -118,27 +120,28 @@ class SampleSimilarityLPIPS(SampleSimilarityBase):
     @staticmethod
     def normalize(x):
         # torchvision values in range [0,1] mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225]
-        mean_rescaled = (1 + torch.tensor([-.030, -.088, -.188], device=x.device)[None, :, None, None]) * 255 / 2
-        inv_std_rescaled = 2 / (torch.tensor([.458, .448, .450], device=x.device)[None, :, None, None] * 255)
+        mean_rescaled = (1 + torch.tensor([-0.030, -0.088, -0.188], device=x.device)[None, :, None, None]) * 255 / 2
+        inv_std_rescaled = 2 / (torch.tensor([0.458, 0.448, 0.450], device=x.device)[None, :, None, None] * 255)
         x = (x.float() - mean_rescaled) * inv_std_rescaled
         return x
 
     @staticmethod
     def resize(x, size):
         if x.shape[-1] > size and x.shape[-2] > size:
-            x = torch.nn.functional.interpolate(x, (size, size), mode='area')
+            x = torch.nn.functional.interpolate(x, (size, size), mode="area")
         else:
-            x = torch.nn.functional.interpolate(x, (size, size), mode='bilinear', align_corners=False)
+            x = torch.nn.functional.interpolate(x, (size, size), mode="bilinear", align_corners=False)
         return x
 
     def forward(self, in0, in1):
-        vassert(torch.is_tensor(in0) and torch.is_tensor(in1), 'Inputs must be torch tensors')
-        vassert(in0.dim() == 4 and in0.shape[1] == 3, 'Input 0 is not Bx3xHxW')
-        vassert(in1.dim() == 4 and in1.shape[1] == 3, 'Input 1 is not Bx3xHxW')
+        vassert(torch.is_tensor(in0) and torch.is_tensor(in1), "Inputs must be torch tensors")
+        vassert(in0.dim() == 4 and in0.shape[1] == 3, "Input 0 is not Bx3xHxW")
+        vassert(in1.dim() == 4 and in1.shape[1] == 3, "Input 1 is not Bx3xHxW")
         if self.sample_similarity_dtype is not None:
             dtype = text_to_dtype(self.sample_similarity_dtype, None)
-            vassert(dtype is not None and in0.dtype == dtype and in1.dtype == dtype,
-                    f'Unexpected input dtype ({in0.dtype})')
+            vassert(
+                dtype is not None and in0.dtype == dtype and in1.dtype == dtype, f"Unexpected input dtype ({in0.dtype})"
+            )
         in0_input = self.normalize(in0)
         in1_input = self.normalize(in1)
 

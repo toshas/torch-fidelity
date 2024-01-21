@@ -2,11 +2,15 @@ import numpy as np
 import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
-from torch_fidelity.utils import extract_featuresdict_from_input_id_cached, create_feature_extractor, \
-    resolve_feature_extractor, resolve_feature_layer_for_metric
+from torch_fidelity.utils import (
+    extract_featuresdict_from_input_id_cached,
+    create_feature_extractor,
+    resolve_feature_extractor,
+    resolve_feature_layer_for_metric,
+)
 
-KEY_METRIC_ISC_MEAN = 'inception_score_mean'
-KEY_METRIC_ISC_STD = 'inception_score_std'
+KEY_METRIC_ISC_MEAN = "inception_score_mean"
+KEY_METRIC_ISC_STD = "inception_score_std"
 
 
 def isc_features_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
@@ -22,8 +26,8 @@ def isc_features_to_metric(feature, splits=10, shuffle=True, rng_seed=2020):
 
     scores = []
     for i in range(splits):
-        p_chunk = p[(i * N // splits): ((i + 1) * N // splits), :]
-        log_p_chunk = log_p[(i * N // splits): ((i + 1) * N // splits), :]
+        p_chunk = p[(i * N // splits) : ((i + 1) * N // splits), :]
+        log_p_chunk = log_p[(i * N // splits) : ((i + 1) * N // splits), :]
         q_chunk = p_chunk.mean(dim=0, keepdim=True)
         kl = p_chunk * (log_p_chunk - q_chunk.log())
         kl = kl.sum(dim=1).mean().exp().item()
@@ -40,12 +44,12 @@ def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
 
     out = isc_features_to_metric(
         features,
-        get_kwarg('isc_splits', kwargs),
-        get_kwarg('samples_shuffle', kwargs),
-        get_kwarg('rng_seed', kwargs),
+        get_kwarg("isc_splits", kwargs),
+        get_kwarg("samples_shuffle", kwargs),
+        get_kwarg("rng_seed", kwargs),
     )
 
-    vprint(get_kwarg('verbose', kwargs), f'Inception Score: {out[KEY_METRIC_ISC_MEAN]} ± {out[KEY_METRIC_ISC_STD]}')
+    vprint(get_kwarg("verbose", kwargs), f"Inception Score: {out[KEY_METRIC_ISC_MEAN]} ± {out[KEY_METRIC_ISC_STD]}")
 
     return out
 
@@ -56,9 +60,9 @@ def isc_input_id_to_metric(input_id, feat_extractor, feat_layer_name, **kwargs):
 
 
 def calculate_isc(input_id, **kwargs):
-    kwargs['isc'] = True
+    kwargs["isc"] = True
     feature_extractor = resolve_feature_extractor(**kwargs)
-    feat_layer_name = resolve_feature_layer_for_metric('isc', **kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric("isc", **kwargs)
     feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
     metric = isc_input_id_to_metric(input_id, feat_extractor, feat_layer_name, **kwargs)
     return metric
