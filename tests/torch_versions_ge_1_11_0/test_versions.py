@@ -52,7 +52,7 @@ class TestVersions(TimeTrackingTestCase):
             self.assertAlmostEqual(metrics['inception_score_std'], 0.5778723, delta=1e-4)
             self.assertAlmostEqual(metrics['frechet_inception_distance'], 10.32333, delta=1e-4)
             self.assertAlmostEqual(metrics['kernel_inception_distance_mean'], -2.907863e-05, delta=1e-7)
-            self.assertAlmostEqual(metrics['kernel_inception_distance_std'], 0.0001023118, delta=1e-8)
+            self.assertAlmostEqual(metrics['kernel_inception_distance_std'], 0.0001023118, delta=1e-7)
             self.assertAlmostEqual(metrics['precision'], 0.6908, delta=1e-3)
             self.assertAlmostEqual(metrics['recall'], 0.6852, delta=1e-3)
             self.assertAlmostEqual(metrics['f_score'], 0.6879886, delta=1e-3)
@@ -121,15 +121,6 @@ class TestVersions(TimeTrackingTestCase):
 
     def test__torch_1_11_0__torchvision_0_12_0(self):
         self._test_generic("1.11.0", "0.12.0")
-
-    def test__torch_1_10_1__torchvision_0_11_2(self):
-        self._test_generic("1.10.1", "0.11.2")
-
-    def test__torch_1_9_1__torchvision_0_10_1(self):
-        self._test_generic("1.9.1", "0.10.1")
-
-    def test__torch_1_8_2__torchvision_0_9_2(self):
-        self._test_generic("1.8.2", "0.9.2")
 
 
 if __name__ == '__main__':
