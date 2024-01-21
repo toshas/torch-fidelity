@@ -31,7 +31,8 @@ jobs:
 workflows:
   version: 2
   venv_and_tests:
-    jobs: smoke_tests
+    jobs:
+      - smoke_tests
   mondays:
     triggers:
       - schedule:
@@ -40,4 +41,5 @@ workflows:
             branches:
               only:
                 - master
-    jobs: smoke_tests
+    jobs:
+      - smoke_tests
