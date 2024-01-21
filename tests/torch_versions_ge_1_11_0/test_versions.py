@@ -43,11 +43,11 @@ class TestVersions(TimeTrackingTestCase):
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            metrics = json.loads(res.stdout)
-            print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{json.dumps(metrics, indent=4)}\nSTDERR:\n{res.stderr}\n')
+            print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}\n')
             self.assertEqual(res.returncode, 0, msg="Non-zero return code")
             self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
             self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
+            metrics = json.loads(res.stdout)
             self.assertAlmostEqual(metrics['inception_score_mean'], 10.75051, delta=1e-4)
             self.assertAlmostEqual(metrics['inception_score_std'], 0.5778723, delta=1e-4)
             self.assertAlmostEqual(metrics['frechet_inception_distance'], 10.32333, delta=1e-4)
@@ -71,11 +71,11 @@ class TestVersions(TimeTrackingTestCase):
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            metrics = json.loads(res.stdout)
-            print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{json.dumps(metrics, indent=4)}\nSTDERR:\n{res.stderr}\n')
+            print(f'RETCODE:\n{res.returncode}\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}\n')
             self.assertEqual(res.returncode, 0, msg="Non-zero return code")
             self.assertTrue('Warning' not in res.stdout, msg="Warning in stdout")
             self.assertTrue('Warning' not in res.stderr, msg="Warning in stderr")
+            metrics = json.loads(res.stdout)
             self.assertAlmostEqual(metrics['inception_score_mean'], 1.034257746757046, delta=1e-5)
             self.assertAlmostEqual(metrics['inception_score_std'], 0.00041031304234824675, delta=1e-8)
 
