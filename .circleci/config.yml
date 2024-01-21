@@ -21,7 +21,7 @@ jobs:
             . venv_fidelity/bin/activate
             pip3 install --upgrade pip
             pip3 install numpy pillow tqdm
-      - dataset:
+      - run:
           name: Download datasets
           command: |
             python3 code/utils/util_dump_dataset_as_images.py cifar10-train data/cifar10-train-256 -l 256
