@@ -1,12 +1,16 @@
 import torch
 
 from torch_fidelity.helpers import get_kwarg, vprint
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    resolve_feature_extractor, resolve_feature_layer_for_metric
+from torch_fidelity.utils import (
+    create_feature_extractor,
+    extract_featuresdict_from_input_id_cached,
+    resolve_feature_extractor,
+    resolve_feature_layer_for_metric,
+)
 
-KEY_METRIC_PRECISION = 'precision'
-KEY_METRIC_RECALL = 'recall'
-KEY_METRIC_F_SCORE = 'f_score'
+KEY_METRIC_PRECISION = "precision"
+KEY_METRIC_RECALL = "recall"
+KEY_METRIC_F_SCORE = "f_score"
 
 
 def calc_cdist_part(features_1, features_2, batch_size=10000):
@@ -68,10 +72,10 @@ def prc_features_to_metric(features_1, features_2, **kwargs):
     assert torch.is_tensor(features_2) and features_2.dim() == 2
     assert features_1.shape[1] == features_2.shape[1]
 
-    neighborhood = get_kwarg('prc_neighborhood', kwargs)
-    batch_size = get_kwarg('prc_batch_size', kwargs)
-    save_cpu_ram = get_kwarg('save_cpu_ram', kwargs)
-    verbose = get_kwarg('verbose', kwargs)
+    neighborhood = get_kwarg("prc_neighborhood", kwargs)
+    batch_size = get_kwarg("prc_batch_size", kwargs)
+    save_cpu_ram = get_kwarg("save_cpu_ram", kwargs)
+    verbose = get_kwarg("verbose", kwargs)
 
     calculate_precision_recall_fn = calculate_precision_recall_part if save_cpu_ram else calculate_precision_recall_full
     precision, recall = calculate_precision_recall_fn(features_1, features_2, neighborhood, batch_size)
@@ -80,12 +84,12 @@ def prc_features_to_metric(features_1, features_2, **kwargs):
     out = {
         KEY_METRIC_PRECISION: precision,
         KEY_METRIC_RECALL: recall,
-        KEY_METRIC_F_SCORE: f_score
+        KEY_METRIC_F_SCORE: f_score,
     }
 
-    vprint(verbose, f'Precision: {out[KEY_METRIC_PRECISION]}')
-    vprint(verbose, f'Recall: {out[KEY_METRIC_RECALL]}')
-    vprint(verbose, f'F-score: {out[KEY_METRIC_F_SCORE]}')
+    vprint(verbose, f"Precision: {out[KEY_METRIC_PRECISION]}")
+    vprint(verbose, f"Recall: {out[KEY_METRIC_RECALL]}")
+    vprint(verbose, f"F-score: {out[KEY_METRIC_F_SCORE]}")
 
     return out
 
@@ -98,9 +102,9 @@ def prc_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, 
 
 
 def calculate_prc(**kwargs):
-    kwargs['prc'] = True
+    kwargs["prc"] = True
     feature_extractor = resolve_feature_extractor(**kwargs)
-    feat_layer_name = resolve_feature_layer_for_metric('prc', **kwargs)
+    feat_layer_name = resolve_feature_layer_for_metric("prc", **kwargs)
     feat_extractor = create_feature_extractor(feature_extractor, [feat_layer_name], **kwargs)
     featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
     featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)

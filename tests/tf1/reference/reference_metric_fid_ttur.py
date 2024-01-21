@@ -22,22 +22,22 @@ from tqdm import tqdm
 
 # InceptionV3 pretrained weights from TensorFlow models library
 #   Distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
-URL_INCEPTION_V3 = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+URL_INCEPTION_V3 = "http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz"
 
-KEY_FID = 'frechet_inception_distance'
+KEY_FID = "frechet_inception_distance"
 
 
 def create_inception_graph(pth):
     """Creates a graph from saved GraphDef file."""
-    with tf.io.gfile.GFile(pth, 'rb') as f:
+    with tf.io.gfile.GFile(pth, "rb") as f:
         graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
-        _ = tf.import_graph_def(graph_def, name='FID_Inception_Net')
+        _ = tf.import_graph_def(graph_def, name="FID_Inception_Net")
 
 
 def get_inception_layer(sess):
     """Prepares inception net for batched usage and returns pool_3 layer."""
-    layername = 'FID_Inception_Net/pool_3:0'
+    layername = "FID_Inception_Net/pool_3:0"
     pool3 = sess.graph.get_tensor_by_name(layername)
     ops = pool3.graph.get_operations()
     for op_idx, op in enumerate(ops):
@@ -52,7 +52,7 @@ def get_inception_layer(sess):
                         new_shape.append(None)
                     else:
                         new_shape.append(s)
-                o.__dict__['_shape_val'] = tf.TensorShape(new_shape)
+                o.__dict__["_shape_val"] = tf.TensorShape(new_shape)
     return pool3
 
 
@@ -86,7 +86,7 @@ def get_activations(images, sess, batch_size=50, verbose=False):
         else:
             end = n_images
         batch = images[start:end]
-        pred = sess.run(inception_layer, {'FID_Inception_Net/ExpandDims:0': batch})
+        pred = sess.run(inception_layer, {"FID_Inception_Net/ExpandDims:0": batch})
         pred_arr[start:end] = pred.reshape(batch_size, -1)
     return pred_arr
 
@@ -206,7 +206,7 @@ def get_activations_from_files(files, sess, batch_size=50, verbose=False):
         else:
             end = n_imgs
         batch = load_image_batch(files[start:end])
-        pred = sess.run(inception_layer, {'FID_Inception_Net/ExpandDims:0': batch})
+        pred = sess.run(inception_layer, {"FID_Inception_Net/ExpandDims:0": batch})
         pred_arr[start:end] = pred.reshape(batch_size, -1)
         del batch  # clean up memory
     return pred_arr
@@ -237,26 +237,27 @@ def check_or_download_inception(verbose=False):
     """Checks if the path to the inception file is valid, or downloads the file if it is not present."""
     inception_path = tempfile.gettempdir()
     inception_path = pathlib.Path(inception_path)
-    model_file = inception_path / 'classify_image_graph_def.pb'
+    model_file = inception_path / "classify_image_graph_def.pb"
     if not model_file.exists():
         if verbose:
             print("Downloading Inception model", sys.stderr)
         from urllib import request
         import tarfile
+
         fn, _ = request.urlretrieve(URL_INCEPTION_V3)
-        with tarfile.open(fn, mode='r') as f:
-            f.extract('classify_image_graph_def.pb', str(model_file.parent))
+        with tarfile.open(fn, mode="r") as f:
+            f.extract("classify_image_graph_def.pb", str(model_file.parent))
     return str(model_file)
 
 
 def handle_path(path, sess, low_profile=False, verbose=False):
-    if path.endswith('.npz'):
+    if path.endswith(".npz"):
         f = np.load(path)
-        m, s = f['mu'][:], f['sigma'][:]
+        m, s = f["mu"][:], f["sigma"][:]
         f.close()
     else:
         path = pathlib.Path(path)
-        files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
+        files = list(path.glob("*.jpg")) + list(path.glob("*.png"))
         if low_profile:
             m, s = calculate_activation_statistics_from_files(files, sess, verbose=verbose)
         else:
@@ -280,31 +281,31 @@ def calculate_fid_given_paths(paths, low_profile=False, verbose=False):
         m1, s1 = handle_path(paths[0], sess, low_profile=low_profile, verbose=verbose)
         m2, s2 = handle_path(paths[1], sess, low_profile=low_profile, verbose=verbose)
         fid_value = calculate_frechet_distance(m1, s1, m2, s2)
-    return {
-        KEY_FID: float(fid_value)
-    }
+    return {KEY_FID: float(fid_value)}
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("path", type=str, nargs=2,
-                        help='Path to the generated images or to .npz statistic files')
-    parser.add_argument("--gpu", default='', type=str,
-                        help='GPU to use (leave blank for CPU only)')
-    parser.add_argument('--json', action='store_true',
-                        help='Print scores in JSON')
-    parser.add_argument('--determinism', action='store_true',
-                        help='Enforce determinism in TensorFlow to remove variance when running with the same inputs. '
-                             'Without it inception score varies between different runs on the same data (e.g. 18.11 +/- '
-                             '0.02). More information: https://github.com/NVIDIA/tensorflow-determinism')
-    parser.add_argument("--lowprofile", action="store_true",
-                        help='Keep only one batch of images in memory at a time. '
-                             'This reduces memory footprint, but may decrease speed slightly.')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='Verbose or silent progress bar and messages')
+    parser.add_argument("path", type=str, nargs=2, help="Path to the generated images or to .npz statistic files")
+    parser.add_argument("--gpu", default="", type=str, help="GPU to use (leave blank for CPU only)")
+    parser.add_argument("--json", action="store_true", help="Print scores in JSON")
+    parser.add_argument(
+        "--determinism",
+        action="store_true",
+        help="Enforce determinism in TensorFlow to remove variance when running with the same inputs. "
+        "Without it inception score varies between different runs on the same data (e.g. 18.11 +/- "
+        "0.02). More information: https://github.com/NVIDIA/tensorflow-determinism",
+    )
+    parser.add_argument(
+        "--lowprofile",
+        action="store_true",
+        help="Keep only one batch of images in memory at a time. "
+        "This reduces memory footprint, but may decrease speed slightly.",
+    )
+    parser.add_argument("-s", "--silent", action="store_true", help="Verbose or silent progress bar and messages")
     args = parser.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     if args.determinism:
         with redirect_stdout(sys.stderr):
@@ -315,4 +316,4 @@ if __name__ == "__main__":
     if args.json:
         print(json.dumps(metrics, indent=4))
     else:
-        print(', '.join((f'{k}: {v}' for k, v in metrics.items())))
+        print(", ".join((f"{k}: {v}" for k, v in metrics.items())))

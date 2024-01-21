@@ -12,4 +12,3 @@ class TimeTrackingTestCase(unittest.TestCase):
         test_runtime = test_end_time - self.test_start_time
         minutes, seconds = divmod(test_runtime, 60)
         print(f"Test {self.id()}: {int(minutes)} min {int(seconds)} sec")
-

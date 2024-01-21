@@ -7,9 +7,8 @@ from torch_fidelity.feature_extractor_dinov2 import FeatureExtractorDinoV2
 
 
 class TestDINOv2FE(TimeTrackingTestCase):
-
     def test_dinov2_fe(self):
-        fe_us = FeatureExtractorDinoV2('dinov2-vit-b-14', ['dinov2'])
+        fe_us = FeatureExtractorDinoV2("dinov2-vit-b-14", ["dinov2"])
         resolution = 32
         seed = 2023
         rng = torch.Generator()
@@ -21,5 +20,5 @@ class TestDINOv2FE(TimeTrackingTestCase):
         self.assertAlmostEqual(checksum, expected, delta=1e-4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

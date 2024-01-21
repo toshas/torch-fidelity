@@ -16,20 +16,21 @@ from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d
 
 # InceptionV3 weights converted from the official TensorFlow weights using utils/util_convert_inception_weights.py
 #   Original weights distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
-URL_INCEPTION_V3 = \
-    'https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth'
+URL_INCEPTION_V3 = (
+    "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth"
+)
 
 
 class FeatureExtractorInceptionV3(FeatureExtractorBase):
     INPUT_IMAGE_SIZE = 299
 
     def __init__(
-            self,
-            name,
-            features_list,
-            feature_extractor_weights_path=None,
-            feature_extractor_internal_dtype=None,
-            **kwargs,
+        self,
+        name,
+        features_list,
+        feature_extractor_weights_path=None,
+        feature_extractor_internal_dtype=None,
+        **kwargs,
     ):
         """
         InceptionV3 feature extractor for 2D RGB 24bit images.
@@ -57,10 +58,10 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         """
         super(FeatureExtractorInceptionV3, self).__init__(name, features_list)
         vassert(
-            feature_extractor_internal_dtype in ('float32', 'float64', None),
-            'Only 32 and 64 bit floats are supported for internal dtype of this feature extractor'
+            feature_extractor_internal_dtype in ("float32", "float64", None),
+            "Only 32 and 64 bit floats are supported for internal dtype of this feature extractor",
         )
-        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, 'float32')
+        self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=2)
         self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
@@ -89,7 +90,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr):
-                state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=get_kwarg('verbose', kwargs))
+                state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=get_kwarg("verbose", kwargs))
         else:
             state_dict = torch.load(feature_extractor_weights_path)
         self.load_state_dict(state_dict)
@@ -99,8 +100,8 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         self.eval()
 
     def forward(self, x):
-        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, 'Expecting image as torch.Tensor with dtype=torch.uint8')
-        vassert(x.dim() == 4 and x.shape[1] == 3, f'Input is not Bx3xHxW: {x.shape}')
+        vassert(torch.is_tensor(x) and x.dtype == torch.uint8, "Expecting image as torch.Tensor with dtype=torch.uint8")
+        vassert(x.dim() == 4 and x.shape[1] == 3, f"Input is not Bx3xHxW: {x.shape}")
         features = {}
         remaining_features = self.features_list.copy()
 
@@ -127,9 +128,9 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         x = self.MaxPool_1(x)
         # N x 64 x 73 x 73
 
-        if '64' in remaining_features:
-            features['64'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
-            remaining_features.remove('64')
+        if "64" in remaining_features:
+            features["64"] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
+            remaining_features.remove("64")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
@@ -140,9 +141,9 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         x = self.MaxPool_2(x)
         # N x 192 x 35 x 35
 
-        if '192' in remaining_features:
-            features['192'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
-            remaining_features.remove('192')
+        if "192" in remaining_features:
+            features["192"] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
+            remaining_features.remove("192")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
@@ -163,9 +164,9 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         x = self.Mixed_6e(x)
         # N x 768 x 17 x 17
 
-        if '768' in remaining_features:
-            features['768'] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
-            remaining_features.remove('768')
+        if "768" in remaining_features:
+            features["768"] = F.adaptive_avg_pool2d(x, output_size=(1, 1)).squeeze(-1).squeeze(-1).to(torch.float32)
+            remaining_features.remove("768")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
@@ -181,17 +182,17 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
         x = torch.flatten(x, 1)
         # N x 2048
 
-        if '2048' in remaining_features:
-            features['2048'] = x.to(torch.float32)
-            remaining_features.remove('2048')
+        if "2048" in remaining_features:
+            features["2048"] = x.to(torch.float32)
+            remaining_features.remove("2048")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
-        if 'logits_unbiased' in remaining_features:
+        if "logits_unbiased" in remaining_features:
             x = x.mm(self.fc.weight.T)
             # N x 1008 (num_classes)
-            features['logits_unbiased'] = x.to(torch.float32)
-            remaining_features.remove('logits_unbiased')
+            features["logits_unbiased"] = x.to(torch.float32)
+            remaining_features.remove("logits_unbiased")
             if len(remaining_features) == 0:
                 return tuple(features[a] for a in self.features_list)
 
@@ -200,20 +201,20 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             x = self.fc(x)
             # N x 1008 (num_classes)
 
-        features['logits'] = x.to(torch.float32)
+        features["logits"] = x.to(torch.float32)
         return tuple(features[a] for a in self.features_list)
 
     @staticmethod
     def get_provided_features_list():
-        return '64', '192', '768', '2048', 'logits_unbiased', 'logits'
+        return "64", "192", "768", "2048", "logits_unbiased", "logits"
 
     @staticmethod
     def get_default_feature_layer_for_metric(metric):
         return {
-            'isc': 'logits_unbiased',
-            'fid': '2048',
-            'kid': '2048',
-            'prc': '2048',
+            "isc": "logits_unbiased",
+            "fid": "2048",
+            "kid": "2048",
+            "prc": "2048",
         }[metric]
 
     @staticmethod
@@ -227,6 +228,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
 
 class BasicConv2d(nn.Module):
     """Original BasicConv2d block"""
+
     def __init__(self, in_channels, out_channels, **kwargs):
         super(BasicConv2d, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, bias=False, **kwargs)
@@ -240,6 +242,7 @@ class BasicConv2d(nn.Module):
 
 class InceptionA(nn.Module):
     """Block from torchvision patched to be compatible with TensorFlow implementation"""
+
     def __init__(self, in_channels, pool_features):
         super(InceptionA, self).__init__()
         self.branch1x1 = BasicConv2d(in_channels, 64, kernel_size=1)
@@ -273,6 +276,7 @@ class InceptionA(nn.Module):
 
 class InceptionB(nn.Module):
     """Original block"""
+
     def __init__(self, in_channels):
         super(InceptionB, self).__init__()
         self.branch3x3 = BasicConv2d(in_channels, 384, kernel_size=3, stride=2)
@@ -296,6 +300,7 @@ class InceptionB(nn.Module):
 
 class InceptionC(nn.Module):
     """Block from torchvision patched to be compatible with TensorFlow implementation"""
+
     def __init__(self, in_channels, channels_7x7):
         super(InceptionC, self).__init__()
         self.branch1x1 = BasicConv2d(in_channels, 192, kernel_size=1)
@@ -336,6 +341,7 @@ class InceptionC(nn.Module):
 
 class InceptionD(nn.Module):
     """Original block"""
+
     def __init__(self, in_channels):
         super(InceptionD, self).__init__()
         self.branch3x3_1 = BasicConv2d(in_channels, 192, kernel_size=1)
@@ -362,6 +368,7 @@ class InceptionD(nn.Module):
 
 class InceptionE_1(nn.Module):
     """First InceptionE block from torchvision patched to be compatible with TensorFlow implementation"""
+
     def __init__(self, in_channels):
         super(InceptionE_1, self).__init__()
         self.branch1x1 = BasicConv2d(in_channels, 320, kernel_size=1)
@@ -405,6 +412,7 @@ class InceptionE_1(nn.Module):
 
 class InceptionE_2(nn.Module):
     """Second InceptionE block from torchvision patched to be compatible with TensorFlow implementation"""
+
     def __init__(self, in_channels):
         super(InceptionE_2, self).__init__()
         self.branch1x1 = BasicConv2d(in_channels, 320, kernel_size=1)

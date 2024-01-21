@@ -24,28 +24,26 @@ class TransformAddNoise:
 
 class TestMetricsAll(TimeTrackingTestCase):
     def test_all(self):
-        cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
+        cuda = os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
 
         limit = 5000
-        input_1 = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-{limit}')
+        input_1 = os.path.join(tempfile.gettempdir(), f"cifar10-train-img-{limit}")
+        input_2 = os.path.join(tempfile.gettempdir(), f"cifar10-valid-img-{limit}")
 
         res = subprocess.run(
-            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', input_1,
-             '-l', str(limit)),
+            ("python3", "utils/util_dump_dataset_as_images.py", "cifar10-train", input_1, "-l", str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
         res = subprocess.run(
-            ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-valid', input_2,
-             '-l', str(limit)),
+            ("python3", "utils/util_dump_dataset_as_images.py", "cifar10-valid", input_2, "-l", str(limit)),
         )
         self.assertEqual(res.returncode, 0, msg=res)
 
         kwargs = {
-            'cuda': cuda,
-            'input1_cache_name': 'test_input_1',
-            'input2_cache_name': 'test_input_2',
-            'save_cpu_ram': True,
+            "cuda": cuda,
+            "input1_cache_name": "test_input_1",
+            "input2_cache_name": "test_input_2",
+            "save_cpu_ram": True,
         }
 
         all = calculate_metrics(input1=input_1, input2=input_2, isc=True, fid=True, kid=True, prc=True, **kwargs)
@@ -67,5 +65,5 @@ class TestMetricsAll(TimeTrackingTestCase):
         self.assertEqual(prc[KEY_METRIC_RECALL], all[KEY_METRIC_RECALL])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

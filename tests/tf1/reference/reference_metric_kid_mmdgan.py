@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 # InceptionV3 pretrained weights from TensorFlow models library
 #   Distributed under Apache License 2.0: https://github.com/tensorflow/models/blob/master/LICENSE
-URL_INCEPTION_V3 = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+URL_INCEPTION_V3 = "http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz"
 
 
 def glob_images_path(path, glob_recursively, verbose=False):
@@ -33,16 +33,18 @@ def glob_images_path(path, glob_recursively, verbose=False):
             continue
         for f in ff:
             ext = os.path.splitext(f)[1].lower()
-            if ext not in ('.png', '.jpg', '.jpeg'):
+            if ext not in (".png", ".jpg", ".jpeg"):
                 continue
-            if ext in ('.jpg', '.jpeg'):
+            if ext in (".jpg", ".jpeg"):
                 have_lossy = True
             files.append(os.path.realpath(os.path.join(r, f)))
     files = sorted(files)
     if verbose:
-        print(f'Found {len(files)} images in "{path}"'
-              f'{". Some images are lossy-compressed - this may affect metrics!" if have_lossy else ""}',
-              file=sys.stderr)
+        print(
+            f'Found {len(files)} images in "{path}"'
+            f'{". Some images are lossy-compressed - this may affect metrics!" if have_lossy else ""}',
+            file=sys.stderr,
+        )
     return files
 
 
@@ -52,22 +54,21 @@ class Inception(object):
         self.softmax_dim = 1008
         self.coder_dim = 2048
 
-        filename = URL_INCEPTION_V3.split('/')[-1]
+        filename = URL_INCEPTION_V3.split("/")[-1]
         filepath = os.path.join(MODEL_DIR, filename)
 
         if not os.path.exists(filepath):
             filepath, _ = request.urlretrieve(URL_INCEPTION_V3)
 
-        tarfile.open(filepath, 'r:gz').extractall(MODEL_DIR)
-        with tf.gfile.FastGFile(os.path.join(
-                MODEL_DIR, 'classify_image_graph_def.pb'), 'rb') as f:
+        tarfile.open(filepath, "r:gz").extractall(MODEL_DIR)
+        with tf.gfile.FastGFile(os.path.join(MODEL_DIR, "classify_image_graph_def.pb"), "rb") as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
-            tf.import_graph_def(graph_def, name='')
+            tf.import_graph_def(graph_def, name="")
 
         # Works with an arbitrary minibatch size.
         self.sess = sess = tf.Session()
-        pool3 = sess.graph.get_tensor_by_name('pool_3:0')
+        pool3 = sess.graph.get_tensor_by_name("pool_3:0")
         ops = pool3.graph.get_operations()
         for op_idx, op in enumerate(ops):
             for o in op.outputs:
@@ -81,10 +82,9 @@ class Inception(object):
                             new_shape.append(None)
                         else:
                             new_shape.append(s)
-                    o.__dict__['_shape_val'] = tf.TensorShape(new_shape)
+                    o.__dict__["_shape_val"] = tf.TensorShape(new_shape)
 
-        w = sess.graph.get_operation_by_name(
-            "softmax/logits/MatMul").inputs[1]
+        w = sess.graph.get_operation_by_name("softmax/logits/MatMul").inputs[1]
         self.coder = tf.squeeze(tf.squeeze(pool3, 2), 1)
         logits = tf.matmul(self.coder, w)
         self.softmax = tf.nn.softmax(logits)
@@ -92,45 +92,52 @@ class Inception(object):
         assert self.coder.get_shape()[1].value == self.coder_dim
         assert self.softmax.get_shape()[1].value == self.softmax_dim
 
-        self.input = 'ExpandDims:0'
+        self.input = "ExpandDims:0"
 
 
 class LeNet(object):
     def __init__(self):
-        MODEL_DIR = 'lenet/saved_model'
+        MODEL_DIR = "lenet/saved_model"
         self.softmax_dim = 10
         self.coder_dim = 512
 
         self.sess = sess = tf.Session()
 
-        tf.saved_model.loader.load(
-            sess, [tf.saved_model.tag_constants.TRAINING], MODEL_DIR)
+        tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.TRAINING], MODEL_DIR)
         g = sess.graph
 
-        self.softmax = g.get_tensor_by_name('Softmax_1:0')
-        self.coder = g.get_tensor_by_name('Relu_5:0')
+        self.softmax = g.get_tensor_by_name("Softmax_1:0")
+        self.coder = g.get_tensor_by_name("Relu_5:0")
 
         assert self.coder.get_shape()[1].value == self.coder_dim
         assert self.softmax.get_shape()[1].value == self.softmax_dim
-        self.input = 'Placeholder_2:0'
+        self.input = "Placeholder_2:0"
 
 
-def featurize(images, model, batch_size=100, transformer=np.asarray,
-              get_preds=True, get_codes=False,
-              out_preds=None, out_codes=None, verbose=False):
+def featurize(
+    images,
+    model,
+    batch_size=100,
+    transformer=np.asarray,
+    get_preds=True,
+    get_codes=False,
+    out_preds=None,
+    out_codes=None,
+    verbose=False,
+):
     """images: a list of numpy arrays with values in [0, 255]"""
     sub = transformer(images[:10])
     lo, hi = np.min(sub), np.max(sub)
-    assert(sub.ndim == 4)
+    assert sub.ndim == 4
     if isinstance(model, Inception):
         assert sub.shape[3] == 3
         if verbose and (hi > 255 or lo < 0):
-            print(f'WARNING! Inception min/max violated: min={lo}, max={hi}', file=sys.stderr)
+            print(f"WARNING! Inception min/max violated: min={lo}, max={hi}", file=sys.stderr)
     elif isinstance(model, LeNet):
         batch_size = 64
         assert sub.shape[3] == 1
-        if verbose and (hi > .5 or lo < -.5):
-            print(f'WARNING! LeNet min/max violated: min={lo}, max={hi}', file=sys.stderr)
+        if verbose and (hi > 0.5 or lo < -0.5):
+            print(f"WARNING! LeNet min/max violated: min={lo}, max={hi}", file=sys.stderr)
 
     n = len(images)
 
@@ -178,11 +185,10 @@ def featurize(images, model, batch_size=100, transformer=np.asarray,
     return ret
 
 
-def get_splits(n, splits=10, split_method='openai'):
-    if split_method == 'openai':
-        return [slice(i * n // splits, (i + 1) * n // splits)
-                for i in range(splits)]
-    elif split_method == 'bootstrap':
+def get_splits(n, splits=10, split_method="openai"):
+    if split_method == "openai":
+        return [slice(i * n // splits, (i + 1) * n // splits) for i in range(splits)]
+    elif split_method == "bootstrap":
         return [np.random.choice(n, n) for _ in range(splits)]
     else:
         raise ValueError("bad split_method {}".format(split_method))
@@ -207,7 +213,7 @@ def fid_score(codes_g, codes_r, eps=1e-6, **split_args):
     assert codes_r.shape[1] == d
 
     scores = np.zeros(len(splits_g))
-    with tqdm(splits_g, desc='FID') as bar:
+    with tqdm(splits_g, desc="FID") as bar:
         for i, (w_g, w_r) in enumerate(zip(bar, splits_r)):
             part_g = codes_g[w_g]
             part_r = codes_r[w_r]
@@ -224,21 +230,19 @@ def fid_score(codes_g, codes_r, eps=1e-6, **split_args):
                 cov_r[range(d), range(d)] += eps
                 covmean = linalg.sqrtm(cov_g.dot(cov_r))
 
-            scores[i] = np.sum((mn_g - mn_r) ** 2) + (
-                np.trace(cov_g) + np.trace(cov_r) - 2 * np.trace(covmean))
-            bar.set_postfix({'mean': scores[:i+1].mean()})
+            scores[i] = np.sum((mn_g - mn_r) ** 2) + (np.trace(cov_g) + np.trace(cov_r) - 2 * np.trace(covmean))
+            bar.set_postfix({"mean": scores[: i + 1].mean()})
     return scores
 
 
-def polynomial_mmd_averages(codes_g, codes_r, n_subsets=50, subset_size=1000,
-                            ret_var=True, **kernel_args):
+def polynomial_mmd_averages(codes_g, codes_r, n_subsets=50, subset_size=1000, ret_var=True, **kernel_args):
     m = min(codes_g.shape[0], codes_r.shape[0])
     mmds = np.zeros(n_subsets)
     if ret_var:
         vars = np.zeros(n_subsets)
     rng = np.random.RandomState(2020)
 
-    with tqdm(range(n_subsets), desc='MMD') as bar:
+    with tqdm(range(n_subsets), desc="MMD") as bar:
         for i in bar:
             g = codes_g[rng.choice(len(codes_g), subset_size, replace=False)]
             r = codes_r[rng.choice(len(codes_r), subset_size, replace=False)]
@@ -247,12 +251,11 @@ def polynomial_mmd_averages(codes_g, codes_r, n_subsets=50, subset_size=1000,
                 mmds[i], vars[i] = o
             else:
                 mmds[i] = o
-            bar.set_postfix({'mean': mmds[:i+1].mean()})
+            bar.set_postfix({"mean": mmds[: i + 1].mean()})
     return (mmds, vars) if ret_var else mmds
 
 
-def polynomial_mmd(codes_g, codes_r, degree=3, gamma=None, coef0=1,
-                   var_at_m=None, ret_var=True):
+def polynomial_mmd(codes_g, codes_r, degree=3, gamma=None, coef0=1, var_at_m=None, ret_var=True):
     # use  k(x, y) = (gamma <x, y> + coef0)^degree
     # default gamma is 1 / dim
     X = codes_g
@@ -262,8 +265,7 @@ def polynomial_mmd(codes_g, codes_r, degree=3, gamma=None, coef0=1,
     K_YY = polynomial_kernel(Y, degree=degree, gamma=gamma, coef0=coef0)
     K_XY = polynomial_kernel(X, Y, degree=degree, gamma=gamma, coef0=coef0)
 
-    return _mmd2_and_variance(K_XX, K_XY, K_YY,
-                              var_at_m=var_at_m, ret_var=ret_var)
+    return _mmd2_and_variance(K_XX, K_XY, K_YY, var_at_m=var_at_m, ret_var=ret_var)
 
 
 def _sqn(arr):
@@ -271,9 +273,9 @@ def _sqn(arr):
     return flat.dot(flat)
 
 
-def _mmd2_and_variance(K_XX, K_XY, K_YY, unit_diagonal=False,
-                       mmd_est='unbiased', block_size=1024,
-                       var_at_m=None, ret_var=True):
+def _mmd2_and_variance(
+    K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est="unbiased", block_size=1024, var_at_m=None, ret_var=True
+):
     # based on
     # https://github.com/dougalsutherland/opt-mmd/blob/master/two_sample/mmd.py
     # but changed to not compute the full kernel matrix at once
@@ -309,17 +311,15 @@ def _mmd2_and_variance(K_XX, K_XY, K_YY, unit_diagonal=False,
     Kt_YY_sum = Kt_YY_sums.sum()
     K_XY_sum = K_XY_sums_0.sum()
 
-    if mmd_est == 'biased':
-        mmd2 = ((Kt_XX_sum + sum_diag_X) / (m * m)
-                + (Kt_YY_sum + sum_diag_Y) / (m * m)
-                - 2 * K_XY_sum / (m * m))
+    if mmd_est == "biased":
+        mmd2 = (Kt_XX_sum + sum_diag_X) / (m * m) + (Kt_YY_sum + sum_diag_Y) / (m * m) - 2 * K_XY_sum / (m * m)
     else:
-        assert mmd_est in {'unbiased', 'u-statistic'}
-        mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m-1))
-        if mmd_est == 'unbiased':
+        assert mmd_est in {"unbiased", "u-statistic"}
+        mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m - 1))
+        if mmd_est == "unbiased":
             mmd2 -= 2 * K_XY_sum / (m * m)
         else:
-            mmd2 -= 2 * (K_XY_sum - np.trace(K_XY)) / (m * (m-1))
+            mmd2 -= 2 * (K_XY_sum - np.trace(K_XY)) / (m * (m - 1))
 
     if not ret_var:
         return mmd2
@@ -334,92 +334,88 @@ def _mmd2_and_variance(K_XX, K_XY, K_YY, unit_diagonal=False,
     m1 = m - 1
     m2 = m - 2
     zeta1_est = (
-        1 / (m * m1 * m2) * (
-            _sqn(Kt_XX_sums) - Kt_XX_2_sum + _sqn(Kt_YY_sums) - Kt_YY_2_sum)
-        - 1 / (m * m1)**2 * (Kt_XX_sum**2 + Kt_YY_sum**2)
-        + 1 / (m * m * m1) * (
-            _sqn(K_XY_sums_1) + _sqn(K_XY_sums_0) - 2 * K_XY_2_sum)
+        1 / (m * m1 * m2) * (_sqn(Kt_XX_sums) - Kt_XX_2_sum + _sqn(Kt_YY_sums) - Kt_YY_2_sum)
+        - 1 / (m * m1) ** 2 * (Kt_XX_sum**2 + Kt_YY_sum**2)
+        + 1 / (m * m * m1) * (_sqn(K_XY_sums_1) + _sqn(K_XY_sums_0) - 2 * K_XY_2_sum)
         - 2 / m**4 * K_XY_sum**2
         - 2 / (m * m * m1) * (dot_XX_XY + dot_YY_YX)
         + 2 / (m**3 * m1) * (Kt_XX_sum + Kt_YY_sum) * K_XY_sum
     )
     zeta2_est = (
         1 / (m * m1) * (Kt_XX_2_sum + Kt_YY_2_sum)
-        - 1 / (m * m1)**2 * (Kt_XX_sum**2 + Kt_YY_sum**2)
+        - 1 / (m * m1) ** 2 * (Kt_XX_sum**2 + Kt_YY_sum**2)
         + 2 / (m * m) * K_XY_2_sum
         - 2 / m**4 * K_XY_sum**2
         - 4 / (m * m * m1) * (dot_XX_XY + dot_YY_YX)
         + 4 / (m**3 * m1) * (Kt_XX_sum + Kt_YY_sum) * K_XY_sum
     )
-    var_est = (4 * (var_at_m - 2) / (var_at_m * (var_at_m - 1)) * zeta1_est
-               + 2 / (var_at_m * (var_at_m - 1)) * zeta2_est)
+    var_est = 4 * (var_at_m - 2) / (var_at_m * (var_at_m - 1)) * zeta1_est + 2 / (var_at_m * (var_at_m - 1)) * zeta2_est
 
     return mmd2, var_est
 
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('samples')
-    parser.add_argument('reference_feats', nargs='?')
-    parser.add_argument('--output', '-o')
+    parser.add_argument("samples")
+    parser.add_argument("reference_feats", nargs="?")
+    parser.add_argument("--output", "-o")
 
-    parser.add_argument('--reference-subset', default=slice(None),
-                        type=lambda x: slice(*(int(s) if s else None
-                                               for s in x.split(':'))))
+    parser.add_argument(
+        "--reference-subset", default=slice(None), type=lambda x: slice(*(int(s) if s else None for s in x.split(":")))
+    )
 
-    parser.add_argument('--batch-size', type=int, default=50)
+    parser.add_argument("--batch-size", type=int, default=50)
 
-    parser.add_argument('--model', choices=['inception', 'lenet'],
-                        default='inception')
+    parser.add_argument("--model", choices=["inception", "lenet"], default="inception")
 
-    parser.add_argument("--gpu", default='', type=str,
-                        help='GPU to use (leave blank for CPU only)')
-    parser.add_argument('--json', action='store_true',
-                        help='Print scores in JSON')
-    parser.add_argument('--determinism', action='store_true',
-                        help='Enforce determinism in TensorFlow to remove variance when running with the same inputs. '
-                             'Without it inception score varies between different runs on the same data (e.g. 7.86 +/- '
-                             '0.05). More information: https://github.com/NVIDIA/tensorflow-determinism')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='Verbose or silent progress bar and messages')
-
-    g = parser.add_mutually_exclusive_group()
-    g.add_argument('--save-codes')
-    g.add_argument('--load-codes')
+    parser.add_argument("--gpu", default="", type=str, help="GPU to use (leave blank for CPU only)")
+    parser.add_argument("--json", action="store_true", help="Print scores in JSON")
+    parser.add_argument(
+        "--determinism",
+        action="store_true",
+        help="Enforce determinism in TensorFlow to remove variance when running with the same inputs. "
+        "Without it inception score varies between different runs on the same data (e.g. 7.86 +/- "
+        "0.05). More information: https://github.com/NVIDIA/tensorflow-determinism",
+    )
+    parser.add_argument("-s", "--silent", action="store_true", help="Verbose or silent progress bar and messages")
 
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--save-preds')
-    g.add_argument('--load-preds')
+    g.add_argument("--save-codes")
+    g.add_argument("--load-codes")
 
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--do-inception', action='store_true', default=True)
-    g.add_argument('--no-inception', action='store_false', dest='do_inception')
+    g.add_argument("--save-preds")
+    g.add_argument("--load-preds")
 
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--do-fid', action='store_true', default=False)
-    g.add_argument('--no-fid', action='store_false', dest='do_fid')
+    g.add_argument("--do-inception", action="store_true", default=True)
+    g.add_argument("--no-inception", action="store_false", dest="do_inception")
 
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--do-mmd', action='store_true', default=False)
-    g.add_argument('--no-mmd', action='store_false', dest='do_mmd')
-    parser.add_argument('--mmd-degree', type=int, default=3)
-    parser.add_argument('--mmd-gamma', type=float, default=None)
-    parser.add_argument('--mmd-coef0', type=float, default=1)
+    g.add_argument("--do-fid", action="store_true", default=False)
+    g.add_argument("--no-fid", action="store_false", dest="do_fid")
 
-    parser.add_argument('--mmd-subsets', type=int, default=100)
-    parser.add_argument('--mmd-subset-size', type=int, default=1000)
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--mmd-var', action='store_true', default=False)
-    g.add_argument('--no-mmd-var', action='store_false', dest='mmd_var')
+    g.add_argument("--do-mmd", action="store_true", default=False)
+    g.add_argument("--no-mmd", action="store_false", dest="do_mmd")
+    parser.add_argument("--mmd-degree", type=int, default=3)
+    parser.add_argument("--mmd-gamma", type=float, default=None)
+    parser.add_argument("--mmd-coef0", type=float, default=1)
 
-    parser.add_argument('--splits', type=int, default=10)
-    parser.add_argument('--split-method', choices=['openai', 'bootstrap'],
-                        default='openai')
+    parser.add_argument("--mmd-subsets", type=int, default=100)
+    parser.add_argument("--mmd-subset-size", type=int, default=1000)
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument("--mmd-var", action="store_true", default=False)
+    g.add_argument("--no-mmd-var", action="store_false", dest="mmd_var")
+
+    parser.add_argument("--splits", type=int, default=10)
+    parser.add_argument("--split-method", choices=["openai", "bootstrap"], default="openai")
 
     args = parser.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     if args.determinism:
         with redirect_stdout(sys.stderr):
@@ -440,69 +436,70 @@ def main():
 
     if os.path.isdir(args.samples):
         files = glob_images_path(args.samples, glob_recursively=False, verbose=not args.silent)
-        samples = [np.expand_dims(np.array(Image.open(f).convert('RGB')), 0) for f in files]
+        samples = [np.expand_dims(np.array(Image.open(f).convert("RGB")), 0) for f in files]
         samples = np.concatenate(samples)
     else:
-        samples = np.load(args.samples, mmap_mode='r')
+        samples = np.load(args.samples, mmap_mode="r")
 
-    if args.model == 'inception':
+    if args.model == "inception":
         model = Inception()
         if samples.dtype == np.uint8:
             transformer = np.asarray
         elif samples.dtype == np.float32:
             m = samples[:10].max()
-            assert .5 <= m <= 1
+            assert 0.5 <= m <= 1
             transformer = lambda x: x * 255
         else:
             raise TypeError("don't know how to handle {}".format(samples.dtype))
-    elif args.model == 'lenet':
+    elif args.model == "lenet":
         model = LeNet()
         if samples.dtype == np.uint8:
+
             def transformer(x):
-                return (np.asarray(x, dtype=np.float32) - (255 / 2.)) / 255
+                return (np.asarray(x, dtype=np.float32) - (255 / 2.0)) / 255
+
         elif samples.dtype == np.float32:
-            assert .8 <= samples[:10].max() <= 1
-            assert 0 <= samples[:10].min() <= .3
-            transformer = lambda x: x - .5
+            assert 0.8 <= samples[:10].max() <= 1
+            assert 0 <= samples[:10].min() <= 0.3
+            transformer = lambda x: x - 0.5
         else:
             raise TypeError("don't know how to handle {}".format(samples.dtype))
     else:
         raise ValueError("bad model {}".format(args.model))
 
     if args.reference_feats:
-        ref_feats = np.load(args.reference_feats, mmap_mode='r')[
-                args.reference_subset]
+        ref_feats = np.load(args.reference_feats, mmap_mode="r")[args.reference_subset]
 
     out_kw = {}
     if args.save_codes:
         check_path(args.save_codes)
-        out_kw['out_codes'] = np.lib.format.open_memmap(
-            args.save_codes, mode='w+', dtype=np.float32,
-            shape=(samples.shape[0], model.coder_dim))
+        out_kw["out_codes"] = np.lib.format.open_memmap(
+            args.save_codes, mode="w+", dtype=np.float32, shape=(samples.shape[0], model.coder_dim)
+        )
     if args.save_preds:
         check_path(args.save_preds)
-        out_kw['out_preds'] = np.lib.format.open_memmap(
-            args.save_preds, mode='w+', dtype=np.float32,
-            shape=(samples.shape[0], model.softmax_dim))
+        out_kw["out_preds"] = np.lib.format.open_memmap(
+            args.save_preds, mode="w+", dtype=np.float32, shape=(samples.shape[0], model.softmax_dim)
+        )
 
     need_preds = args.do_inception or args.save_preds
     need_codes = args.do_fid or args.do_mmd or args.save_codes
 
     if not args.silent:
         print(
-            'Transformer test: transformer([-1, 0, 10.]) = ' + repr(transformer(np.array([-1, 0, 10.]))),
-            file=sys.stderr
+            "Transformer test: transformer([-1, 0, 10.]) = " + repr(transformer(np.array([-1, 0, 10.0]))),
+            file=sys.stderr,
         )
 
     if args.load_codes or args.load_preds:
         if args.load_codes:
-            codes = np.load(args.load_codes, mmap_mode='r')
+            codes = np.load(args.load_codes, mmap_mode="r")
             assert codes.ndim == 2
             assert codes.shape[0] == samples.shape[0]
             assert codes.shape[1] == model.coder_dim
 
         if args.load_preds:
-            preds = np.load(args.load_preds, mmap_mode='r')
+            preds = np.load(args.load_preds, mmap_mode="r")
             assert preds.ndim == 2
             assert preds.shape[0] == samples.shape[0]
             assert preds.shape[1] == model.softmax_dim
@@ -510,60 +507,73 @@ def main():
             raise NotImplementedError()
     else:
         out = featurize(
-            samples, model, batch_size=args.batch_size, transformer=transformer,
-            get_preds=need_preds, get_codes=need_codes, verbose=not args.silent, **out_kw)
+            samples,
+            model,
+            batch_size=args.batch_size,
+            transformer=transformer,
+            get_preds=need_preds,
+            get_codes=need_codes,
+            verbose=not args.silent,
+            **out_kw,
+        )
         if need_preds:
             preds = out[0]
         if need_codes:
             codes = out[-1]
 
-    split_args = {'splits': args.splits, 'split_method': args.split_method}
+    split_args = {"splits": args.splits, "split_method": args.split_method}
 
-    output = {'args': args}
+    output = {"args": args}
 
     metrics_json = {}
 
     if args.do_inception:
-        output['inception'] = scores = inception_score(preds, **split_args)
+        output["inception"] = scores = inception_score(preds, **split_args)
         if args.json:
-            metrics_json['inception_score_mean'] = float(np.mean(scores))
-            metrics_json['inception_score_std'] = float(np.std(scores))
+            metrics_json["inception_score_mean"] = float(np.mean(scores))
+            metrics_json["inception_score_std"] = float(np.std(scores))
         else:
             print("Inception mean:", np.mean(scores))
             print("Inception std:", np.std(scores))
-            print("Inception scores:", scores, sep='\n')
+            print("Inception scores:", scores, sep="\n")
 
     if args.do_fid:
-        output['fid'] = scores = fid_score(codes, ref_feats, **split_args)
+        output["fid"] = scores = fid_score(codes, ref_feats, **split_args)
         if args.json:
-            metrics_json['frechet_inception_distance'] = float(np.mean(scores))
+            metrics_json["frechet_inception_distance"] = float(np.mean(scores))
         else:
             print("FID mean:", np.mean(scores))
             print("FID std:", np.std(scores))
-            print("FID scores:", scores, sep='\n')
+            print("FID scores:", scores, sep="\n")
             print()
 
     if args.do_mmd:
         ret = polynomial_mmd_averages(
-            codes, ref_feats, degree=args.mmd_degree, gamma=args.mmd_gamma,
-            coef0=args.mmd_coef0, ret_var=args.mmd_var,
-            n_subsets=args.mmd_subsets, subset_size=args.mmd_subset_size)
+            codes,
+            ref_feats,
+            degree=args.mmd_degree,
+            gamma=args.mmd_gamma,
+            coef0=args.mmd_coef0,
+            ret_var=args.mmd_var,
+            n_subsets=args.mmd_subsets,
+            subset_size=args.mmd_subset_size,
+        )
         if args.mmd_var:
-            output['mmd2'], output['mmd2_var'] = mmd2s, vars = ret
+            output["mmd2"], output["mmd2_var"] = mmd2s, vars = ret
         else:
-            output['mmd2'] = mmd2s = ret
+            output["mmd2"] = mmd2s = ret
         if args.json:
-            metrics_json['kernel_inception_distance_mean'] = float(mmd2s.mean())
-            metrics_json['kernel_inception_distance_std'] = float(mmd2s.std())
+            metrics_json["kernel_inception_distance_mean"] = float(mmd2s.mean())
+            metrics_json["kernel_inception_distance_std"] = float(mmd2s.std())
         else:
             print("mean MMD^2 estimate:", mmd2s.mean())
             print("std MMD^2 estimate:", mmd2s.std())
-            print("MMD^2 estimates:", mmd2s, sep='\n')
+            print("MMD^2 estimates:", mmd2s, sep="\n")
             print()
             if args.mmd_var:
                 print("mean Var[MMD^2] estimate:", vars.mean())
                 print("std Var[MMD^2] estimate:", vars.std())
-                print("Var[MMD^2] estimates:", vars, sep='\n')
+                print("Var[MMD^2] estimates:", vars, sep="\n")
                 print()
 
     if args.output:
@@ -573,5 +583,5 @@ def main():
         print(json.dumps(metrics_json, indent=4))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

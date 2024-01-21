@@ -1,23 +1,31 @@
 from torch_fidelity.helpers import get_kwarg, vassert, vprint
-from torch_fidelity.metric_fid import fid_inputs_to_metric, fid_featuresdict_to_statistics_cached, \
-    fid_statistics_to_metric
+from torch_fidelity.metric_fid import (
+    fid_inputs_to_metric,
+    fid_featuresdict_to_statistics_cached,
+    fid_statistics_to_metric,
+)
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
 from torch_fidelity.metric_prc import prc_featuresdict_to_metric
 from torch_fidelity.metric_ppl import calculate_ppl
-from torch_fidelity.utils import create_feature_extractor, extract_featuresdict_from_input_id_cached, \
-    get_cacheable_input_name, resolve_feature_extractor, resolve_feature_layer_for_metric
+from torch_fidelity.utils import (
+    create_feature_extractor,
+    extract_featuresdict_from_input_id_cached,
+    get_cacheable_input_name,
+    resolve_feature_extractor,
+    resolve_feature_layer_for_metric,
+)
 
 
 def calculate_metrics_one_feature_extractor(**kwargs):
-    verbose = get_kwarg('verbose', kwargs)
-    input1, input2 = get_kwarg('input1', kwargs), get_kwarg('input2', kwargs)
+    verbose = get_kwarg("verbose", kwargs)
+    input1, input2 = get_kwarg("input1", kwargs), get_kwarg("input2", kwargs)
 
-    have_isc = get_kwarg('isc', kwargs)
-    have_fid = get_kwarg('fid', kwargs)
-    have_kid = get_kwarg('kid', kwargs)
-    have_prc = get_kwarg('prc', kwargs)
-    have_ppl = get_kwarg('ppl', kwargs)
+    have_isc = get_kwarg("isc", kwargs)
+    have_fid = get_kwarg("fid", kwargs)
+    have_kid = get_kwarg("kid", kwargs)
+    have_prc = get_kwarg("prc", kwargs)
+    have_ppl = get_kwarg("ppl", kwargs)
 
     have_unary = have_isc or have_ppl
     have_binary = have_fid or have_kid or have_prc
@@ -28,9 +36,9 @@ def calculate_metrics_one_feature_extractor(**kwargs):
     need_input1 = True
     need_input2 = have_binary
 
-    vassert(have_any, 'At least one metric must be specified')
-    vassert(input1 is not None or not need_input1, 'First input is required for all metrics')
-    vassert(input2 is not None or not need_input2, 'Second input is required for binary metrics')
+    vassert(have_any, "At least one metric must be specified")
+    vassert(input1 is not None or not need_input1, "First input is required for all metrics")
+    vassert(input2 is not None or not need_input2, "Second input is required for binary metrics")
 
     metrics = {}
 
@@ -39,16 +47,16 @@ def calculate_metrics_one_feature_extractor(**kwargs):
         feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
         feature_layers = set()
         if have_isc:
-            feature_layer_isc = resolve_feature_layer_for_metric('isc', **kwargs)
+            feature_layer_isc = resolve_feature_layer_for_metric("isc", **kwargs)
             feature_layers.add(feature_layer_isc)
         if have_fid:
-            feature_layer_fid = resolve_feature_layer_for_metric('fid', **kwargs)
+            feature_layer_fid = resolve_feature_layer_for_metric("fid", **kwargs)
             feature_layers.add(feature_layer_fid)
         if have_kid:
-            feature_layer_kid = resolve_feature_layer_for_metric('kid', **kwargs)
+            feature_layer_kid = resolve_feature_layer_for_metric("kid", **kwargs)
             feature_layers.add(feature_layer_kid)
         if have_prc:
-            feature_layer_prc = resolve_feature_layer_for_metric('prc', **kwargs)
+            feature_layer_prc = resolve_feature_layer_for_metric("prc", **kwargs)
             feature_layers.add(feature_layer_prc)
 
         feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
@@ -63,11 +71,11 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             metrics.update(metric_fid)
             return metrics
 
-        vprint(verbose, f'Extracting features from input1')
+        vprint(verbose, f"Extracting features from input1")
         featuresdict_1 = extract_featuresdict_from_input_id_cached(1, feat_extractor, **kwargs)
         featuresdict_2 = None
         if input2 is not None:
-            vprint(verbose, f'Extracting features from input2')
+            vprint(verbose, f"Extracting features from input2")
             featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
 
         if have_isc:
@@ -83,7 +91,7 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             fid_stats_2 = fid_featuresdict_to_statistics_cached(
                 featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
             )
-            metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg('verbose', kwargs))
+            metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg("verbose", kwargs))
             metrics.update(metric_fid)
 
         if have_kid:
@@ -308,11 +316,11 @@ def calculate_metrics(**kwargs):
             - :const:`torch_fidelity.KEY_METRIC_F_SCORE`
     """
 
-    have_isc = get_kwarg('isc', kwargs)
-    have_fid = get_kwarg('fid', kwargs)
-    have_kid = get_kwarg('kid', kwargs)
-    have_prc = get_kwarg('prc', kwargs)
-    fe_name = get_kwarg('feature_extractor', kwargs)
+    have_isc = get_kwarg("isc", kwargs)
+    have_fid = get_kwarg("fid", kwargs)
+    have_kid = get_kwarg("kid", kwargs)
+    have_prc = get_kwarg("prc", kwargs)
+    fe_name = get_kwarg("feature_extractor", kwargs)
 
     have_default_fe_inception = have_isc or have_fid or have_kid
     have_default_fe_vgg = have_prc
@@ -323,13 +331,13 @@ def calculate_metrics(**kwargs):
 
     out = {}
     kwargs_subset = dict(**kwargs)
-    kwargs_subset['prc'] = False
+    kwargs_subset["prc"] = False
     out.update(calculate_metrics_one_feature_extractor(**kwargs_subset))
     kwargs_subset = dict(**kwargs)
-    kwargs_subset['isc'] = False
-    kwargs_subset['fid'] = False
-    kwargs_subset['kid'] = False
-    kwargs_subset['ppl'] = False
+    kwargs_subset["isc"] = False
+    kwargs_subset["fid"] = False
+    kwargs_subset["kid"] = False
+    kwargs_subset["ppl"] = False
     out.update(calculate_metrics_one_feature_extractor(**kwargs_subset))
 
     return out

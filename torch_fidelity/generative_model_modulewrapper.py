@@ -34,10 +34,10 @@ class GenerativeModelModuleWrapper(GenerativeModelBase):
                 Default: `None`.
         """
         super().__init__()
-        vassert(isinstance(module, torch.nn.Module), 'Not an instance of torch.nn.Module')
-        vassert(type(z_size) is int and z_size > 0, 'z_size must be a positive integer')
-        vassert(z_type in ('normal', 'unit', 'uniform_0_1'), f'z_type={z_type} not implemented')
-        vassert(type(num_classes) is int and num_classes >= 0, 'num_classes must be a non-negative integer')
+        vassert(isinstance(module, torch.nn.Module), "Not an instance of torch.nn.Module")
+        vassert(type(z_size) is int and z_size > 0, "z_size must be a positive integer")
+        vassert(z_type in ("normal", "unit", "uniform_0_1"), f"z_type={z_type} not implemented")
+        vassert(type(num_classes) is int and num_classes >= 0, "num_classes must be a non-negative integer")
         self.module = module
         if make_copy:
             self.module = copy.deepcopy(self.module)

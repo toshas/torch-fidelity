@@ -49,8 +49,11 @@ class TestConvolution(TimeTrackingTestCase):
     def forward_pt_manualhwc(conv, x):
         y_height, y_width = TestConvolution.calc_output_dims(conv, x)
         x = F.unfold(x, conv.kernel_size, conv.dilation, conv.padding, conv.stride)
-        x = x.view(x.shape[0], conv.in_channels, *conv.kernel_size, x.shape[2]).permute(0, 2, 3, 1, 4).reshape(
-            x.shape[0], -1, x.shape[2])
+        x = (
+            x.view(x.shape[0], conv.in_channels, *conv.kernel_size, x.shape[2])
+            .permute(0, 2, 3, 1, 4)
+            .reshape(x.shape[0], -1, x.shape[2])
+        )
         w = conv.weight.permute(0, 2, 3, 1).reshape(1, conv.weight.shape[0], -1)
         y = w.bmm(x)
         y = y.view(y.shape[0], y.shape[1], y_height, y_width)
@@ -65,20 +68,18 @@ class TestConvolution(TimeTrackingTestCase):
     @staticmethod
     def forward_tf(conv_pt, x_pt):
         x_tf = x_pt.permute(0, 2, 3, 1).cpu().numpy()  # B x H x W x C
-        weight_tf = conv_pt.weight.permute(2, 3, 1, 0).cpu().numpy()   # K x K x C_in x C_out
+        weight_tf = conv_pt.weight.permute(2, 3, 1, 0).cpu().numpy()  # K x K x C_in x C_out
         with tf.Session() as sess:
             with tf.variable_scope("test", reuse=tf.AUTO_REUSE):
                 kernel = tf.get_variable(
-                    initializer=tf.constant_initializer(weight_tf),
-                    shape=weight_tf.shape,
-                    name='kernel'
+                    initializer=tf.constant_initializer(weight_tf), shape=weight_tf.shape, name="kernel"
                 )
-            x = tf.placeholder(tf.float32, shape=x_tf.shape, name='x')
+            x = tf.placeholder(tf.float32, shape=x_tf.shape, name="x")
             op = tf.nn.conv2d(
                 x,
                 kernel,
                 strides=conv_pt.stride,
-                padding='VALID' if conv_pt.padding[0] == 0 else 'SAME',
+                padding="VALID" if conv_pt.padding[0] == 0 else "SAME",
                 dilations=conv_pt.dilation,
             )
             sess.run(tf.global_variables_initializer())
@@ -87,7 +88,7 @@ class TestConvolution(TimeTrackingTestCase):
         return out
 
     def estimate_implementation_exactness(self, cuda):
-        model_pt = create_feature_extractor('inception-v3-compat', ['2048'], cuda=cuda)
+        model_pt = create_feature_extractor("inception-v3-compat", ["2048"], cuda=cuda)
         conv_pt = model_pt.Conv2d_1a_3x3.conv
 
         batch_size = 1
@@ -95,7 +96,7 @@ class TestConvolution(TimeTrackingTestCase):
         # conv_pt.weight.data = conv_pt.weight[0:keep_filters]
         # conv_pt.out_channels = keep_filters
 
-        ds = prepare_input_from_id('cifar10-train', datasets_root=tempfile.gettempdir())
+        ds = prepare_input_from_id("cifar10-train", datasets_root=tempfile.gettempdir())
         rng = np.random.RandomState(2020)
         x_pt = torch.cat([ds[i].unsqueeze(0) for i in rng.choice(len(ds), batch_size, replace=False)], dim=0)
         if cuda:
@@ -117,27 +118,27 @@ class TestConvolution(TimeTrackingTestCase):
 
         suffix = f'convolution_{"gpu" if cuda else "cpu"}'
 
-        self.save(out_tf, f'{suffix}_conv_tf.png')
-        self.save(out_pt_builtin, f'{suffix}_conv_pt_builtin.png')
-        self.save(err_abs_tf_pt_builtin, f'{suffix}_err_abs_tf_pt_builtin.png')
-        self.save(err_abs_tf_pt_manualchw, f'{suffix}_err_abs_tf_pt_manualchw.png')
-        self.save(err_abs_tf_pt_manualhwc, f'{suffix}_err_abs_tf_pt_manualhwc.png')
-        self.save(err_abs_pt_builtin_manualchw, f'{suffix}_err_abs_pt_builtin_manualchw.png')
-        self.save(err_abs_pt_builtin_manualhwc, f'{suffix}_err_abs_pt_builtin_manualhwc.png')
+        self.save(out_tf, f"{suffix}_conv_tf.png")
+        self.save(out_pt_builtin, f"{suffix}_conv_pt_builtin.png")
+        self.save(err_abs_tf_pt_builtin, f"{suffix}_err_abs_tf_pt_builtin.png")
+        self.save(err_abs_tf_pt_manualchw, f"{suffix}_err_abs_tf_pt_manualchw.png")
+        self.save(err_abs_tf_pt_manualhwc, f"{suffix}_err_abs_tf_pt_manualhwc.png")
+        self.save(err_abs_pt_builtin_manualchw, f"{suffix}_err_abs_pt_builtin_manualchw.png")
+        self.save(err_abs_pt_builtin_manualhwc, f"{suffix}_err_abs_pt_builtin_manualhwc.png")
 
         flipping_pixel_err_abs = err_abs_tf_pt_builtin[0, 0, -1, -1].item()
-        print(f'{suffix}_bottom_right_flipping_pixel_err_abs={flipping_pixel_err_abs}', file=sys.stderr)
+        print(f"{suffix}_bottom_right_flipping_pixel_err_abs={flipping_pixel_err_abs}", file=sys.stderr)
 
         err_abs = err_abs_tf_pt_builtin.max().item()
-        print(f'{suffix}_max_pixelwise_err_abs={err_abs}', file=sys.stderr)
+        print(f"{suffix}_max_pixelwise_err_abs={err_abs}", file=sys.stderr)
 
         err_rel = err_abs / out_tf.abs().max().clamp_min(1e-9).item()
-        print(f'{suffix}_max_pixelwise_err_rel={err_rel}', file=sys.stderr)
+        print(f"{suffix}_max_pixelwise_err_rel={err_rel}", file=sys.stderr)
 
         return err_rel
 
     def test_convolution(self):
-        cuda = os.environ.get('CUDA_VISIBLE_DEVICES', '') != ''
+        cuda = os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
 
         err_rel = self.estimate_implementation_exactness(cuda)
         if cuda:
@@ -147,7 +148,7 @@ class TestConvolution(TimeTrackingTestCase):
             self.assertLess(err_rel, 1e-7)
 
         if cuda:
-            print('ENABLING TENSORFLOW DETERMINISM', file=sys.stderr)
+            print("ENABLING TENSORFLOW DETERMINISM", file=sys.stderr)
             with redirect_stdout(sys.stderr):
                 patch_tensorflow_for_determinism()
 
@@ -155,5 +156,5 @@ class TestConvolution(TimeTrackingTestCase):
             self.assertLess(err_rel, 1e-6)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
