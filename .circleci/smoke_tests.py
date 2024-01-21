@@ -29,8 +29,8 @@ class SmokeTests(TimeTrackingTestCase):
         path_input2 = "cifar10-valid-256"
 
         try:
-            print(f'Setting up torch={version_torch} torchvision={version_torchvision}')
-            res = os.system(f'pip3 install -U torch{version_torch} torchvision{version_torchvision}')
+            print(f'Setting up torch{version_torch} torchvision{version_torchvision}')
+            res = os.system(f'bash -c "pip3 install -U torch{version_torch} torchvision{version_torchvision}"')
             self.assertEqual(res, 0, msg=res)
 
             if not (os.path.isdir(path_input1) and os.path.isdir(path_input2)):
