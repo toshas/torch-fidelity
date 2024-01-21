@@ -7,7 +7,7 @@ executors:
     working_directory: /tmp
 
 jobs:
-  venv:
+  smoke_tests:
     executor: executor_python
     steps:
       - checkout:
@@ -23,32 +23,15 @@ jobs:
             mkdir -p data
             python3 code/utils/util_dump_dataset_as_images.py cifar10-train data/cifar10-train-256 -l 256
             python3 code/utils/util_dump_dataset_as_images.py cifar10-valid data/cifar10-valid-256 -l 256
-      - persist_to_workspace:
-          root: .
-          paths:
-            - code
-            - data
-  smoke_tests:
-    executor: executor_python
-    steps:
-      - attach_workspace:
-          at: .
       - run:
           name: Smoke tests
           command: |
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./.circleci/smoke_tests.py
 
-aliases:
-  - &jobs_all_tests
-    - venv
-    - smoke_tests:
-        requires:
-          - venv
-
 workflows:
   version: 2
   venv_and_tests:
-    jobs: *jobs_all_tests
+    jobs: jobs
   mondays:
     triggers:
       - schedule:
@@ -57,4 +40,4 @@ workflows:
             branches:
               only:
                 - master
-    jobs: *jobs_all_tests
+    jobs: jobs
