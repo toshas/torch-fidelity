@@ -18,6 +18,7 @@ class SmokeTests(TimeTrackingTestCase):
                     '--input1', path_input1,
                     '--input2', path_input2,
                     '--isc', '--fid', '--kid', '--prc',
+                    '--kid-subset-size', '64',
                     '--silent',
                     '--json',
             ),
@@ -43,7 +44,6 @@ class SmokeTests(TimeTrackingTestCase):
             (
                 'python3', '-m', 'torch_fidelity.fidelity',
                     '--input1', path_input1,
-                    '--gpu', '0',
                     '--isc',
                     '--silent',
                     '--json',
@@ -65,7 +65,6 @@ class SmokeTests(TimeTrackingTestCase):
             (
                 'python3', '-m', 'torch_fidelity.fidelity',
                     '--input1', path_input1,
-                    '--gpu', '0',
                     '--isc',
                     '--silent',
                     '--json',
