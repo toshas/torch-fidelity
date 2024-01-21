@@ -28,7 +28,7 @@ class TestMetricsAll(TimeTrackingTestCase):
 
         limit = 5000
         input_1 = os.path.join(tempfile.gettempdir(), f'cifar10-train-img-{limit}')
-        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-noise-{limit}')
+        input_2 = os.path.join(tempfile.gettempdir(), f'cifar10-valid-img-{limit}')
 
         res = subprocess.run(
             ('python3', 'utils/util_dump_dataset_as_images.py', 'cifar10-train', input_1,

@@ -52,7 +52,7 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         warnings.filterwarnings("ignore", message="'torch.load' received a zip file that looks like a TorchScript "
                                                   "archive dispatching to 'torch.jit.load'")
         if feature_extractor_weights_path is None:
-            self.model = torchvision_load_pretrained_vgg16()
+            self.model = torchvision_load_pretrained_vgg16(**kwargs)
         else:
             state_dict = torch.load(feature_extractor_weights_path)
             self.model = torchvision.models.vgg16()
