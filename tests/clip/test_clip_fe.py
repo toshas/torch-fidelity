@@ -22,6 +22,7 @@ class TestMetricFidClipFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_fidelity_fid(input_1, input_2, cuda):
         args = [
+            # fmt: off
             "python3", "-m", "torch_fidelity.fidelity",
             "--fid",
             "--json",
@@ -29,6 +30,7 @@ class TestMetricFidClipFidelity(TimeTrackingTestCase):
             "--feature-extractor", "clip-vit-b-32",
             "--input1", input_1,
             "--input2", input_2,
+            # fmt: on
         ]
         if cuda:
             args += ["-g", "0"]
@@ -43,21 +45,25 @@ class TestMetricFidClipFidelity(TimeTrackingTestCase):
 
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "utils/util_dump_dataset_as_images.py",
                 "cifar10-train",
                 cifar10train_root,
                 "-l", str(limit),
                 "-r", "224",
+                # fmt: on
             ),
         )
         self.assertEqual(res.returncode, 0, msg=res)
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "utils/util_dump_dataset_as_images.py",
                 "cifar10-valid",
                 cifar10valid_root,
                 "-l", str(limit),
                 "-r", "224",
+                # fmt: on
             ),
         )
         self.assertEqual(res.returncode, 0, msg=res)

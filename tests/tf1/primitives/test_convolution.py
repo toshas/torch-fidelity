@@ -30,10 +30,10 @@ class TestConvolution(TimeTrackingTestCase):
 
     @staticmethod
     def calc_output_dims(conv, x):
-        y_height = \
-            (x.shape[2] + 2 * conv.padding[0] - conv.dilation[0] * (conv.kernel_size[0] - 1) - 1) // conv.stride[0] + 1
-        y_width = \
-            (x.shape[3] + 2 * conv.padding[1] - conv.dilation[1] * (conv.kernel_size[1] - 1) - 1) // conv.stride[1] + 1
+        y_height = (x.shape[2] + 2 * conv.padding[0] - conv.dilation[0] * (conv.kernel_size[0] - 1) - 1) // \
+                   conv.stride[0] + 1  # fmt: skip
+        y_width = (x.shape[3] + 2 * conv.padding[1] - conv.dilation[1] * (conv.kernel_size[1] - 1) - 1) // \
+                  conv.stride[1] + 1  # fmt: skip
         return y_height, y_width
 
     @staticmethod

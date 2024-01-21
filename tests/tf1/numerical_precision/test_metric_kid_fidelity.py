@@ -13,11 +13,13 @@ class TestMetricKidFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_ref_kid(input_1, input_2, cuda, determinism):
         args = [
+            # fmt: off
             "python3", "tests/tf1/reference/reference_metric_kid_mmdgan.py",
             input_1,
             input_2,
             "--no-inception",
             "--do-mmd",
+            # fmt: on
         ]
         if cuda:
             args.append("--gpu")
@@ -32,12 +34,14 @@ class TestMetricKidFidelity(TimeTrackingTestCase):
     @staticmethod
     def call_fidelity_kid(input_1, input_2):
         args = [
+            # fmt: off
             "python3", "-m", "torch_fidelity.fidelity",
             "--kid",
             "--json",
             "--save-cpu-ram",
             "--input1", input_1,
             "--input2", input_2,
+            # fmt: on
         ]
         res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return res
@@ -51,20 +55,24 @@ class TestMetricKidFidelity(TimeTrackingTestCase):
 
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "utils/util_dump_dataset_as_images.py",
                 "cifar10-train",
                 cifar10trainorig_root,
                 "-l", str(limit),
+                # fmt: on
             ),
         )
         self.assertEqual(res.returncode, 0, msg=res)
         res = subprocess.run(
             (
+                # fmt: off
                 "python3", "utils/util_dump_dataset_as_images.py",
                 "cifar10-valid",
                 cifar10validnoise_root,
                 "-l", str(limit),
                 "-n",
+                # fmt: on
             ),
         )
         self.assertEqual(res.returncode, 0, msg=res)
@@ -72,10 +80,12 @@ class TestMetricKidFidelity(TimeTrackingTestCase):
         # this partucular reference app needs features pre-extracted
         if not os.path.exists(cifar10trainorig_codes):
             args = [
+                # fmt: off
                 "python3", "tests/tf1/reference/reference_metric_kid_mmdgan.py",
                 cifar10trainorig_root,
                 "--save-codes", cifar10trainorig_codes,
                 "--determinism",
+                # fmt: on
             ]
             if cuda:
                 args.append("--gpu")
