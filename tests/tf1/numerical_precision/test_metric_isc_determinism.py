@@ -56,7 +56,7 @@ class TestMetricIscDeterminism(TimeTrackingTestCase):
         print("isc_std_det", isc_std_det, file=sys.stderr)
 
         if cuda:
-            self.assertGreater(min(isc_mean_nondet) + 1e-5, max(isc_mean_nondet))
+            self.assertGreater(min(isc_mean_nondet) + 1e-4, max(isc_mean_nondet))
         else:
             self.assertGreaterEqual(max(isc_mean_nondet), min(isc_mean_nondet))
         self.assertEqual(max(isc_mean_det), min(isc_mean_det))

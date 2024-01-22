@@ -3,11 +3,11 @@
 #   https://github.com/openai/CLIP/blob/main/clip/clip.py  (c5478aa on Jul 27, 2022)
 #   Distributed under MIT License: https://github.com/openai/CLIP/blob/main/LICENSE
 import sys
+import time
 import warnings
 from collections import OrderedDict
 from contextlib import redirect_stdout
 from typing import Tuple, Union
-from distutils.version import LooseVersion
 
 import torch
 import torch.nn.functional as F
@@ -16,7 +16,7 @@ from torch import nn
 from torch.hub import load_state_dict_from_url
 
 from torch_fidelity.feature_extractor_base import FeatureExtractorBase
-from torch_fidelity.helpers import vassert, text_to_dtype, get_kwarg
+from torch_fidelity.helpers import vassert, vprint, text_to_dtype, get_kwarg
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
 MODEL_BASE_URL = "https://openaipublic.azureedge.net/clip/models/"
@@ -460,20 +460,29 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         )
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
+        model_jit = None
         if feature_extractor_weights_path is None:
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-            check_hash = LooseVersion(torch.__version__) >= LooseVersion("1.7.1")
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore", message="'torch.load' received a zip file that looks like a TorchScript archive"
                 )
-                model_jit = load_state_dict_from_url(
-                    MODEL_URLS[name],
-                    map_location="cpu",
-                    progress=get_kwarg("verbose", kwargs),
-                    check_hash=check_hash,
-                    file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
-                )
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                for attempt in range(10):
+                    try:
+                        model_jit = load_state_dict_from_url(
+                            MODEL_URLS[name],
+                            map_location="cpu",
+                            progress=get_kwarg("verbose", kwargs),
+                            check_hash=True,
+                            file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
+                        )
+                        break
+                    except RuntimeError as e:
+                        if "invalid hash value" not in str(e) or attempt == 9:
+                            raise e
+                        else:
+                            vprint("Download failed, retrying in 1 second")
+                            time.sleep(1)
         else:
             model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")
 
