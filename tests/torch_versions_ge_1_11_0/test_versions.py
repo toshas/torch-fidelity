@@ -111,7 +111,7 @@ class TestVersions(TimeTrackingTestCase):
             self.assertAlmostEqual(metrics["inception_score_std"], 0.051992151563281505, delta=1e-5)
         finally:
             print(f"Teardown")
-            os.system(f'bash -c "pip3 uninstall -y torch torchvision"')
+            os.system(f'bash -c "pip3 uninstall -y torch torchvision ; rm -rf ~/.cache/torch/hub"')
 
     def test__torch_latest__torchvision_latest(self):
         self._test_generic()
