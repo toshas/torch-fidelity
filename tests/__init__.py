@@ -7,6 +7,7 @@ class TimeTrackingTestCase(unittest.TestCase):
         self.test_start_time = time.time()
         try:
             import torch
+
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
         except ImportError:
