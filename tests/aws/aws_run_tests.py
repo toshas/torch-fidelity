@@ -18,10 +18,12 @@ LPATH_PROJECT = str(Path(__file__).absolute().parent.parent.parent)
 RPATH_PROJECT = f"/home/{EC2_USER}/torch-fidelity"
 INSTANCE_NAME = "torch-fidelity"
 CMD_SSH_CUSTOM = [
+    # fmt: off
     "ssh", "-q",
     "-o", "StrictHostKeyChecking=no",
     "-o", "LogLevel=ERROR",
     "-o", "ConnectTimeout=180",
+    # fmt: on
 ]
 
 
@@ -41,6 +43,7 @@ def run_command_retry(cmd, timeout_sec=5):
 
 
 def main():
+    # fmt: off
     instance_id = run_command_retry([
         "aws", "ec2", "describe-instances",
         "--filters", f"Name=tag:Name,Values={INSTANCE_NAME}",
@@ -48,12 +51,14 @@ def main():
         "--query", "Reservations[*].Instances[*].InstanceId",
         "--output", "text",
     ])
+    # fmt: on
 
     if instance_id == "":
         # https://docs.aws.amazon.com/cli/latest/reference/ec2/run-instances.html
         print("Launching instance...")
         instance_tag = "ResourceType=instance,Tags=[{Key=Name,Value=" + INSTANCE_NAME + "}]"
         cmd_launch = [
+            # fmt: off
             "aws", "ec2", "run-instances",
             "--tag-specifications", instance_tag,
             "--instance-type", EC2_INSTANCE_TYPE,
@@ -61,33 +66,40 @@ def main():
             "--key-name", EC2_KEY_NAME,
             "--security-group-ids", EC2_SECURITY_GROUP_ID,
             "--block-device-mappings", 'DeviceName="/dev/sda1",Ebs={VolumeSize=200}',
+            # fmt: on
         ]
         print(f"CMD: {join_cmd(cmd_launch)}")
         response = json.loads(run_command_retry(cmd_launch, 60))
         instance_id = response["Instances"][0]["InstanceId"]
     else:
         print("Starting instance...")
+        # fmt: off
         run_command_retry([
             "aws", "ec2", "start-instances",
             "--instance-ids", instance_id
         ])
+        # fmt: on
     print(f"InstanceID: {instance_id}")
 
+    # fmt: off
     dns_response = json.loads(run_command_retry([
         "aws", "ec2", "describe-instances",
         "--region", EC2_REGION,
         "--instance-ids", instance_id,
     ]))
+    # fmt: on
     instance_dns = dns_response["Reservations"][0]["Instances"][0]["PublicDnsName"]
     print(f"InstanceDNS: {instance_dns}")
 
     print("Copying files to instance...")
     cmd_ssh_custom_joined = join_cmd(CMD_SSH_CUSTOM)
     cmd_rsync = [
+        # fmt: off
         "rsync", "--relative", "-av",
         "-e", cmd_ssh_custom_joined,
         f"{LPATH_PROJECT}/./",
         f"{EC2_USER}@{instance_dns}:{RPATH_PROJECT}/",
+        # fmt: on
     ]
     print(f"CMD: {join_cmd(cmd_rsync)}")
     run_command_retry(cmd_rsync)
@@ -95,11 +107,9 @@ def main():
     print("Starting testing in a tmux session...")
     cmd_ssh = CMD_SSH_CUSTOM + [f"{EC2_USER}@{instance_dns}"]
     print(f"CMD: {join_cmd(cmd_ssh)}")
-    run_command_retry(cmd_ssh + [
-        "bash", f"{RPATH_PROJECT}/tests/aws/aws_tmux_wrapper.sh"
-    ])
+    run_command_retry(cmd_ssh + ["bash", f"{RPATH_PROJECT}/tests/aws/aws_tmux_wrapper.sh"])
     print(f"CMD: {join_cmd(cmd_ssh)} -t tmux attach-session -t fid")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
