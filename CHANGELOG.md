@@ -19,20 +19,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `feature_extractor`: Accepts a new feature extractors `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
     - `feature_extractor_internal_dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
     - `feature_extractor_compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
+    - `kid_kernel`: Allows choosing between the default `poly` (polynomial, default) and `rbf` (RBF) kernels 
+    - `kid_kernel_rbf_sigma`: Specifies RBF kernel sigma in KID  
 - Command line
     - `prc`: Calculate PRC (Precision and Recall)
     - `prc-neighborhood`: Number of nearest neighbours to consider in PRC
     - `prc-batch-size`: Batch size in PRC
     - `feature-layer-prc`: Name of the feature layer to use with PRC metric
-  - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
-  - `--feature-extractor`: Accepts a new feature extractors `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
-  - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
-  - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
+    - `--samples-resize-and-crop`: Transform all images found in the directory to a given size and square shape
+    - `--feature-extractor`: Accepts a new feature extractors `clip-vit-b-32`, `vgg16`, `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14`
+    - `--feature-extractor-internal-dtype`: Allows to change the internal dtype used in the feature extractor's weights and activations; might be useful to counter numerical issues arising in fp32 implementations, e.g. those seen with the growth of the batch size
+    - `--feature-extractor-compile`: Compile feature extractor (experimental: may have negative effect on the metrics numerical precision)
+    - `--kid-kernel`: Allows choosing between the default `poly` (polynomial, default) and `rbf` (RBF) kernels 
+    - `--kid-kernel-rbf-sigma`: Specifies RBF kernel sigma in KID  
 
 ### Changed in 0.4.0
 - Default features for all metrics are now read from the selected feature extractor
 - Default feature extractor is now inferred based on the selected metrics
 - All tests run in docker now
+- API
+  - `calculate_metrics`
+    - `kid_degree`: Deprecated, new name is `kid_kernel_poly_degree`
+    - `kid_gamma`: Deprecated, new name is `kid_kernel_poly_gamma`
+    - `kid_coef0`: Deprecated, new name is `kid_kernel_poly_coef0`
+- Command line
+    - `--kid-degree`: Deprecated, new name is `--kid-kernel-poly-degree`
+    - `--kid-gamma`: Deprecated, new name is `--kid-kernel-poly-gamma`
+    - `--kid-coef0`: Deprecated, new name is `--kid-kernel-poly-coef0`
 
 ### Fixed in 0.4.0
 - [#19](https://github.com/toshas/torch-fidelity/issues/19): Adds Precision and Recall metrics

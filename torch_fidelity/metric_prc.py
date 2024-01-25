@@ -87,9 +87,9 @@ def prc_features_to_metric(features_1, features_2, **kwargs):
         KEY_METRIC_F_SCORE: f_score,
     }
 
-    vprint(verbose, f"Precision: {out[KEY_METRIC_PRECISION]}")
-    vprint(verbose, f"Recall: {out[KEY_METRIC_RECALL]}")
-    vprint(verbose, f"F-score: {out[KEY_METRIC_F_SCORE]}")
+    vprint(verbose, f"Precision: {out[KEY_METRIC_PRECISION]:.7g}")
+    vprint(verbose, f"Recall: {out[KEY_METRIC_RECALL]:.7g}")
+    vprint(verbose, f"F-score: {out[KEY_METRIC_F_SCORE]:.7g}")
 
     return out
 

@@ -137,6 +137,6 @@ def calculate_ppl(input_id, **kwargs):
     if reduction == "none":
         out[KEY_METRIC_PPL_RAW] = distances
 
-    vprint(verbose, f"Perceptual Path Length: {out[KEY_METRIC_PPL_MEAN]} ± {out[KEY_METRIC_PPL_STD]}")
+    vprint(verbose, f"Perceptual Path Length: {out[KEY_METRIC_PPL_MEAN]:.7g} ± {out[KEY_METRIC_PPL_STD]:.7g}")
 
     return out

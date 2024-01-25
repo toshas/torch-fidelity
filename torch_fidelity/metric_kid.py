@@ -60,17 +60,36 @@ def mmd2(K_XX, K_XY, K_YY, unit_diagonal=False, mmd_est="unbiased"):
     return mmd2
 
 
-def polynomial_kernel(X, Y, degree=3, gamma=None, coef0=1):
+def kernel_poly(X, Y, **kwargs):
+    degree = get_kwarg("kid_kernel_poly_degree", kwargs)
+    gamma = get_kwarg("kid_kernel_poly_gamma", kwargs)
+    coef0 = get_kwarg("kid_kernel_poly_coef0", kwargs)
     if gamma is None:
         gamma = 1.0 / X.shape[1]
     K = (np.matmul(X, Y.T) * gamma + coef0) ** degree
     return K
 
 
-def polynomial_mmd(features_1, features_2, degree, gamma, coef0):
-    k_11 = polynomial_kernel(features_1, features_1, degree=degree, gamma=gamma, coef0=coef0)
-    k_22 = polynomial_kernel(features_2, features_2, degree=degree, gamma=gamma, coef0=coef0)
-    k_12 = polynomial_kernel(features_1, features_2, degree=degree, gamma=gamma, coef0=coef0)
+def kernel_rbf(X, Y, **kwargs):
+    sigma = get_kwarg("kid_kernel_rbf_sigma", kwargs)
+    vassert(sigma is not None and sigma > 0, "kid_kernel_rbf_sigma must be positive")
+    XX = np.sum(X**2, axis=1)
+    YY = np.sum(Y**2, axis=1)
+    XY = np.dot(X, Y.T)
+    K = np.exp((2 * XY - np.outer(XX, np.ones(YY.shape[0])) - np.outer(np.ones(XX.shape[0]), YY)) / (2 * sigma**2))
+    return K
+
+
+def kernel_mmd(features_1, features_2, **kwargs):
+    kernel = get_kwarg("kid_kernel", kwargs)
+    vassert(kernel in ("poly", "rbf"), "Invalid KID kernel")
+    kernel = {
+        "poly": kernel_poly,
+        "rbf": kernel_rbf,
+    }[kernel]
+    k_11 = kernel(features_1, features_1, **kwargs)
+    k_22 = kernel(features_2, features_2, **kwargs)
+    k_12 = kernel(features_1, features_2, **kwargs)
     return mmd2(k_11, k_12, k_22)
 
 
@@ -102,13 +121,7 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
     ):
         f1 = features_1[rng.choice(n_samples_1, kid_subset_size, replace=False)]
         f2 = features_2[rng.choice(n_samples_2, kid_subset_size, replace=False)]
-        o = polynomial_mmd(
-            f1,
-            f2,
-            get_kwarg("kid_degree", kwargs),
-            get_kwarg("kid_gamma", kwargs),
-            get_kwarg("kid_coef0", kwargs),
-        )
+        o = kernel_mmd(f1, f2, **kwargs)
         mmds[i] = o
 
     out = {
@@ -116,7 +129,7 @@ def kid_features_to_metric(features_1, features_2, **kwargs):
         KEY_METRIC_KID_STD: float(np.std(mmds)),
     }
 
-    vprint(verbose, f"Kernel Inception Distance: {out[KEY_METRIC_KID_MEAN]} ± {out[KEY_METRIC_KID_STD]}")
+    vprint(verbose, f"Kernel Inception Distance: {out[KEY_METRIC_KID_MEAN]:.7g} ± {out[KEY_METRIC_KID_STD]:.7g}")
 
     return out
 
@@ -125,6 +138,8 @@ def kid_featuresdict_to_metric(featuresdict_1, featuresdict_2, feat_layer_name, 
     features_1 = featuresdict_1[feat_layer_name]
     features_2 = featuresdict_2[feat_layer_name]
     metric = kid_features_to_metric(features_1, features_2, **kwargs)
+    if metric[KEY_METRIC_KID_MEAN] < 0 and get_kwarg("verbose", kwargs):
+        print("KID values slightly less than 0 are valid and indicate that distributions are very similar")
     return metric
 
 

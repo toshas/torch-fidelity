@@ -22,7 +22,7 @@ from recommonmark.parser import CommonMarkParser
 # -- Project information -----------------------------------------------------
 
 project = "torch-fidelity"
-copyright = "2020-2023, Anton Obukhov"
+copyright = "2020-2024, Anton Obukhov"
 author = "Anton Obukhov"
 
 with open(os.path.join(three_up, "torch_fidelity", "version.py")) as f:

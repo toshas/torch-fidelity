@@ -21,6 +21,9 @@ torch_fidelity module
 
 .. autoclass:: FeatureExtractorBase
 .. autoclass:: FeatureExtractorInceptionV3
+.. autoclass:: FeatureExtractorVGG16
+.. autoclass:: FeatureExtractorCLIP
+.. autoclass:: FeatureExtractorDinoV2
 
 .. autoclass:: GenerativeModelBase
 .. autoclass:: GenerativeModelModuleWrapper

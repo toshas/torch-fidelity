@@ -19,7 +19,7 @@ from torch_fidelity.feature_extractor_base import FeatureExtractorBase
 from torch_fidelity.helpers import vassert, vprint, text_to_dtype, get_kwarg
 from torch_fidelity.interpolate_compat_tensorflow import interpolate_bilinear_2d_like_tensorflow1x
 
-MODEL_BASE_URL = "https://openaipublic.azureedge.net/clip/models/"
+MODEL_BASE_URL = "https://openaipublic.azureedge.net/clip/models"
 MODEL_METADATA = {
     "clip-rn50": {
         "hash": "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762",
@@ -460,6 +460,8 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         )
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
+        verbose = get_kwarg("verbose", kwargs)
+
         model_jit = None
         if feature_extractor_weights_path is None:
             with redirect_stdout(sys.stderr), warnings.catch_warnings():
@@ -472,7 +474,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                         model_jit = load_state_dict_from_url(
                             MODEL_URLS[name],
                             map_location="cpu",
-                            progress=get_kwarg("verbose", kwargs),
+                            progress=verbose,
                             check_hash=True,
                             file_name=f'{name}-{MODEL_METADATA[name]["hash"]}.pt',
                         )
@@ -481,7 +483,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                         if "invalid hash value" not in str(e) or attempt == 9:
                             raise e
                         else:
-                            vprint("Download failed, retrying in 1 second")
+                            vprint(verbose, "Download failed, retrying in 1 second")
                             time.sleep(1)
         else:
             model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")

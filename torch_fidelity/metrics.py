@@ -1,4 +1,4 @@
-from torch_fidelity.helpers import get_kwarg, vassert, vprint
+from torch_fidelity.helpers import get_kwarg, vassert, vprint, process_deprecations
 from torch_fidelity.metric_fid import (
     fid_inputs_to_metric,
     fid_featuresdict_to_statistics_cached,
@@ -211,11 +211,15 @@ def calculate_metrics(**kwargs):
 
         kid_subset_size (int): Subset size in KID. Default: `1000`.
 
-        kid_degree (int): Degree of polynomial kernel in KID. Default: `3`.
+        kid_kernel (str): Kernel (poly, rbf) for computing KID metric over the extracted features. Default: poly
 
-        kid_gamma (float): Polynomial kernel gamma in KID (automatic if `None`). Default: `None`.
+        kid_kernel_poly_degree (int): Degree of polynomial kernel in KID. Default: `3`.
 
-        kid_coef0 (float): Polynomial kernel coef0 in KID. Default: `1.0`.
+        kid_kernel_poly_gamma (float): Polynomial kernel gamma in KID (automatic if `None`). Default: `None`.
+
+        kid_kernel_poly_coef0 (float): Polynomial kernel coef0 in KID. Default: `1.0`.
+
+        kid_kernel_rbf_sigma (float): RBF kernel sigma in KID. Default: `10.0`
 
         ppl_epsilon (float): Interpolation step size in PPL. Default: `1e-4`.
 
@@ -315,6 +319,8 @@ def calculate_metrics(**kwargs):
             - :const:`torch_fidelity.KEY_METRIC_RECALL`
             - :const:`torch_fidelity.KEY_METRIC_F_SCORE`
     """
+
+    process_deprecations(kwargs)
 
     have_isc = get_kwarg("isc", kwargs)
     have_fid = get_kwarg("fid", kwargs)

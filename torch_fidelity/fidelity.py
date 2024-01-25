@@ -7,6 +7,7 @@ import sys
 import torch
 
 from torch_fidelity.defaults import DEFAULTS
+from torch_fidelity.helpers import process_deprecations
 from torch_fidelity.metrics import calculate_metrics
 from torch_fidelity.registry import (
     FEATURE_EXTRACTORS_REGISTRY,
@@ -102,10 +103,32 @@ def main():
     parser.add_argument("--kid-subsets", default=DEFAULTS["kid_subsets"], type=int, help="Number of subsets in KID")
     parser.add_argument("--kid-subset-size", default=DEFAULTS["kid_subset_size"], type=int, help="Subset size in KID")
     parser.add_argument(
-        "--kid-degree", default=DEFAULTS["kid_degree"], type=int, help="Degree of polynomial kernel in KID"
+        "--kid-kernel", default=DEFAULTS["kid_kernel"], type=str, choices=["poly", "rbf"], help="Kernel in KID"
     )
-    parser.add_argument("--kid-gamma", default=DEFAULTS["kid_gamma"], type=float, help="Polynomial kernel gamma in KID")
-    parser.add_argument("--kid-coef0", default=DEFAULTS["kid_coef0"], type=float, help="Polynomial kernel coef0 in KID")
+    parser.add_argument(
+        "--kid-kernel-poly-degree",
+        default=DEFAULTS["kid_kernel_poly_degree"],
+        type=int,
+        help="Degree of polynomial kernel in KID",
+    )
+    parser.add_argument(
+        "--kid-kernel-poly-gamma",
+        default=DEFAULTS["kid_kernel_poly_gamma"],
+        type=float,
+        help="Polynomial kernel gamma in KID",
+    )
+    parser.add_argument(
+        "--kid-kernel-poly-coef0",
+        default=DEFAULTS["kid_kernel_poly_coef0"],
+        type=float,
+        help="Polynomial kernel coef0 in KID",
+    )
+    parser.add_argument(
+        "--kid-kernel-rbf-sigma",
+        default=DEFAULTS["kid_kernel_rbf_sigma"],
+        type=float,
+        help="RBF kernel sigma in KID",
+    )
     parser.add_argument(
         "--ppl-epsilon", default=DEFAULTS["ppl_epsilon"], type=float, help="Interpolation step size in PPL"
     )
@@ -272,38 +295,42 @@ def main():
     parser.add_argument("--silent", action="store_true", help="Do not output progress information to STDERR")
 
     args, unknown = parser.parse_known_args()
+    args = vars(args)
+
     if type(unknown) is list and len(unknown) > 0:
         print(f"Ignoring unrecognized command line options: {unknown}", file=sys.stderr)
         print(f"This may be due the command line options change in the most recent version", file=sys.stderr)
         print(f"Use 'fidelity --help' to see the up-to-date command line options", file=sys.stderr)
         print(f"See https://github.com/toshas/torch-fidelity/blob/master/CHANGELOG.md", file=sys.stderr)
 
-    if not (args.isc or args.fid or args.kid or args.ppl or args.prc):
+    if not (args["isc"] or args["fid"] or args["kid"] or args["ppl"] or args["prc"]):
         print(f"No metrics to compute, exiting", file=sys.stderr)
         print(f"Use 'fidelity --help' to see the command line options", file=sys.stderr)
         exit(1)
 
-    if args.input1 is None and args.input2 is None:
+    if args["input1"] is None and args["input2"] is None:
         print(f"No inputs are given, exiting", file=sys.stderr)
         print(f"Use 'fidelity --help' to see the command line options", file=sys.stderr)
         exit(1)
 
-    args.verbose = not args.silent
-    args.datasets_download = not args.no_datasets_download
-    args.samples_shuffle = not args.no_samples_shuffle
-    args.cache = not args.no_cache
+    process_deprecations(args)
 
-    if args.gpu is not None:
-        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    args["verbose"] = not args["silent"]
+    args["datasets_download"] = not args["no_datasets_download"]
+    args["samples_shuffle"] = not args["no_samples_shuffle"]
+    args["cache"] = not args["no_cache"]
 
-    args.cuda = not args.cpu and os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
+    if args["gpu"] is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu"]
 
-    if torch.cuda.is_available() and not args.cuda:
+    args["cuda"] = not args["cpu"] and os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
+
+    if torch.cuda.is_available() and not args["cuda"]:
         print("CUDA is available but --gpu option is not specified", file=sys.stderr)
 
-    metrics = calculate_metrics(**vars(args))
+    metrics = calculate_metrics(**args)
 
-    if args.json:
+    if args["json"]:
         print(json.dumps(metrics, indent=4))
     else:
         print("\n".join((f"{k}: {v:.7g}" for k, v in metrics.items())))

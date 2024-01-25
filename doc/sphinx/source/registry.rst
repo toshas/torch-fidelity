@@ -29,9 +29,9 @@ Can be used as values to the :paramref:`~torch_fidelity.calculate_metrics.featur
   Inception Score. This feature extractor is carefully ported to reproduce the original extractor's bilinear
   interpolation and neural architecture quirks.
 - `vgg16` - a legacy VGG-based feature extractor used in the reference implementation of the Precision and Recall metrics.
-- `clip-vit-b-32` - a modern CLIP-based feature extractor for evaluation of more realistic image generators, such as DDPMs.
-- `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14` - a modern self-supervised feature extractor,
-also suitable for state-of-the-art image generators evaluation.
+- `clip-rn50`, `clip-rn101`, `clip-rn50x4`, `clip-rn50x16`, `clip-rn50x64`, `clip-vit-b-32`, `clip-vit-b-16`, `clip-vit-l-14`, `clip-vit-l-14-336px` - a set of modern CLIP-based feature extractors for evaluation of more realistic image generators, such as DDPMs.
+- `dinov2-vit-s-14`, `dinov2-vit-b-14`, `dinov2-vit-l-14`, `dinov2-vit-g-14` - a set of modern self-supervised feature extractors,
+  also suitable for state-of-the-art image generators evaluation.
 
 Preregistered sample similarities
 ---------------------------------

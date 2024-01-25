@@ -41,7 +41,7 @@ def fid_statistics_to_metric(stat_1, stat_2, verbose):
 
     out = {KEY_METRIC_FID: fid}
 
-    vprint(verbose, f"Frechet Inception Distance: {out[KEY_METRIC_FID]}")
+    vprint(verbose, f"Frechet Inception Distance: {out[KEY_METRIC_FID]:.7g}")
 
     return out
 

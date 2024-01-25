@@ -49,7 +49,9 @@ def isc_featuresdict_to_metric(featuresdict, feat_layer_name, **kwargs):
         get_kwarg("rng_seed", kwargs),
     )
 
-    vprint(get_kwarg("verbose", kwargs), f"Inception Score: {out[KEY_METRIC_ISC_MEAN]} ± {out[KEY_METRIC_ISC_STD]}")
+    vprint(
+        get_kwarg("verbose", kwargs), f"Inception Score: {out[KEY_METRIC_ISC_MEAN]:.7g} ± {out[KEY_METRIC_ISC_STD]:.7g}"
+    )
 
     return out
 

@@ -170,8 +170,19 @@ register_dataset(
 )
 
 register_feature_extractor("inception-v3-compat", FeatureExtractorInceptionV3)
+
 register_feature_extractor("vgg16", FeatureExtractorVGG16)
+
+register_feature_extractor("clip-rn50", FeatureExtractorCLIP)
+register_feature_extractor("clip-rn101", FeatureExtractorCLIP)
+register_feature_extractor("clip-rn50x4", FeatureExtractorCLIP)
+register_feature_extractor("clip-rn50x16", FeatureExtractorCLIP)
+register_feature_extractor("clip-rn50x64", FeatureExtractorCLIP)
 register_feature_extractor("clip-vit-b-32", FeatureExtractorCLIP)
+register_feature_extractor("clip-vit-b-16", FeatureExtractorCLIP)
+register_feature_extractor("clip-vit-l-14", FeatureExtractorCLIP)
+register_feature_extractor("clip-vit-l-14-336px", FeatureExtractorCLIP)
+
 register_feature_extractor("dinov2-vit-s-14", FeatureExtractorDinoV2)
 register_feature_extractor("dinov2-vit-b-14", FeatureExtractorDinoV2)
 register_feature_extractor("dinov2-vit-l-14", FeatureExtractorDinoV2)

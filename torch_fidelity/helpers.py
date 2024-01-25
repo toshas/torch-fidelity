@@ -1,9 +1,11 @@
 import json
 import sys
+import warnings
 
 import torch
 
 from torch_fidelity.defaults import DEFAULTS
+from torch_fidelity.deprecations import DEPRECATIONS
 
 
 def vassert(truecond, message):
@@ -57,3 +59,18 @@ class CleanStderr:
 
     def flush(self):
         self.stream.flush()
+
+
+def process_deprecations(cfg):
+    for k, v in cfg.items():
+        if k not in DEPRECATIONS:
+            continue
+        depr = DEPRECATIONS[k]
+        new_k = depr["new_name"]
+        cfg[new_k] = v
+        warnings.warn(
+            f"Argument \"{k}\" is deprecated since {depr['since']}; use \"{new_k}\" instead. Reason: {depr['reason']}",
+            FutureWarning,
+            stacklevel=2,
+        )
+        del cfg[k]
