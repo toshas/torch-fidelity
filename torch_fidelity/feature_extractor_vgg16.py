@@ -1,5 +1,3 @@
-import warnings
-
 import torch
 import torch.nn.functional as F
 import torchvision
@@ -49,11 +47,6 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         )
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
-        warnings.filterwarnings(
-            "ignore",
-            message="'torch.load' received a zip file that looks like a TorchScript "
-            "archive dispatching to 'torch.jit.load'",
-        )
         if feature_extractor_weights_path is None:
             self.model = torchvision_load_pretrained_vgg16(**kwargs)
         else:
