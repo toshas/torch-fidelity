@@ -92,7 +92,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             with redirect_stdout(sys.stderr):
                 state_dict = load_state_dict_from_url(URL_INCEPTION_V3, progress=get_kwarg("verbose", kwargs))
         else:
-            state_dict = torch.load(feature_extractor_weights_path)
+            state_dict = torch.load(feature_extractor_weights_path, weights_only=False)
         self.load_state_dict(state_dict)
 
         self.to(self.feature_extractor_internal_dtype)
