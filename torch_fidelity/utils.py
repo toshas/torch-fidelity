@@ -356,7 +356,7 @@ def cache_lookup_one_recompute_on_miss(cached_filename, fn_recompute, **kwargs):
     item_path = os.path.join(cache_root, cached_filename + ".pt")
     if os.path.exists(item_path):
         vprint(get_kwarg("verbose", kwargs), f"Loading cached {item_path}")
-        return torch.load(item_path, map_location="cpu")
+        return torch.load(item_path, map_location="cpu", weights_only=False)
     item = fn_recompute()
     if get_kwarg("verbose", kwargs):
         print(f"Caching {item_path}", file=sys.stderr)
@@ -377,7 +377,7 @@ def cache_lookup_group_recompute_all_on_any_miss(cached_filename_prefix, item_na
         out = {}
         for n, p in zip(item_names, cached_paths):
             vprint(verbose, f"Loading cached {p}")
-            out[n] = torch.load(p, map_location="cpu")
+            out[n] = torch.load(p, map_location="cpu", weights_only=False)
         return out
     items = fn_recompute()
     for n, p in zip(item_names, cached_paths):
