@@ -50,7 +50,7 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
         if feature_extractor_weights_path is None:
             self.model = torchvision_load_pretrained_vgg16(**kwargs)
         else:
-            state_dict = torch.load(feature_extractor_weights_path)
+            state_dict = torch.load(feature_extractor_weights_path, weights_only=False)
             self.model = torchvision.models.vgg16()
             self.model.load_state_dict(state_dict)
         for cls_tail_id in (6, 5, 4):
