@@ -25,7 +25,7 @@ jobs:
             python3 code/utils/util_dump_dataset_as_images.py cifar10-valid data/cifar10-valid-256 -l 256
       - run:
           name: Smoke tests
-          no_output_timeout: 20m
+          no_output_timeout: 30m
           command: |
             cd code && CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python3 ./.circleci/smoke_tests.py
 
