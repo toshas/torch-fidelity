@@ -38,7 +38,7 @@ exec_cuda() {
     fi
     FLAVOR="${1}"
     shift
-    cd ${ROOT_DIR} && nvidia-docker run \
+    cd ${ROOT_DIR} && docker run \
         --gpus "device=${CUDA_VISIBLE_DEVICES}" \
         -it --rm --network=host --ipc=host \
         --env CUDA_VISIBLE_DEVICES=0 \
@@ -55,7 +55,7 @@ main() {
         WERR="-W error"
     fi
     build "${FLAVOR}"
-    exec_${ARCH} "${FLAVOR}" python3 ${WERR} -m unittest discover "tests/${FLAVOR}"
+    exec_${ARCH} "${FLAVOR}" bash -c "cd /work && python3 ${WERR} -m unittest discover -s /work/tests/${FLAVOR} -t /work -p 'test_*.py'"
 }
 
 main_sh() {

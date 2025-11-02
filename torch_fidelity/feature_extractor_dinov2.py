@@ -1,3 +1,4 @@
+import os
 import sys
 import warnings
 
@@ -57,7 +58,12 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         vassert(name in MODEL_METADATA, f"Model {name} not found; available models = {list(MODEL_METADATA.keys())}")
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
-        with CleanStderr(["xFormers not available", "Using cache found in"], sys.stderr), warnings.catch_warnings():
+        os.environ["XFORMERS_DISABLED"] = "1"
+        with CleanStderr([
+            "xFormers not available",
+            "xFormers is disabled",
+            "Using cache found in"
+        ], sys.stderr), warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="xFormers is not available")
             if feature_extractor_weights_path is None:
                 self.model = torch.hub.load("facebookresearch/dinov2", MODEL_METADATA[name])
