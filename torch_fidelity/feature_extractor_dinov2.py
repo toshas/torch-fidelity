@@ -60,15 +60,18 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
 
         os.environ["XFORMERS_DISABLED"] = "1"
         with CleanStderr([
-            "xFormers not available",
-            "xFormers is disabled",
-            "Using cache found in"
-        ], sys.stderr), warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="xFormers is not available")
-            if feature_extractor_weights_path is None:
-                self.model = torch.hub.load("facebookresearch/dinov2", MODEL_METADATA[name])
-            else:
-                raise NotImplementedError
+            "Downloading: ",
+        ], stream=sys.stdout):
+            with CleanStderr([
+                "xFormers not available",
+                "xFormers is disabled",
+                "Using cache found in",
+            ], sys.stderr), warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="xFormers is not available")
+                if feature_extractor_weights_path is None:
+                    self.model = torch.hub.load("facebookresearch/dinov2", MODEL_METADATA[name])
+                else:
+                    raise NotImplementedError
 
         self.to(self.feature_extractor_internal_dtype)
         self.requires_grad_(False)
