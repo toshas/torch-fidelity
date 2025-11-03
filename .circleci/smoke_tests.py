@@ -80,38 +80,48 @@ class SmokeTests(TimeTrackingTestCase):
         log_resource_info(f"After {test_name} (completed in {elapsed:.1f}s)")
         
         if res.returncode == -9:
-            sys_mem = get_system_memory()
-            if sys_mem is not None:
-                print(f"  System memory at failure: {sys_mem['percent']:.1f}% used")
-            
+            print("\n=== Last 1000 lines of dmesg ===")
             try:
                 dmesg_res = subprocess.run(
                     ["dmesg"],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
-                    timeout=5,
+                    timeout=10,
                 )
                 if dmesg_res.returncode == 0:
                     lines = dmesg_res.stdout.splitlines()
-                    oom_lines = [l for l in lines[-100:] if "Out of memory" in l or "oom-killer" in l.lower() or "killed process" in l.lower()]
-                    if oom_lines:
-                        print("\nRecent OOM killer messages from dmesg:")
-                        for line in oom_lines[-5:]:
-                            print(f"  {line.strip()}")
-            except Exception:
-                pass
+                    print(f"Total dmesg lines: {len(lines)}")
+                    print("Last 1000 lines:")
+                    print("-" * 80)
+                    for line in lines[-1000:]:
+                        print(line)
+                    print("-" * 80)
+                else:
+                    print(f"dmesg failed with return code {dmesg_res.returncode}")
+                    print(f"dmesg stderr: {dmesg_res.stderr}")
+            except subprocess.TimeoutExpired:
+                print("dmesg command timed out after 10 seconds")
+            except Exception as e:
+                print(f"Failed to run dmesg: {type(e).__name__}: {e}")
             
+            # Also try kern.log if accessible
+            print("\n=== Last 1000 lines of /var/log/kern.log (if accessible) ===")
             try:
                 with open("/var/log/kern.log", "r") as f:
                     lines = f.readlines()
-                    oom_lines = [l for l in lines[-50:] if "Out of memory" in l or "oom-killer" in l.lower()]
-                    if oom_lines:
-                        print("\nRecent OOM killer messages from kern.log:")
-                        for line in oom_lines[-5:]:
-                            print(f"  {line.strip()}")
-            except Exception:
-                pass
+                    print(f"Total kern.log lines: {len(lines)}")
+                    print("Last 1000 lines:")
+                    print("-" * 80)
+                    for line in lines[-1000:]:
+                        print(line.rstrip())
+                    print("-" * 80)
+            except FileNotFoundError:
+                print("/var/log/kern.log not found (normal in containers)")
+            except PermissionError:
+                print("/var/log/kern.log permission denied")
+            except Exception as e:
+                print(f"Failed to read kern.log: {type(e).__name__}: {e}")
         
         print(f"\nRETCODE: {res.returncode}")
         print(f"STDOUT:\n{res.stdout}")
