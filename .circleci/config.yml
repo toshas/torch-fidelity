@@ -16,7 +16,7 @@ jobs:
           name: Create virtual environment
           command: |
             pip3 install -U pip
-            pip3 install -U numpy pillow tqdm torch torchvision
+            pip3 install -U numpy pillow tqdm torch torchvision psutil
       - run:
           name: Download datasets
           command: |
