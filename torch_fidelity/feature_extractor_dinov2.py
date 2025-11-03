@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+from contextlib import redirect_stdout
 
 import torch
 import torchvision
@@ -59,9 +60,8 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
         self.feature_extractor_internal_dtype = text_to_dtype(feature_extractor_internal_dtype, "float32")
 
         os.environ["XFORMERS_DISABLED"] = "1"
-        with CleanStderr([
-            "Downloading: ",
-        ], stream=sys.stdout):
+
+        with redirect_stdout(sys.stderr):
             with CleanStderr([
                 "xFormers not available",
                 "xFormers is disabled",
