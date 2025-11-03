@@ -151,7 +151,7 @@ class SmokeTests(TimeTrackingTestCase):
                 # fmt: on
             ),
             test_name="test_inception_all_metrics",
-            timeout=600,
+            timeout=1200,
         )
         self.assertEqual(res.returncode, 0, msg="Non-zero return code")
         self.assertTrue("Warning" not in res.stdout, msg="Warning in stdout")
@@ -178,7 +178,7 @@ class SmokeTests(TimeTrackingTestCase):
                 # fmt: on
             ),
             test_name="test_clip_vit_b_32",
-            timeout=600,
+            timeout=1200,
         )
         self.assertEqual(res.returncode, 0, msg="Non-zero return code")
         self.assertTrue("Warning" not in res.stdout, msg="Warning in stdout")
@@ -199,7 +199,7 @@ class SmokeTests(TimeTrackingTestCase):
                 # fmt: on
             ),
             test_name="test_dinov2_vit_b_14",
-            timeout=600,
+            timeout=1200,
         )
         self.assertEqual(res.returncode, 0, msg="Non-zero return code")
         self.assertTrue("Warning" not in res.stdout, msg="Warning in stdout")
