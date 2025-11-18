@@ -4,6 +4,7 @@ executors:
   executor_python:
     docker:
       - image: cimg/python:3.11.7
+    resource_class: large
     working_directory: /tmp
 
 jobs:
