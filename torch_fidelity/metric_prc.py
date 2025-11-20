@@ -29,7 +29,7 @@ def calculate_precision_recall_part(features_1, features_2, neighborhood=3, batc
     precision = []
     for feat_2_batch in features_2.split(batch_size):
         dist_2_1_batch = calc_cdist_part(feat_2_batch, features_1, batch_size)
-        precision.append((dist_2_1_batch <= dist_nn_1).any(dim=1).float())
+        precision.append((dist_2_1_batch <= dist_nn_1).any(dim=0).float())
     precision = torch.cat(precision).mean().item()
     # Recall
     dist_nn_2 = []
@@ -39,7 +39,7 @@ def calculate_precision_recall_part(features_1, features_2, neighborhood=3, batc
     recall = []
     for feat_1_batch in features_1.split(batch_size):
         dist_1_2_batch = calc_cdist_part(feat_1_batch, features_2, batch_size)
-        recall.append((dist_1_2_batch <= dist_nn_2).any(dim=1).float())
+        recall.append((dist_1_2_batch <= dist_nn_2).any(dim=0).float())
     recall = torch.cat(recall).mean().item()
     return precision, recall
 
@@ -60,9 +60,9 @@ def calculate_precision_recall_full(features_1, features_2, neighborhood=3, batc
     dist_2_1 = calc_cdist_full(features_2, features_1, batch_size)
     dist_1_2 = dist_2_1.T
     # Precision
-    precision = (dist_2_1 <= dist_nn_1).any(dim=1).float().mean().item()
+    precision = (dist_2_1 <= dist_nn_1).any(dim=0).float().mean().item()
     # Recall
-    recall = (dist_1_2 <= dist_nn_2).any(dim=1).float().mean().item()
+    recall = (dist_1_2 <= dist_nn_2).any(dim=0).float().mean().item()
     return precision, recall
 
 
