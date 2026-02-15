@@ -6,10 +6,7 @@ import time
 import unittest
 from pathlib import Path
 
-import torch
-
 from tests import TimeTrackingTestCase
-from torch_fidelity.metric_prc import calculate_precision_recall_full
 
 
 def get_memory_usage():
@@ -214,12 +211,26 @@ class SmokeTests(TimeTrackingTestCase):
 
     def test_prc_convention_asymmetric(self):
         """Verify precision/recall are not swapped: mode-collapse scenario where precision >> recall."""
-        rng = torch.Generator().manual_seed(42)
-        features_gen = torch.randn(200, 16, generator=rng) * 0.1
-        features_real = torch.randn(200, 16, generator=rng) * 3.0
-        precision, recall = calculate_precision_recall_full(features_gen, features_real)
-        self.assertGreater(precision, 0.8, f"Precision {precision} should be high")
-        self.assertLess(recall, 0.3, f"Recall {recall} should be low")
+        res = self._run_fidelity_command(
+            (
+                # fmt: off
+                "python3", "-c",
+                "import json, torch; "
+                "from torch_fidelity.metric_prc import calculate_precision_recall_full; "
+                "rng = torch.Generator().manual_seed(42); "
+                "gen = torch.randn(200, 16, generator=rng) * 0.1; "
+                "real = torch.randn(200, 16, generator=rng) * 3.0; "
+                "p, r = calculate_precision_recall_full(gen, real); "
+                "print(json.dumps({'precision': p, 'recall': r}))",
+                # fmt: on
+            ),
+            test_name="test_prc_convention_asymmetric",
+            timeout=60,
+        )
+        self.assertEqual(res.returncode, 0, msg="Non-zero return code")
+        metrics = json.loads(res.stdout)
+        self.assertGreater(metrics["precision"], 0.8, f"Precision {metrics['precision']} should be high")
+        self.assertLess(metrics["recall"], 0.3, f"Recall {metrics['recall']} should be low")
 
 
 if __name__ == "__main__":
