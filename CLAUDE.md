@@ -144,6 +144,7 @@ Input → Feature Extraction (cached) → Metric Computation
 
 - **Unary metrics** (ISC, PPL): require only `input1`
 - **Binary metrics** (FID, KID, PRC): require `input1` and `input2`
+- **PRC convention**: `input1` = generated (evaluated), `input2` = real (reference). Precision = fraction of generated samples in real manifold; recall = fraction of real samples in generated manifold
 - Feature extraction results are cached to disk when `cache=True`
 - FID has a shortcut path when statistics are cached but features are not
 - When using default feature extractors, ISC/FID/KID use InceptionV3 and PRC uses VGG16; if both groups are requested, two separate feature extraction passes run automatically
@@ -180,6 +181,8 @@ The `input1`/`input2` parameters accept:
 - Runs on every push and weekly (Mondays) on master
 - Smoke tests validate all metrics against known reference values with tight tolerances
 - Tests use `psutil` for memory monitoring
+- **Smoke test pattern**: all tests run via `_run_fidelity_command()` which wraps `subprocess.run`. Tests must not import `torch` or library internals directly; instead, run `python3 -m torch_fidelity.fidelity` or `python3 -c "..."` as a subprocess and assert on JSON output
+- Includes an asymmetric PRC convention test (mode-collapse scenario) to guard against precision/recall swaps
 
 ## Common Pitfalls
 
