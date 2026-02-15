@@ -6,7 +6,10 @@ import time
 import unittest
 from pathlib import Path
 
+import torch
+
 from tests import TimeTrackingTestCase
+from torch_fidelity.metric_prc import calculate_precision_recall_full
 
 
 def get_memory_usage():
@@ -207,6 +210,16 @@ class SmokeTests(TimeTrackingTestCase):
         metrics = json.loads(res.stdout)
         self.assertAlmostEqual(metrics["inception_score_mean"], 3.2955061842255757, delta=1e-3)
         self.assertAlmostEqual(metrics["inception_score_std"], 0.23961402932647136, delta=1e-3)
+
+
+    def test_prc_convention_asymmetric(self):
+        """Verify precision/recall are not swapped: mode-collapse scenario where precision >> recall."""
+        rng = torch.Generator().manual_seed(42)
+        features_gen = torch.randn(200, 16, generator=rng) * 0.1
+        features_real = torch.randn(200, 16, generator=rng) * 3.0
+        precision, recall = calculate_precision_recall_full(features_gen, features_real)
+        self.assertGreater(precision, 0.8, f"Precision {precision} should be high")
+        self.assertLess(recall, 0.3, f"Recall {recall} should be low")
 
 
 if __name__ == "__main__":
