@@ -178,7 +178,9 @@ def calculate_metrics(**kwargs):
 
         kid (bool): Calculate KID_ (Kernel Inception Distance). Default: `False`.
 
-        prc (bool): Calculate PRC_ (Precision and Recall). Default: `False`.
+        prc (bool): Calculate PRC_ (Precision and Recall). Precision is the fraction of ``input1`` samples falling
+            within the ``input2`` manifold; recall is the fraction of ``input2`` samples falling within the ``input1``
+            manifold. Default: `False`.
 
         ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
 

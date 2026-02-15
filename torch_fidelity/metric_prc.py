@@ -21,25 +21,31 @@ def calc_cdist_part(features_1, features_2, batch_size=10000):
 
 
 def calculate_precision_recall_part(features_1, features_2, neighborhood=3, batch_size=10000):
-    # Precision
-    dist_nn_1 = []
-    for feat_1_batch in features_1.split(batch_size):
-        dist_nn_1.append(calc_cdist_part(feat_1_batch, features_1, batch_size).kthvalue(neighborhood + 1).values)
-    dist_nn_1 = torch.cat(dist_nn_1)
-    precision = []
-    for feat_2_batch in features_2.split(batch_size):
-        dist_2_1_batch = calc_cdist_part(feat_2_batch, features_1, batch_size)
-        precision.append((dist_2_1_batch <= dist_nn_1).any(dim=1).float())
-    precision = torch.cat(precision).mean().item()
-    # Recall
+    # Convention: features_1 is GENERATED (input1), features_2 is REAL (input2).
+    # Precision: fraction of generated samples falling within the real manifold.
+    # Recall: fraction of real samples falling within the generated manifold.
+    #
+    # Manifold of real (features_2): k-NN ball radii among real samples
     dist_nn_2 = []
     for feat_2_batch in features_2.split(batch_size):
         dist_nn_2.append(calc_cdist_part(feat_2_batch, features_2, batch_size).kthvalue(neighborhood + 1).values)
     dist_nn_2 = torch.cat(dist_nn_2)
-    recall = []
+    # Precision: for each generated sample, is it inside any real sample's ball?
+    precision = []
     for feat_1_batch in features_1.split(batch_size):
         dist_1_2_batch = calc_cdist_part(feat_1_batch, features_2, batch_size)
-        recall.append((dist_1_2_batch <= dist_nn_2).any(dim=1).float())
+        precision.append((dist_1_2_batch <= dist_nn_2).any(dim=1).float())
+    precision = torch.cat(precision).mean().item()
+    # Manifold of generated (features_1): k-NN ball radii among generated samples
+    dist_nn_1 = []
+    for feat_1_batch in features_1.split(batch_size):
+        dist_nn_1.append(calc_cdist_part(feat_1_batch, features_1, batch_size).kthvalue(neighborhood + 1).values)
+    dist_nn_1 = torch.cat(dist_nn_1)
+    # Recall: for each real sample, is it inside any generated sample's ball?
+    recall = []
+    for feat_2_batch in features_2.split(batch_size):
+        dist_2_1_batch = calc_cdist_part(feat_2_batch, features_1, batch_size)
+        recall.append((dist_2_1_batch <= dist_nn_1).any(dim=1).float())
     recall = torch.cat(recall).mean().item()
     return precision, recall
 
@@ -55,19 +61,22 @@ def calc_cdist_full(features_1, features_2, batch_size=10000):
 
 
 def calculate_precision_recall_full(features_1, features_2, neighborhood=3, batch_size=10000):
+    # Convention: features_1 is GENERATED (input1), features_2 is REAL (input2).
+    # Precision: fraction of generated samples falling within the real manifold.
+    # Recall: fraction of real samples falling within the generated manifold.
     dist_nn_1 = calc_cdist_full(features_1, features_1, batch_size).kthvalue(neighborhood + 1).values
     dist_nn_2 = calc_cdist_full(features_2, features_2, batch_size).kthvalue(neighborhood + 1).values
-    dist_2_1 = calc_cdist_full(features_2, features_1, batch_size)
-    dist_1_2 = dist_2_1.T
-    # Precision
-    precision = (dist_2_1 <= dist_nn_1).any(dim=1).float().mean().item()
-    # Recall
-    recall = (dist_1_2 <= dist_nn_2).any(dim=1).float().mean().item()
+    dist_1_2 = calc_cdist_full(features_1, features_2, batch_size)
+    dist_2_1 = dist_1_2.T
+    # Precision: for each generated sample, is it inside any real sample's ball?
+    precision = (dist_1_2 <= dist_nn_2).any(dim=1).float().mean().item()
+    # Recall: for each real sample, is it inside any generated sample's ball?
+    recall = (dist_2_1 <= dist_nn_1).any(dim=1).float().mean().item()
     return precision, recall
 
 
 def prc_features_to_metric(features_1, features_2, **kwargs):
-    # Convention: features_1 is REAL, features_2 is GENERATED. This important for the notion of precision/recall only.
+    # Convention: features_1 is GENERATED (input1), features_2 is REAL (input2).
     assert torch.is_tensor(features_1) and features_1.dim() == 2
     assert torch.is_tensor(features_2) and features_2.dim() == 2
     assert features_1.shape[1] == features_2.shape[1]
