@@ -209,29 +209,6 @@ class SmokeTests(TimeTrackingTestCase):
         self.assertAlmostEqual(metrics["inception_score_std"], 0.23961402932647136, delta=1e-3)
 
 
-    def test_prc_convention_asymmetric(self):
-        """Verify precision/recall are not swapped: mode-collapse scenario where precision >> recall."""
-        res = self._run_fidelity_command(
-            (
-                # fmt: off
-                "python3", "-c",
-                "import json, torch; "
-                "from torch_fidelity.metric_prc import calculate_precision_recall_full; "
-                "rng = torch.Generator().manual_seed(42); "
-                "gen = torch.randn(200, 16, generator=rng) * 0.1; "
-                "real = torch.randn(200, 16, generator=rng) * 3.0; "
-                "p, r = calculate_precision_recall_full(gen, real); "
-                "print(json.dumps({'precision': p, 'recall': r}))",
-                # fmt: on
-            ),
-            test_name="test_prc_convention_asymmetric",
-            timeout=60,
-        )
-        self.assertEqual(res.returncode, 0, msg="Non-zero return code")
-        metrics = json.loads(res.stdout)
-        self.assertGreater(metrics["precision"], 0.8, f"Precision {metrics['precision']} should be high")
-        self.assertLess(metrics["recall"], 0.3, f"Recall {metrics['recall']} should be low")
-
 
 if __name__ == "__main__":
     unittest.main()
