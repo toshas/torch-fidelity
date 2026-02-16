@@ -8,7 +8,7 @@ Steps to publish a new release of `torch-fidelity`.
 
 - [ ] `CHANGELOG.md` is up to date
   - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`
-  - Add a new `[Unreleased]` section at the top for future changes
+  - Add a new `[X.Y+1.0] - Unreleased` section at the top for future changes
 - [ ] Version string updated in `torch_fidelity/version.py`
   - Remove `-beta` or other pre-release suffixes
   - Follows [Semantic Versioning](https://semver.org/)
