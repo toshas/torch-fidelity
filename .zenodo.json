@@ -1,0 +1,30 @@
+{
+    "title": "torch-fidelity: High-fidelity performance metrics for generative models in PyTorch",
+    "upload_type": "software",
+    "license": "Apache-2.0",
+    "creators": [
+        {"name": "Obukhov, Anton", "affiliation": "ETH Zurich"},
+        {"name": "Seitzer, Maximilian"},
+        {"name": "Wu, Po-Wei"},
+        {"name": "Zhydenko, Semen"},
+        {"name": "Kyl, Jonathan"},
+        {"name": "Lin, Elvis Yu-Jing"}
+    ],
+    "keywords": [
+        "generative models",
+        "evaluation metrics",
+        "inception score",
+        "frechet inception distance",
+        "kernel inception distance",
+        "precision recall",
+        "perceptual path length",
+        "pytorch"
+    ],
+    "related_identifiers": [
+        {
+            "identifier": "https://github.com/toshas/torch-fidelity",
+            "relation": "isSupplementTo",
+            "scheme": "url"
+        }
+    ]
+}

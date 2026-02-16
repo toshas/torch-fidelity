@@ -4,8 +4,8 @@ Steps to publish a new release of `torch-fidelity`.
 
 ## Pre-release
 
-- [ ] All CI checks pass on `master` (CircleCI smoke tests)
-- [ ] Full test suite passes locally (`tests/run_tests.sh` — requires Docker + GPU)
+### Update files
+
 - [ ] `CHANGELOG.md` is up to date
   - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`
   - Add a new `[Next] - Unreleased` section at the top (if desired)
@@ -26,12 +26,26 @@ Steps to publish a new release of `torch-fidelity`.
   - `README.md` and ReadTheDocs (`doc/sphinx/`) are well structured, clear,
     and free of mistakes
   - No bloated or outdated sections; no major rewrites — just light cleanup
-  - Documentation builds cleanly (`cd doc/sphinx && make html`)
 - [ ] Update citation blocks (`README.md` and `doc/sphinx/source/index.rst`)
   - Set `version={vX.Y.Z}` and update `note` to match
   - The concept DOI (`10.5281/zenodo.4957738`) stays as-is — it is stable
     and always resolves to the latest release
+- [ ] Update test Dockerfiles to use the latest NVIDIA PyTorch release
+  - Check https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch for
+    the latest tag (currently `23.12-py3` in most Dockerfiles)
+  - Update the `FROM nvcr.io/nvidia/pytorch:` tag in:
+    - `tests/torch_pure/Dockerfile`
+    - `tests/clip/Dockerfile`
+    - `tests/torch_versions_ge_1_11_0/Dockerfile`
+    - `tests/prc_ppl_reference/Dockerfile` (currently on older `21.02-py3`)
+  - Note: `tests/tf1/Dockerfile` uses `19.02-py3` intentionally (TF1 compat)
 - [ ] `MANIFEST.in` includes all necessary non-Python files
+
+### Verify
+
+- [ ] All CI checks pass on `master` (CircleCI smoke tests)
+- [ ] Full test suite passes locally (`tests/run_tests.sh` — requires Docker + GPU)
+  - This also covers documentation building (`sphinx_doc` test flavor)
 - [ ] No untracked or uncommitted changes (`git status` is clean)
 
 ## Create the release commit
