@@ -30,8 +30,10 @@ These edits can (and should) land as a normal PR before the release commit.
   - No bloated or outdated sections; no major rewrites — just light cleanup
 - [ ] Update citation blocks (`README.md` and `doc/sphinx/source/index.rst`)
   - Set `version={vX.Y.Z}` and update `note` to match
-  - The concept DOI (`10.5281/zenodo.3786539`) stays as-is — it is stable
-    and always resolves to the latest release
+  - The DOI must be the **concept DOI** (`10.5281/zenodo.3786539`), which is
+    stable and always resolves to the latest release. If a citation block
+    contains a version-specific DOI (e.g., `10.5281/zenodo.NNNNNNN`),
+    replace it with the concept DOI
 - [ ] Update `tests/torch_pure/Dockerfile` to use the latest NVIDIA PyTorch release
   - Check https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch for
     the latest tag
