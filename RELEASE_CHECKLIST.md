@@ -76,54 +76,50 @@ git commit -m "Release vX.Y.Z"
 
 # 4. Tag
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
-
-# 5. Push commit and tag (the tag push triggers the PyPI publish workflow)
-git push origin master --tags
 ```
 
 ## Publish to PyPI
 
 Publishing is automated via GitHub Actions (`.github/workflows/publish.yml`)
 using [PyPI Trusted Publishers](https://docs.pypi.org/trusted-publishers/).
-Pushing a `v*` tag to any branch triggers the workflow, which builds and uploads
-to PyPI — no API tokens needed.
+Pushing a `v*` tag triggers the workflow, which builds and uploads to PyPI — no
+API tokens needed.
 
-### Manual publish (fallback)
-
-If you ever need to publish without GitHub Actions:
-
-```bash
-pip install build twine
-
-# Build
-python -m build
-
-# Check the package
-twine check dist/*
-
-# Upload to Test PyPI first (optional but recommended)
-twine upload --repository testpypi dist/*
-
-# Upload to PyPI
-twine upload dist/*
-```
-
-## Post-release
-
+- [ ] Validate the package locally before pushing the tag:
+  ```bash
+  python -m build && twine check dist/*
+  ```
+- [ ] Push the tag (`git push origin master --tags`) — this triggers the workflow
 - [ ] Verify the package on PyPI: https://pypi.org/project/torch-fidelity/X.Y.Z/
 - [ ] Install from PyPI and run a quick sanity check:
   ```bash
   pip install torch-fidelity==X.Y.Z
   python -c "import torch_fidelity; print(torch_fidelity.__version__)"
   ```
-- [ ] Create a GitHub Release from the tag at https://github.com/toshas/torch-fidelity/releases/new
+
+**If it fails:** PyPI does not allow re-uploading the same version filename,
+ever. If the workflow failed before anything landed, fix and re-push the tag.
+If a broken package was uploaded, yank it in the PyPI UI and release a patch
+version (e.g., `X.Y.1`).
+
+## Publish to Zenodo
+
+Automated via GitHub Actions (`.github/workflows/zenodo.yml`). Creating a
+GitHub Release triggers the workflow, which uploads a new version under the
+concept DOI.
+
+- [ ] Create a GitHub Release at https://github.com/toshas/torch-fidelity/releases/new
   - Select the `vX.Y.Z` tag
   - Copy the relevant `CHANGELOG.md` section as the release body
-  - This automatically triggers the Zenodo upload
-    (`.github/workflows/zenodo.yml` runs on `release: [published]`)
-- [ ] Verify the Zenodo record
-  - Check that a new version appeared under the concept DOI:
-    https://zenodo.org/doi/10.5281/zenodo.3786539
-  - If the workflow failed, upload manually: https://zenodo.org/deposit
-    (create a new version of the existing record, upload source, publish)
+- [ ] Verify the Zenodo record — check that a new version appeared under the
+  concept DOI: https://zenodo.org/doi/10.5281/zenodo.3786539
+
+**If it fails:** Zenodo is forgiving. Check https://zenodo.org/uploads for
+stuck drafts and delete them. Published versions can be deleted within 30 days,
+and metadata can be edited in-place at any time. To retry, delete the failed
+draft/version and re-run the workflow (or upload manually via
+https://zenodo.org/deposit — create a new version of the existing record).
+
+## Post-release
+
 - [ ] Bump version in `torch_fidelity/version.py` to the next development version (e.g., `X.Y+1.0-dev`) and commit to `master`
