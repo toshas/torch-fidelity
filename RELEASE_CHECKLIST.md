@@ -27,14 +27,10 @@ Steps to publish a new release of `torch-fidelity`.
     and free of mistakes
   - No bloated or outdated sections; no major rewrites — just light cleanup
   - Documentation builds cleanly (`cd doc/sphinx && make html`)
-- [ ] Update citation blocks with the new version
-  - In `README.md` and `doc/sphinx/source/index.rst`: set `version={vX.Y.Z}`
-  - Keep the concept DOI (`10.5281/zenodo.4957738`) — it is stable across
-    all versions and always resolves to the latest release, so there is no
-    need to erase or update it. (A version-specific DOI is minted by Zenodo
-    after the upload, but the concept DOI is the right one to ship in the
-    package since the version DOI cannot be known before publishing.)
-  - Update the `note` field to reflect the new version string
+- [ ] Update citation blocks (`README.md` and `doc/sphinx/source/index.rst`)
+  - Set `version={vX.Y.Z}` and update `note` to match
+  - The concept DOI (`10.5281/zenodo.4957738`) stays as-is — it is stable
+    and always resolves to the latest release
 - [ ] `MANIFEST.in` includes all necessary non-Python files
 - [ ] No untracked or uncommitted changes (`git status` is clean)
 
@@ -95,21 +91,11 @@ twine upload dist/*
 - [ ] Create a GitHub Release from the tag at https://github.com/toshas/torch-fidelity/releases/new
   - Select the `vX.Y.Z` tag
   - Copy the relevant `CHANGELOG.md` section as the release body
-  - Creating the release triggers the Zenodo upload (see below)
-- [ ] Upload to Zenodo
-  - If using the Zenodo–GitHub integration: creating the GitHub Release
-    (above) automatically triggers a Zenodo deposit and mints a new DOI.
-    Verify at https://zenodo.org/records/ that the new version appears.
-  - If using the GitHub Actions workflow (`.github/workflows/zenodo.yml`):
-    the upload happens automatically on `release: [published]`.
-    Check the workflow run for success.
-  - If uploading manually: go to
-    https://zenodo.org/deposit, create a new version of the existing record,
-    upload the source archive, and publish.
-- [ ] Verify Zenodo record
-  - Confirm the concept DOI (`10.5281/zenodo.4957738`) resolves to the
-    new version at https://zenodo.org/records/4957738
-  - Note the version-specific DOI for reference (available on the Zenodo
-    landing page); no need to backfill it into the repo since the citation
-    blocks use the stable concept DOI
+  - This automatically triggers the Zenodo upload
+    (`.github/workflows/zenodo.yml` runs on `release: [published]`)
+- [ ] Verify the Zenodo record
+  - Check that a new version appeared under the concept DOI:
+    https://zenodo.org/records/4957738
+  - If the workflow failed, upload manually: https://zenodo.org/deposit
+    (create a new version of the existing record, upload source, publish)
 - [ ] Bump version in `torch_fidelity/version.py` to the next development version (e.g., `X.Y+1.0-dev`) and commit to `master`
