@@ -28,9 +28,13 @@ Steps to publish a new release of `torch-fidelity`.
   - No bloated or outdated sections; no major rewrites — just light cleanup
   - Documentation builds cleanly (`cd doc/sphinx && make html`)
 - [ ] Update citation blocks with the new version
-  - In `README.md`: set `version={vX.Y.Z}`, erase `doi` and `note` fields
-    (a new DOI will be minted after the Zenodo upload)
-  - In `doc/sphinx/source/index.rst`: same changes
+  - In `README.md` and `doc/sphinx/source/index.rst`: set `version={vX.Y.Z}`
+  - Keep the concept DOI (`10.5281/zenodo.4957738`) — it is stable across
+    all versions and always resolves to the latest release, so there is no
+    need to erase or update it. (A version-specific DOI is minted by Zenodo
+    after the upload, but the concept DOI is the right one to ship in the
+    package since the version DOI cannot be known before publishing.)
+  - Update the `note` field to reflect the new version string
 - [ ] `MANIFEST.in` includes all necessary non-Python files
 - [ ] No untracked or uncommitted changes (`git status` is clean)
 
@@ -102,8 +106,10 @@ twine upload dist/*
   - If uploading manually: go to
     https://zenodo.org/deposit, create a new version of the existing record,
     upload the source archive, and publish.
-- [ ] Backfill the DOI into citation blocks
-  - Once the Zenodo DOI is minted, update `doi` and `note` fields in
-    `README.md` and `doc/sphinx/source/index.rst` with the new DOI
-  - Commit to `master` (this is a metadata-only follow-up commit)
+- [ ] Verify Zenodo record
+  - Confirm the concept DOI (`10.5281/zenodo.4957738`) resolves to the
+    new version at https://zenodo.org/records/4957738
+  - Note the version-specific DOI for reference (available on the Zenodo
+    landing page); no need to backfill it into the repo since the citation
+    blocks use the stable concept DOI
 - [ ] Bump version in `torch_fidelity/version.py` to the next development version (e.g., `X.Y+1.0-dev`) and commit to `master`
