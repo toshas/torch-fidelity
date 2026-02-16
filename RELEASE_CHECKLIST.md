@@ -4,6 +4,8 @@ Steps to publish a new release of `torch-fidelity`.
 
 ## Pre-release
 
+These edits can (and should) land as a normal PR before the release commit.
+
 ### Update files
 
 - [ ] `CHANGELOG.md` is up to date
@@ -32,7 +34,7 @@ Steps to publish a new release of `torch-fidelity`.
     and always resolves to the latest release
 - [ ] Update `tests/torch_pure/Dockerfile` to use the latest NVIDIA PyTorch release
   - Check https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch for
-    the latest tag (currently `23.12-py3`)
+    the latest tag
   - Update the `FROM nvcr.io/nvidia/pytorch:` tag
 - [ ] `MANIFEST.in` includes all necessary non-Python files
 - [ ] Grep for lingering old version strings
@@ -47,9 +49,13 @@ Steps to publish a new release of `torch-fidelity`.
 
 ### Verify
 
+Once the pre-release PR is merged to `master`:
+
 - [ ] All CI checks pass on `master` (CircleCI smoke tests)
 - [ ] Full test suite passes locally (`tests/run_tests.sh` — requires Docker + GPU)
   - This also covers documentation building (`sphinx_doc` test flavor)
+  - All test flavors except `tf1` run with `-W error`, so deprecation and
+    other warnings from updated dependencies will surface as failures
 - [ ] No untracked or uncommitted changes (`git status` is clean)
 
 ## Create the release commit
