@@ -32,38 +32,16 @@ git commit -m "Release vX.Y.Z"
 # 4. Tag
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 
-# 5. Push
+# 5. Push commit and tag (the tag push triggers the PyPI publish workflow)
 git push origin master --tags
 ```
 
 ## Publish to PyPI
 
-Publishing is automated via GitHub Actions (`.github/workflows/publish.yml`).
-Pushing a tag matching `v*` triggers the workflow, which builds and uploads to PyPI.
-
-### First-time PyPI setup
-
-1. **Create a PyPI account** at https://pypi.org/account/register/ (if you don't have one).
-2. **Create a PyPI API token** scoped to the `torch_fidelity` project:
-   - Go to https://pypi.org/manage/account/token/
-   - Set scope to project `torch_fidelity`
-   - Copy the token (starts with `pypi-`)
-3. **Add the token as a GitHub Actions secret:**
-   - Go to your repo → Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `PYPI_API_TOKEN`
-   - Value: paste the token from step 2
-4. **Alternative — Trusted Publishers (recommended):**
-   Instead of an API token, you can use PyPI's Trusted Publisher mechanism
-   which is more secure and doesn't require managing tokens:
-   - Go to https://pypi.org/manage/project/torch_fidelity/settings/publishing/
-   - Add a new publisher:
-     - Owner: `toshas`
-     - Repository: `torch-fidelity`
-     - Workflow name: `publish.yml`
-     - Environment: `pypi`
-   - Then in the GitHub Actions workflow, replace the token-based upload with
-     the `id-token: write` permission (already included in the workflow).
+Publishing is automated via GitHub Actions (`.github/workflows/publish.yml`)
+using [PyPI Trusted Publishers](https://docs.pypi.org/trusted-publishers/).
+Pushing a `v*` tag to any branch triggers the workflow, which builds and uploads
+to PyPI — no API tokens needed.
 
 ### Manual publish (fallback)
 
