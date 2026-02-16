@@ -8,7 +8,7 @@ Steps to publish a new release of `torch-fidelity`.
 
 - [ ] `CHANGELOG.md` is up to date
   - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`
-  - Add a new `[Next] - Unreleased` section at the top (if desired)
+  - Add a new `[Unreleased]` section at the top for future changes
 - [ ] Version string updated in `torch_fidelity/version.py`
   - Remove `-beta` or other pre-release suffixes
   - Follows [Semantic Versioning](https://semver.org/)
@@ -40,6 +40,15 @@ Steps to publish a new release of `torch-fidelity`.
     - `tests/prc_ppl_reference/Dockerfile` (currently on older `21.02-py3`)
   - Note: `tests/tf1/Dockerfile` uses `19.02-py3` intentionally (TF1 compat)
 - [ ] `MANIFEST.in` includes all necessary non-Python files
+- [ ] Grep for lingering old version strings
+  ```bash
+  # Replace OLD_VERSION with the previous release (e.g., 0.3.0)
+  grep -rn "OLD_VERSION" --include="*.py" --include="*.cfg" --include="*.toml" \
+       --include="*.rst" --include="*.md" --include="*.yml" --include="*.yaml" .
+  ```
+  - Check results for any stale version references that should have been
+    updated (version.py, setup.py, documentation, CI configs, etc.)
+  - Ignore expected occurrences (e.g., CHANGELOG.md historical entries)
 
 ### Verify
 
