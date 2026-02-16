@@ -4,7 +4,7 @@ Steps to publish a new release of `torch-fidelity`.
 
 ## Pre-release
 
-- [ ] All CI checks pass on `master` (CircleCI smoke tests + PRC convention test)
+- [ ] All CI checks pass on `master` (CircleCI smoke tests)
 - [ ] Full test suite passes locally (`tests/run_tests.sh` — requires Docker + GPU)
 - [ ] `CHANGELOG.md` is up to date
   - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`

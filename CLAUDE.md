@@ -182,7 +182,6 @@ The `input1`/`input2` parameters accept:
 - Smoke tests validate all metrics against known reference values with tight tolerances
 - Tests use `psutil` for memory monitoring
 - **Smoke test pattern**: all tests run via `_run_fidelity_command()` which wraps `subprocess.run`. Tests must not import `torch` or library internals directly; instead, run `python3 -m torch_fidelity.fidelity` or `python3 -c "..."` as a subprocess and assert on JSON output
-- Includes an asymmetric PRC convention test (mode-collapse scenario) to guard against precision/recall swaps
 
 ## Common Pitfalls
 
