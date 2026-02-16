@@ -53,7 +53,11 @@ Once the pre-release PR is merged to `master`:
 
 - [ ] All CI checks pass on `master` (CircleCI smoke tests)
 - [ ] Full test suite passes locally (`tests/run_tests.sh` — requires Docker + GPU)
-  - This also covers documentation building (`sphinx_doc` test flavor)
+  - This also covers documentation building (`sphinx_doc` test flavor);
+    visually inspect the output too:
+    ```bash
+    cd doc/sphinx && make html && open build/html/index.html
+    ```
   - All test flavors except `tf1` run with `-W error`, so deprecation and
     other warnings from updated dependencies will surface as failures
 - [ ] No untracked or uncommitted changes (`git status` is clean)
