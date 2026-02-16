@@ -26,4 +26,4 @@ jobs:
           zenodo_json: .zenodo.json
           html_url: ${{ github.event.release.html_url }}
           archive: ${{ env.archive }}
-          doi: "10.5281/zenodo.4957738"
+          doi: "10.5281/zenodo.3786539"
