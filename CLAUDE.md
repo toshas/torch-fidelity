@@ -4,7 +4,7 @@
 
 **torch-fidelity** is a PyTorch library providing epsilon-exact implementations of generative model evaluation metrics: Inception Score (ISC), Frechet Inception Distance (FID), Kernel Inception Distance (KID), Precision/Recall/F-score (PRC), and Perceptual Path Length (PPL). The library prioritizes numerical fidelity with reference TensorFlow implementations.
 
-Current version: **0.4.0-beta** (`torch_fidelity/version.py`)
+Current version: **0.4.0** (`torch_fidelity/version.py`)
 
 ## Repository Structure
 

@@ -11,21 +11,22 @@ with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 long_description = """
-Evaluation of generative models such as GANs is an important part of the deep learning research. 
-In the domain of 2D image generation, three approaches became widely spread: Inception Score 
-(aka IS), Fréchet Inception Distance (aka FID), and Kernel Inception Distance (aka KID).
+Evaluation of generative image models — GANs, diffusion models, flow-matching, and beyond — is an
+important part of deep learning research. In the domain of 2D image generation, several metrics
+became widely adopted: Inception Score (ISC), Fréchet Inception Distance (FID), Kernel Inception
+Distance (KID), Precision and Recall (PRC), and Perceptual Path Length (PPL).
 
-These metrics, despite having a clear mathematical and algorithmic description, were initially 
-implemented in TensorFlow, and inherited a few properties of the framework itself and the code 
-they relied upon. These design decisions were effectively baked into the evaluation protocol and 
-became an inherent part of the metrics specification. As a result, researchers wishing to 
-compare against state of the art in generative modeling are forced to perform evaluation using 
-codebases of the original metric authors. Reimplementations of metrics in PyTorch and other 
-frameworks exist, but they do not provide a proper level of fidelity, thus making them 
-unsuitable for reporting results and comparing to other methods.   
+These metrics, despite having a clear mathematical and algorithmic description, were initially
+implemented in TensorFlow, and inherited a few properties of the framework itself and the code
+they relied upon. These design decisions were effectively baked into the evaluation protocol and
+became an inherent part of the metrics specification. As a result, researchers wishing to
+compare against state of the art in generative modeling are forced to perform evaluation using
+codebases of the original metric authors. Reimplementations of metrics in PyTorch and other
+frameworks exist, but they do not provide a proper level of fidelity, thus making them
+unsuitable for reporting results and comparing to other methods.
 
-This software aims to provide epsilon-exact implementations of the said metrics in PyTorch, and thus 
-remove inconveniences associated with generative models evaluation and development. 
+This software aims to provide epsilon-exact implementations of the said metrics in PyTorch, and thus
+remove inconveniences associated with generative models evaluation and development.
 Find more details and the most up-to-date information on the project webpage:
 https://www.github.com/toshas/torch-fidelity
 """
@@ -50,6 +51,8 @@ setup(
         "adversarial",
         "networks",
         "gan",
+        "diffusion",
+        "flow-matching",
         "inception",
         "score",
         "frechet",
@@ -66,6 +69,9 @@ setup(
         "prc",
         "precision",
         "recall",
+        "clip",
+        "dinov2",
+        "vgg16",
     ],
     entry_points={
         "console_scripts": [

@@ -28,7 +28,7 @@ training loop, for example at the end of every epoch.
 input data, models, and feature extractors. For example, one can swap out InceptionV3 feature extractor for a one
 accepting 3D scan volumes, such as used in MRI.
 
-**TLDR; fast and reliable GAN evaluation in PyTorch**
+**TLDR; fast and reliable generative model evaluation in PyTorch**
 
 .. toctree::
    :maxdepth: 2
@@ -58,7 +58,7 @@ To ensure reproducibility, use the following BibTeX:
         title={High-fidelity performance metrics for generative models in PyTorch},
         url={https://github.com/toshas/torch-fidelity},
         publisher={Zenodo},
-        version={v0.3.0},
-        doi={10.5281/zenodo.4957738},
-        note={Version: 0.3.0, DOI: 10.5281/zenodo.4957738}
+        version={v0.4.0},
+        doi={10.5281/zenodo.3786539},
+        note={Version: 0.4.0, DOI: 10.5281/zenodo.3786539}
       }
