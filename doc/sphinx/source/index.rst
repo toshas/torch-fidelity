@@ -25,8 +25,8 @@ level avoids recomputing features and statistics whenever possible. High efficie
 training loop, for example at the end of every epoch.
 
 **Extensibility**: Going beyond 2D image generation is easy due to high modularity and abstraction of the metrics from
-input data, models, and feature extractors. For example, one can swap out InceptionV3 feature extractor for a one
-accepting 3D scan volumes, such as used in MRI.
+input data, models, and feature extractors. Register a custom feature extractor to evaluate any modality — video, audio,
+3D volumes, or anything else with a suitable learned representation.
 
 **TLDR; fast and reliable generative model evaluation in PyTorch**
 

@@ -23,8 +23,8 @@ level avoids recomputing features and statistics whenever possible. High efficie
 training loop, for example at the end of every epoch. [Read more about efficiency](https://torch-fidelity.readthedocs.io/en/latest/miscellaneous.html)
 
 **Extensibility**: Going beyond 2D image generation is easy due to high modularity and abstraction of the metrics from
-input data, models, and feature extractors. For example, one can swap out InceptionV3 feature extractor for a one
-accepting 3D scan volumes, such as used in MRI. [Read more about extensibility](https://torch-fidelity.readthedocs.io/en/latest/extensibility.html)
+input data, models, and feature extractors. Register a custom feature extractor to evaluate any modality — video, audio,
+3D volumes, or anything else with a suitable learned representation. [Read more about extensibility](https://torch-fidelity.readthedocs.io/en/latest/extensibility.html)
 
 **TLDR; fast and reliable generative model evaluation in PyTorch**
 
@@ -84,9 +84,8 @@ When it comes to tracking the performance of generative models as they train, ev
 becomes prohibitively expensive due to long computation times. 
 `torch_fidelity` tackles this problem by making full use 
 of caching to avoid recomputing common features and per-metric statistics whenever possible. 
-Computing all metrics for 50000 32x32 generated images and `cifar10-train` takes only 2 min 26 seconds on NVIDIA P100 
-GPU, compared to >10 min if using original codebases. 
-Thus, computing metrics 20 times over the whole training cycle makes overall training time just one hour longer.
+Computing all metrics for 50000 32x32 generated images and `cifar10-train` takes a fraction of the time compared to
+using original codebases, thanks to feature sharing and caching.
 
 In the following example, assume unconditional image generation setting with CIFAR-10, and the generative model 
 `generator`, which takes a 128-dimensional standard normal noise vector.
