@@ -8,12 +8,12 @@ These edits can (and should) land as a normal PR before the release commit.
 
 ### Update files
 
-- [ ] `CHANGELOG.md` is up to date
-  - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`
-  - Add a new `[X.Y+1.0] - Unreleased` section at the top for future changes
 - [ ] Version string updated in `torch_fidelity/version.py`
   - Remove `-beta` or other pre-release suffixes
   - Follows [Semantic Versioning](https://semver.org/)
+- [ ] `CHANGELOG.md` is up to date
+  - Move `[X.Y.Z] - Unreleased` to `[X.Y.Z] - YYYY-MM-DD`
+  - Add a new `[X.Y+1.0] - Unreleased` section at the top for future changes
 - [ ] `setup.py` metadata is correct
   - If major features were added, update `long_description` to reflect the
     current scope (e.g., broaden from "GANs" to "generative image models"
@@ -64,19 +64,13 @@ Once the pre-release PR is merged to `master`:
     other warnings from updated dependencies will surface as failures
 - [ ] No untracked or uncommitted changes (`git status` is clean)
 
-## Create the release commit
+## Tag the release
+
+Merge the pre-release PR to `master`, then tag the merge commit:
 
 ```bash
-# 1. Update version
-echo '__version__ = "X.Y.Z"' > torch_fidelity/version.py
-
-# 2. Update CHANGELOG.md (replace "Unreleased" with today's date)
-
-# 3. Commit
-git add torch_fidelity/version.py CHANGELOG.md
-git commit -m "Release vX.Y.Z"
-
-# 4. Tag
+git checkout master
+git pull origin master
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 ```
 
