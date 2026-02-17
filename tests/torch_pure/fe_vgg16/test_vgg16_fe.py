@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 import torch
 from torch.hub import load_state_dict_from_url
@@ -20,7 +21,12 @@ class TestVGG16FE(TimeTrackingTestCase):
     def test_vgg16_fe(self):
         url_nv = "https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt"
         fe_us = FeatureExtractorVGG16("vgg16", ["fc2_relu"])
-        fe_nv = load_state_dict_from_url(url_nv, map_location="cpu", progress=True)
+        # NVIDIA's VGG16 checkpoint is a TorchScript archive, which triggers
+        # warnings from torch.load; suppress since we load it intentionally.
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            fe_nv = load_state_dict_from_url(url_nv, map_location="cpu", progress=True)
 
         for i in (32, 64, 128, 256, 224, 512):
             self._test_vgg16_fe_res(fe_us, fe_nv, i)

@@ -47,7 +47,7 @@ tests/                    # Test suite (42 test files)
   tf1/                    # TF1 reference implementation comparison tests
   clip/                   # CLIP feature extractor tests
   prc_ppl_reference/      # PRC and PPL reference tests
-  torch_versions_ge_1_11_0/  # PyTorch version-specific tests
+  torch_versions_ge_1_13_0/  # PyTorch version compatibility tests
   sphinx_doc/             # Documentation build tests
   aws/                    # AWS test harness
 
@@ -87,16 +87,23 @@ CUDA_VISIBLE_DEVICES="" PYTHONPATH=. python .circleci/smoke_tests.py
 
 **Full test suite (requires Docker + GPU):**
 ```bash
-tests/run_tests.sh
+tests/run_tests.sh              # runs all suites except tf1
+tests/run_tests.sh --with-tf1   # includes tf1 (requires pre-Ampere GPU)
 ```
 
-The full suite uses Docker containers and runs six test flavors sequentially:
-1. `torch_versions_ge_1_11_0` (CUDA, strict warnings)
-2. `tf1` (CUDA, TF1 reference comparison)
-3. `torch_pure` (CUDA, strict warnings)
-4. `clip` (CUDA, strict warnings)
-5. `prc_ppl_reference` (CUDA, strict warnings)
-6. `sphinx_doc` (documentation build)
+The full suite uses Docker containers (NGC PyTorch base images) and runs six test flavors sequentially:
+
+1. **`torch_versions_ge_1_13_0`** (CUDA, strict warnings) — Backward compatibility testing. Dynamically installs torch 1.13.1, 2.0.1, 2.1.1, and latest, running the full metrics pipeline (ISC/FID/KID/PRC with Inception-v3, CLIP, DINOv2) against each version. Verifies metric values stay within tight tolerances across versions. The Docker image strips all pre-installed torch packages and installs/uninstalls them per test. Minimum version is 1.13.0 due to CUDA sm_86 (Ampere) support requirement.
+
+2. **`tf1`** (CUDA, no strict warnings) — **Skipped by default** (enable with `--with-tf1`). Legacy TensorFlow 1.14 numerical precision comparison. Uses an old NGC base image (`pytorch:19.02-py3`) with CUDA 10.0 to cross-validate against the original TF reference implementations. Requires pre-Ampere GPU (V100, T4, etc.) — fails on Ampere+ (sm_86+) due to missing cuBLAS kernels in CUDA 10.0. Warnings are not treated as errors because TF1/legacy code generates many deprecation warnings. These tests were validated up to and including v0.3.0; numerical correctness of v0.4.0 is ensured via the other test suites.
+
+3. **`torch_pure`** (CUDA, strict warnings) — Core functionality tests (~135+ tests). Covers batch size independence (verifies metrics are identical across batch sizes in fp32/fp64), torch.compile() compatibility, all feature extractors (InceptionV3, VGG16, CLIP, DINOv2), all metrics, FID statistics edge cases, PRC convention correctness, generative model input (ISC/PPL with SNGAN), and LPIPS reference comparison (VGG16-based, validates against NVIDIA's pretrained module). Uses the latest torch from the NGC base image.
+
+4. **`clip`** (CUDA, strict warnings) — CLIP feature extractor integration tests. Validates CLIP-based metric computation against the OpenAI CLIP model (pinned commit). Has a separate Docker image because it requires CLIP's dependencies (ftfy, regex, setuptools, clean-fid).
+
+5. **`prc_ppl_reference`** (CUDA, strict warnings) — Reference implementation comparison for PRC and PPL metrics. Uses an older NGC base image (`pytorch:21.02-py3`) to compare against the original StyleGAN2-ADA reference implementation, ensuring epsilon-exact numerical agreement.
+
+6. **`sphinx_doc`** (CPU) — Documentation build test. Uses the `sphinxdoc/sphinx` base image to verify the Sphinx documentation builds without errors. Runs shell-based tests (`test_*.sh`).
 
 **Individual test discovery:**
 ```bash

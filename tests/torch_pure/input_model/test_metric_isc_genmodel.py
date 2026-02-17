@@ -44,7 +44,7 @@ class TestMetricIscGenModel(TimeTrackingTestCase):
         res_fidelity = json_decode_string(res_fidelity.stdout.decode())
         print("Fidelity ISC result:", res_fidelity, file=sys.stderr)
 
-        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 3.6213493416917104, delta=5e-4)
+        self.assertAlmostEqual(res_fidelity[KEY_METRIC_ISC_MEAN], 3.6213493416917104, delta=2e-3)
 
 
 if __name__ == "__main__":

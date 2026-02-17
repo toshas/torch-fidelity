@@ -36,8 +36,11 @@ class TestBatchSizeIndependence(TimeTrackingTestCase):
             cuda=cuda,
         )[KEY_METRIC_ISC_MEAN]
         discrepancy = math.fabs(metrics_b_1 - metrics_b_all)
+        # CUDA uses different cuDNN algorithms for different batch sizes, causing
+        # small non-deterministic differences even with identical inputs and dtype.
+        threshold = 1e-4 if cuda else 1e-5
         self.assertTrue(
-            discrepancy < 1e-5,
+            discrepancy < threshold,
             f"Batch size affects metrics outputs: size_1 gives {metrics_b_1}, size_all gives {metrics_b_all}",
         )
 

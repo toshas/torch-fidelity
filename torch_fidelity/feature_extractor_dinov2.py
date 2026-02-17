@@ -68,6 +68,7 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
                 "Using cache found in",
             ], sys.stderr), warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message="xFormers is not available")
+                warnings.filterwarnings("ignore", message="xFormers is disabled")
                 if feature_extractor_weights_path is None:
                     self.model = torch.hub.load("facebookresearch/dinov2", MODEL_METADATA[name])
                 else:

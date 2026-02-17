@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-set -e
 set -x
+set -o pipefail
 
 if ! type source > /dev/null 2>&1; then
     bash "$0" "$@"
@@ -8,6 +8,11 @@ if ! type source > /dev/null 2>&1; then
 fi
 
 ROOT_DIR=$(realpath $(dirname "$0")/..)
+RESULTS_DIR="${ROOT_DIR}/test_logs"
+RESULTS_FILE="${RESULTS_DIR}/summary.txt"
+rm -rf "${RESULTS_DIR}"
+mkdir -p "${RESULTS_DIR}"
+> "${RESULTS_FILE}"
 
 build() {
     FLAVOR="${1}"
@@ -25,10 +30,11 @@ exec_cpu() {
     FLAVOR="${1}"
     shift
     cd ${ROOT_DIR} && docker run \
-        -it --rm --network=host --ipc=host \
+        --rm --network=host --ipc=host \
         -v "${ROOT_DIR}":/work \
+        --entrypoint "" \
         "torch-fidelity-test-${FLAVOR}" \
-        $@
+        "$@"
 }
 
 exec_cuda() {
@@ -40,11 +46,12 @@ exec_cuda() {
     shift
     cd ${ROOT_DIR} && docker run \
         --gpus "device=${CUDA_VISIBLE_DEVICES}" \
-        -it --rm --network=host --ipc=host \
+        --rm --network=host --ipc=host \
         --env CUDA_VISIBLE_DEVICES=0 \
         -v "${ROOT_DIR}":/work \
+        --entrypoint "" \
         "torch-fidelity-test-${FLAVOR}" \
-        $@
+        "$@"
 }
 
 main() {
@@ -69,17 +76,82 @@ main_sh() {
 shell() {
     FLAVOR="${1}"
     build "${FLAVOR}"
-    exec_cuda "${FLAVOR}" bash
+    # Inline docker run with -it for interactive shell (exec_cuda omits -it for scripted runs)
+    cd ${ROOT_DIR} && docker run \
+        --gpus "device=${CUDA_VISIBLE_DEVICES:-0}" \
+        -it --rm --network=host --ipc=host \
+        --env CUDA_VISIBLE_DEVICES=0 \
+        -v "${ROOT_DIR}":/work \
+        --entrypoint "" \
+        "torch-fidelity-test-${FLAVOR}" \
+        bash
+}
+
+record() {
+    local label="${1}"
+    shift
+    local start=$SECONDS
+    local log="${RESULTS_DIR}/${label}.log"
+    if "$@" 2>&1 | tee "${log}"; then
+        echo "PASS  $(($SECONDS - start))s  ${label}" >> "${RESULTS_FILE}"
+    else
+        echo "FAIL  $(($SECONDS - start))s  ${label}" >> "${RESULTS_FILE}"
+    fi
 }
 
 run_all() {
-    time main torch_versions_ge_1_11_0 cuda werr
-    time main tf1 cuda               # fighting warnings in legacy/tensorflow is futile
-    time main torch_pure cuda werr
-    time main clip cuda werr
-    time main prc_ppl_reference cuda werr
-    time main_sh sphinx_doc
+    record torch_versions_ge_1_13_0  main torch_versions_ge_1_13_0 cuda werr
+    if [ "${WITH_TF1}" = "1" ]; then
+        record tf1                   main tf1 cuda               # fighting warnings in legacy/tensorflow is futile
+    else
+        echo "SKIP  0s  tf1 (use --with-tf1 to enable)" >> "${RESULTS_FILE}"
+    fi
+    record torch_pure                main torch_pure cuda werr
+    record clip                      main clip cuda werr
+    record prc_ppl_reference         main prc_ppl_reference cuda werr
+    record sphinx_doc                main_sh sphinx_doc
 }
 
-time run_all
-echo "=== TESTS FINISHED ==="
+# Parse args
+WITH_TF1=0
+for arg in "$@"; do
+    case "$arg" in
+        --with-tf1) WITH_TF1=1 ;;
+    esac
+done
+
+run_all
+
+echo ""
+echo "==============================="
+echo "  TEST RESULTS SUMMARY"
+echo "==============================="
+cat "${RESULTS_FILE}"
+echo "==============================="
+
+# Show individual test failures from logs
+FAILURES=""
+for log in "${RESULTS_DIR}"/*.log; do
+    [ -f "${log}" ] || continue
+    suite=$(basename "${log}" .log)
+    # Grep for lines indicating individual test errors/failures (unittest output)
+    fails=$(grep -E "^(FAIL|ERROR): " "${log}" 2>/dev/null || true)
+    if [ -n "${fails}" ]; then
+        FAILURES="${FAILURES}\n--- ${suite} ---\n${fails}\n"
+    fi
+done
+
+if [ -n "${FAILURES}" ]; then
+    echo "  FAILED TESTS:"
+    echo "-------------------------------"
+    echo -e "${FAILURES}"
+    echo "==============================="
+    echo "  Logs: ${RESULTS_DIR}/"
+    echo "==============================="
+fi
+
+if grep -q "^FAIL" "${RESULTS_FILE}"; then
+    exit 1
+else
+    exit 0
+fi

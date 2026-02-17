@@ -486,7 +486,9 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                             vprint(verbose, "Download failed, retrying in 1 second")
                             time.sleep(1)
         else:
-            model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")
 
         self.model = build_model(model_jit.state_dict(), self.feature_extractor_internal_dtype)
         self.resolution = self.model.visual.input_resolution

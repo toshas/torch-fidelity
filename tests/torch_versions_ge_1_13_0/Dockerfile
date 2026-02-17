@@ -1,5 +1,5 @@
 FROM nvcr.io/nvidia/pytorch:23.12-py3
-# Supports torch>=1.11.0
+# Supports torch>=1.13.0
 
 ARG UNAME=testuser
 ARG UID=1000

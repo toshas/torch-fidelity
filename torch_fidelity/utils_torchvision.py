@@ -17,6 +17,7 @@ def torchvision_load_pretrained_vgg16(**kwargs):
             message="'torch.load' received a zip file that looks like a TorchScript "
             "archive dispatching to 'torch.jit.load'",
         )
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         try:
             out = torchvision.models.vgg16(
                 weights=torchvision.models.VGG16_Weights.IMAGENET1K_V1,

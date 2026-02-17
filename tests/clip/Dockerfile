@@ -15,8 +15,9 @@ RUN pip3 install -U \
     regex \
     setuptools\<=65.6.3 \
     tqdm \
-    git+https://github.com/openai/CLIP.git@a9b1bf5920416aaeaec965c25dd9e8f98c864f16 \
     clean-fid==0.1.35
+RUN pip3 install --no-build-isolation \
+    git+https://github.com/openai/CLIP.git@a9b1bf5920416aaeaec965c25dd9e8f98c864f16
 
 RUN ln -fs /usr/share/zoneinfo/Europe/Zurich /etc/localtime
 RUN groupadd --gid $GID $UNAME-group

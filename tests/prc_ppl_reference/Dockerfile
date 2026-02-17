@@ -13,6 +13,7 @@ RUN pip3 install -U \
     torchvision \
     typing_extensions \
     setuptools \
+    importlib_metadata \
     imageio-ffmpeg==0.4.3 \
     pyspng==0.1.0
 
@@ -23,6 +24,6 @@ USER $UNAME
 
 RUN git clone https://github.com/toshas/torch-fidelity-stylegan2-ada.git && \
     cd torch-fidelity-stylegan2-ada && \
-    git checkout a3a137d
+    git checkout 5d3fe0c
 
 WORKDIR /work

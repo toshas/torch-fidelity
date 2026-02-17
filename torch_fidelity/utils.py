@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import sys
+import warnings
 
 import numpy as np
 import torch
@@ -8,6 +9,12 @@ import torch.hub
 import torchvision
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
+# PyTorch's DataLoader pin_memory thread internally passes a deprecated 'device'
+# argument to Tensor.pin_memory(). The warning fires in a worker thread so it
+# must be suppressed at module level. See https://github.com/pytorch/pytorch/issues/174546
+warnings.filterwarnings("ignore", message="The argument 'device' of Tensor", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message="Caught DeprecationWarning in pin memory thread", category=DeprecationWarning)
 
 from torch_fidelity import GenerativeModelModuleWrapper
 from torch_fidelity.datasets import ImagesPathDataset, TransformPILtoRGBTensor
@@ -277,7 +284,9 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
                 input_desc["input_model_num_classes"],
             )
         elif os.path.isfile(input) and input.endswith(".pth"):
-            input = torch.jit.load(input, map_location="cpu")
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                input = torch.jit.load(input, map_location="cpu")
             input = GenerativeModelModuleWrapper(
                 input,
                 input_desc["input_model_z_size"],
