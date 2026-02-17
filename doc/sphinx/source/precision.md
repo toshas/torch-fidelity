@@ -92,12 +92,19 @@ denotes the choice of data type which the generated fakes are cast to before fee
 (LPIPS). All runs were performed with the `z_end` configuration of the metric on the original pre-trained CIFAR-10 
 generator.
 
-| ppl_eps | uint8     | float32  |
-| ------- |:---------:| --------:|
-| 1e-4    | 1146.89   |    31.04 |
-| 1e-3    | 109.6     |    30.69 |
-| 1e-2    | 28.92     |    27.46 |
-| 1e-1    | 11.34     |    11.33 |
+```eval_rst
++---------+---------+---------+
+| ppl_eps | uint8   | float32 |
++=========+=========+=========+
+| 1e-4    | 1146.89 |   31.04 |
++---------+---------+---------+
+| 1e-3    | 109.6   |   30.69 |
++---------+---------+---------+
+| 1e-2    | 28.92   |   27.46 |
++---------+---------+---------+
+| 1e-1    | 11.34   |   11.33 |
++---------+---------+---------+
+```
 
 ## Reference Source Code
 
