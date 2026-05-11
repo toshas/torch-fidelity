@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.5.0] - Unreleased
+### Added in 0.5.0
+- New metric: Monge Inception Distance (MIND), a sliced 2-Wasserstein distance between feature distributions over random unit-norm projections; see [arXiv:2605.06797](https://arxiv.org/abs/2605.06797)
+- API
+  - `calculate_metrics`
+    - `mind`: Calculate MIND (Monge Inception Distance)
+    - `mind_num_projections`: Number of random projection directions used to estimate the sliced Wasserstein distance in MIND (default: `1000`)
+    - `feature_layer_mind`: Name of the feature layer to use with MIND metric
+- Command line
+  - `--mind` / `-m`: Calculate MIND (Monge Inception Distance)
+  - `--mind-num-projections`: Number of random projection directions used to estimate the sliced Wasserstein distance in MIND
+  - `--feature-layer-mind`: Name of the feature layer to use with MIND metric
 
 ## [0.4.0] - 2026-02-17
 ### Added in 0.4.0

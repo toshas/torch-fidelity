@@ -57,7 +57,7 @@ generative model stored in either `.pth` or `.onnx` formats:
 
 ## Efficient computation of ISC and PPL
 
-Efficient computation of ISC and PPL for `input1`, and FID and KID between a generative model stored in 
+Efficient computation of ISC and PPL for `input1`, and FID, KID, and MIND between a generative model stored in
 `~/generator.onnx` and CIFAR-10 training split:
 
 ```
@@ -67,6 +67,7 @@ Efficient computation of ISC and PPL for `input1`, and FID and KID between a gen
   --fid \
   --kid \
   --ppl \
+  --mind \
   --input1 ~/generator.onnx \ 
   --input1-model-z-type normal \
   --input1-model-z-size 128 \

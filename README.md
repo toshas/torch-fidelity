@@ -13,6 +13,7 @@ generative model evaluation, including:
 - Kernel Inception Distance ([KID](https://arxiv.org/pdf/1801.01401.pdf))
 - Precision and Recall ([PRC](https://arxiv.org/pdf/1904.06991.pdf))
 - Perceptual Path Length ([PPL](https://arxiv.org/pdf/1812.04948.pdf))
+- Monge Inception Distance ([MIND](https://arxiv.org/pdf/2605.06797.pdf))
 
 **Numerical Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference 
 implementations up to floating point's machine precision. This allows using torch-fidelity for reporting metrics in papers instead of 
@@ -60,7 +61,7 @@ Inception Score of a directory of images stored in `~/images/`:
 
 ### Pro
 
-Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC between a generative model stored in `~/generator.onnx` and CIFAR-10 training split:
+Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC, MIND between a generative model stored in `~/generator.onnx` and CIFAR-10 training split:
 ```shell script
 > fidelity \
   --gpu 0 \
@@ -69,6 +70,7 @@ Efficient computation of ISC and PPL for `input1`, and FID, KID, PRC between a g
   --kid \
   --ppl \
   --prc \
+  --mind \
   --input1 ~/generator.onnx \ 
   --input1-model-z-type normal \
   --input1-model-z-size 128 \

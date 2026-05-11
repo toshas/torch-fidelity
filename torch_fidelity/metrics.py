@@ -301,7 +301,7 @@ def calculate_metrics(**kwargs):
             required when the input is a path to a generator model). Default: `0`.
 
         input1_model_num_samples (int): Number of samples to draw (only required when the input is a generator model).
-            This option affects the following metrics: ISC, FID, KID. Default: `None`.
+            This option affects the following metrics: ISC, FID, KID, PRC, MIND. Default: `None`.
 
         input2_cache_name (str): Assigns a cache entry to input2 (when not a registered input) and forces caching of
             features on it. Default: `None`.
@@ -316,7 +316,7 @@ def calculate_metrics(**kwargs):
             required when the input is a path to a generator model). Default: `0`.
 
         input2_model_num_samples (int): Number of samples to draw (only required when the input is a generator model).
-            This option affects the following metrics: FID, KID. Default: `None`.
+            This option affects the following metrics: FID, KID, PRC, MIND. Default: `None`.
 
         rng_seed (int): Random numbers generator seed for all operations involving randomness. Default: `2020`.
 

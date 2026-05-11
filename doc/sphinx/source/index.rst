@@ -9,12 +9,14 @@ generative model evaluation, including:
 * Kernel Inception Distance (KID_)
 * Perceptual Path Length (PPL_)
 * Precision and Recall (PRC_)
+* Monge Inception Distance (MIND_)
 
 .. _ISC: https://arxiv.org/pdf/1606.03498.pdf
 .. _FID: https://arxiv.org/pdf/1706.08500.pdf
 .. _KID: https://arxiv.org/pdf/1801.01401.pdf
 .. _PPL: https://arxiv.org/pdf/1812.04948.pdf
 .. _PRC: https://arxiv.org/pdf/1904.06991.pdf
+.. _MIND: https://arxiv.org/pdf/2605.06797.pdf
 
 **Numerical Precision**: Unlike many other reimplementations, the values produced by torch-fidelity match reference
 implementations up to floating point's machine precision. This allows using torch-fidelity for reporting metrics in papers instead of

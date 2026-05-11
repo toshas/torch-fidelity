@@ -13,8 +13,9 @@ with open("requirements.txt") as f:
 long_description = """
 torch-fidelity is the reference implementation of generative image model evaluation metrics in
 PyTorch, providing epsilon-exact computation of Inception Score (ISC), Fréchet Inception Distance
-(FID), Kernel Inception Distance (KID), and Precision and Recall (PRC). It supports multiple
-feature extractors including InceptionV3, CLIP, DINOv2, and VGG16.
+(FID), Kernel Inception Distance (KID), Precision and Recall (PRC), Perceptual Path Length (PPL),
+and Monge Inception Distance (MIND). It supports multiple feature extractors including
+InceptionV3, CLIP, DINOv2, and VGG16.
 
 Originally created to bring numerically faithful metric implementations to the PyTorch ecosystem —
 matching TensorFlow reference code to machine precision — torch-fidelity is now widely adopted as
@@ -69,6 +70,9 @@ setup(
         "prc",
         "precision",
         "recall",
+        "mind",
+        "monge",
+        "sliced-wasserstein",
         "clip",
         "dinov2",
         "vgg16",

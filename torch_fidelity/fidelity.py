@@ -263,7 +263,7 @@ def main():
         default=DEFAULTS["input1_model_num_samples"],
         type=int,
         help="Number of samples to draw (only required when the input is a generator model). "
-        "This option affects the following metrics: ISC, FID, KID",
+        "This option affects the following metrics: ISC, FID, KID, PRC, MIND",
     )
     parser.add_argument(
         "--input2-cache-name",
@@ -296,7 +296,7 @@ def main():
         default=DEFAULTS["input2_model_num_samples"],
         type=int,
         help="Number of samples to draw (only required when the input is a generator model). "
-        "This option affects the following metrics: ISC, FID, KID",
+        "This option affects the following metrics: ISC, FID, KID, PRC, MIND",
     )
     parser.add_argument(
         "--rng-seed",

@@ -2,7 +2,7 @@
 
 ## Inputs
 
-ISC and PPL are computed for `input1` only, whereas FID and KID are computed between `input1` and `input2`.
+ISC and PPL are computed for `input1` only, whereas FID, KID, and MIND are computed between `input1` and `input2`.
 PRC is also computed between `input1` and `input2`, where `input1` is treated as the generated (evaluated) set and
 `input2` as the real (reference) set: precision measures the fraction of `input1` samples falling within the `input2`
 manifold, and recall measures the fraction of `input2` samples falling within the `input1` manifold.

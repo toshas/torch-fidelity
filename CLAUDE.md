@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**torch-fidelity** is a PyTorch library providing epsilon-exact implementations of generative model evaluation metrics: Inception Score (ISC), Frechet Inception Distance (FID), Kernel Inception Distance (KID), Precision/Recall/F-score (PRC), and Perceptual Path Length (PPL). The library prioritizes numerical fidelity with reference TensorFlow implementations.
+**torch-fidelity** is a PyTorch library providing epsilon-exact implementations of generative model evaluation metrics: Inception Score (ISC), Frechet Inception Distance (FID), Kernel Inception Distance (KID), Precision/Recall/F-score (PRC), Perceptual Path Length (PPL), and Monge Inception Distance (MIND). The library prioritizes numerical fidelity with reference TensorFlow implementations.
 
 Current version: **0.4.0** (`torch_fidelity/version.py`)
 
@@ -16,6 +16,7 @@ torch_fidelity/           # Main package (~4100 lines, 29 modules)
   metric_kid.py           # Kernel Inception Distance (poly/rbf kernels)
   metric_prc.py           # Precision, Recall, F-score
   metric_ppl.py           # Perceptual Path Length
+  metric_mind.py          # Monge Inception Distance (sliced 2-Wasserstein)
   feature_extractor_base.py         # Abstract base for feature extractors
   feature_extractor_inceptionv3.py  # InceptionV3 (TF-compatible weights)
   feature_extractor_clip.py         # CLIP feature extraction
@@ -93,7 +94,7 @@ tests/run_tests.sh --with-tf1   # includes tf1 (requires pre-Ampere GPU)
 
 The full suite uses Docker containers (NGC PyTorch base images) and runs six test flavors sequentially:
 
-1. **`torch_versions_ge_1_13_0`** (CUDA, strict warnings) — Backward compatibility testing. Dynamically installs torch 1.13.1, 2.0.1, 2.1.1, and latest, running the full metrics pipeline (ISC/FID/KID/PRC with Inception-v3, CLIP, DINOv2) against each version. Verifies metric values stay within tight tolerances across versions. The Docker image strips all pre-installed torch packages and installs/uninstalls them per test. Minimum version is 1.13.0 due to CUDA sm_86 (Ampere) support requirement.
+1. **`torch_versions_ge_1_13_0`** (CUDA, strict warnings) — Backward compatibility testing. Dynamically installs torch 1.13.1, 2.0.1, 2.1.1, and latest, running the full metrics pipeline (ISC/FID/KID/PRC/MIND with Inception-v3, CLIP, DINOv2) against each version. Verifies metric values stay within tight tolerances across versions. The Docker image strips all pre-installed torch packages and installs/uninstalls them per test. Minimum version is 1.13.0 due to CUDA sm_86 (Ampere) support requirement.
 
 2. **`tf1`** (CUDA, no strict warnings) — **Skipped by default** (enable with `--with-tf1`). Legacy TensorFlow 1.14 numerical precision comparison. Uses an old NGC base image (`pytorch:19.02-py3`) with CUDA 10.0 to cross-validate against the original TF reference implementations. Requires pre-Ampere GPU (V100, T4, etc.) — fails on Ampere+ (sm_86+) due to missing cuBLAS kernels in CUDA 10.0. Warnings are not treated as errors because TF1/legacy code generates many deprecation warnings. These tests were validated up to and including v0.3.0; numerical correctness of v0.4.0 is ensured via the other test suites.
 
@@ -150,17 +151,17 @@ Input → Feature Extraction (cached) → Metric Computation
 ```
 
 - **Unary metrics** (ISC, PPL): require only `input1`
-- **Binary metrics** (FID, KID, PRC): require `input1` and `input2`
+- **Binary metrics** (FID, KID, PRC, MIND): require `input1` and `input2`
 - **PRC convention**: `input1` = generated (evaluated), `input2` = real (reference). Precision = fraction of generated samples in real manifold; recall = fraction of real samples in generated manifold
 - Feature extraction results are cached to disk when `cache=True`
 - FID has a shortcut path when statistics are cached but features are not
-- When using default feature extractors, ISC/FID/KID use InceptionV3 and PRC uses VGG16; if both groups are requested, two separate feature extraction passes run automatically
+- When using default feature extractors, ISC/FID/KID/MIND use InceptionV3 and PRC uses VGG16; if both groups are requested, two separate feature extraction passes run automatically
 
 ### Feature Extractors
 
 | Name | Class | Default For |
 |------|-------|-------------|
-| `inception-v3-compat` | `FeatureExtractorInceptionV3` | ISC, FID, KID |
+| `inception-v3-compat` | `FeatureExtractorInceptionV3` | ISC, FID, KID, MIND |
 | `vgg16` | `FeatureExtractorVGG16` | PRC |
 | `clip-vit-b-32` (and other CLIP variants) | `FeatureExtractorCLIP` | - |
 | `dinov2-vit-{s,b,l,g}-14` | `FeatureExtractorDinoV2` | - |
