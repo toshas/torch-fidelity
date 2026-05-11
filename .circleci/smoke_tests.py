@@ -145,6 +145,7 @@ class SmokeTests(TimeTrackingTestCase):
                 "--fid",
                 "--kid",
                 "--prc",
+                "--mind",
                 "--kid-subset-size", "64",
                 "--silent",
                 "--json",
@@ -165,6 +166,7 @@ class SmokeTests(TimeTrackingTestCase):
         self.assertAlmostEqual(metrics["precision"], 0.71484375, delta=1e-3)
         self.assertAlmostEqual(metrics["recall"], 0.7109375, delta=1e-3)
         self.assertAlmostEqual(metrics["f_score"], 0.7128852739726027, delta=1e-3)
+        self.assertAlmostEqual(metrics["monge_inception_distance"], 12.450314998626709, delta=1e-2)
 
         res = self._run_fidelity_command(
             (

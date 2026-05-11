@@ -37,6 +37,7 @@ DEFAULT_FEATURE_EXTRACTOR = {
     "fid": "inception-v3-compat",
     "kid": "inception-v3-compat",
     "prc": "vgg16",
+    "mind": "inception-v3-compat",
 }
 
 
@@ -334,7 +335,7 @@ def get_cacheable_input_name(input_id, **kwargs):
 def resolve_feature_extractor(**kwargs):
     out = get_kwarg("feature_extractor", kwargs)
     if out is None:
-        for metric in ("isc", "fid", "kid", "prc"):
+        for metric in ("isc", "fid", "kid", "prc", "mind"):
             if get_kwarg(metric, kwargs):
                 default_fe = DEFAULT_FEATURE_EXTRACTOR[metric]
                 vassert(out in (None, default_fe), "Cannot have several feature extractors in one call")

@@ -119,6 +119,7 @@ class FeatureExtractorDinoV2(FeatureExtractorBase):
             "fid": "dinov2",
             "kid": "dinov2",
             "prc": "dinov2",
+            "mind": "dinov2",
         }[metric]
 
     @staticmethod

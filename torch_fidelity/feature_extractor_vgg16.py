@@ -107,6 +107,7 @@ class FeatureExtractorVGG16(FeatureExtractorBase):
             "fid": "fc2_relu",
             "kid": "fc2_relu",
             "prc": "fc2_relu",
+            "mind": "fc2_relu",
         }[metric]
 
     @staticmethod

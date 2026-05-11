@@ -533,6 +533,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
             "fid": "clip",
             "kid": "clip",
             "prc": "clip",
+            "mind": "clip",
         }[metric]
 
     @staticmethod

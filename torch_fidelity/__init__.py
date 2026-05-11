@@ -9,6 +9,7 @@ from torch_fidelity.generative_model_onnx import GenerativeModelONNX
 from torch_fidelity.metric_fid import KEY_METRIC_FID
 from torch_fidelity.metric_isc import KEY_METRIC_ISC_MEAN, KEY_METRIC_ISC_STD
 from torch_fidelity.metric_kid import KEY_METRIC_KID_MEAN, KEY_METRIC_KID_STD
+from torch_fidelity.metric_mind import KEY_METRIC_MIND
 from torch_fidelity.metric_ppl import KEY_METRIC_PPL_MEAN, KEY_METRIC_PPL_STD, KEY_METRIC_PPL_RAW
 from torch_fidelity.metric_prc import KEY_METRIC_PRECISION, KEY_METRIC_RECALL, KEY_METRIC_F_SCORE
 from torch_fidelity.metrics import calculate_metrics

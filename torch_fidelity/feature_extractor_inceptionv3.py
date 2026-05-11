@@ -215,6 +215,7 @@ class FeatureExtractorInceptionV3(FeatureExtractorBase):
             "fid": "2048",
             "kid": "2048",
             "prc": "2048",
+            "mind": "2048",
         }[metric]
 
     @staticmethod

@@ -6,6 +6,7 @@ from torch_fidelity.metric_fid import (
 )
 from torch_fidelity.metric_isc import isc_featuresdict_to_metric
 from torch_fidelity.metric_kid import kid_featuresdict_to_metric
+from torch_fidelity.metric_mind import mind_featuresdict_to_metric
 from torch_fidelity.metric_prc import prc_featuresdict_to_metric
 from torch_fidelity.metric_ppl import calculate_ppl
 from torch_fidelity.utils import (
@@ -26,12 +27,13 @@ def calculate_metrics_one_feature_extractor(**kwargs):
     have_kid = get_kwarg("kid", kwargs)
     have_prc = get_kwarg("prc", kwargs)
     have_ppl = get_kwarg("ppl", kwargs)
+    have_mind = get_kwarg("mind", kwargs)
 
     have_unary = have_isc or have_ppl
-    have_binary = have_fid or have_kid or have_prc
+    have_binary = have_fid or have_kid or have_prc or have_mind
     have_any = have_unary or have_binary
     have_other_than_ppl = have_isc or have_binary
-    have_only_fid = (not have_isc) and have_fid and (not have_kid) and (not have_prc)
+    have_only_fid = (not have_isc) and have_fid and (not have_kid) and (not have_prc) and (not have_mind)
 
     need_input1 = True
     need_input2 = have_binary
@@ -44,7 +46,7 @@ def calculate_metrics_one_feature_extractor(**kwargs):
 
     if have_other_than_ppl:
         feature_extractor = resolve_feature_extractor(**kwargs)
-        feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
+        feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc, feature_layer_mind = (None,) * 5
         feature_layers = set()
         if have_isc:
             feature_layer_isc = resolve_feature_layer_for_metric("isc", **kwargs)
@@ -58,6 +60,9 @@ def calculate_metrics_one_feature_extractor(**kwargs):
         if have_prc:
             feature_layer_prc = resolve_feature_layer_for_metric("prc", **kwargs)
             feature_layers.add(feature_layer_prc)
+        if have_mind:
+            feature_layer_mind = resolve_feature_layer_for_metric("mind", **kwargs)
+            feature_layers.add(feature_layer_mind)
 
         feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
 
@@ -102,6 +107,10 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             metric_prc = prc_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_prc, **kwargs)
             metrics.update(metric_prc)
 
+        if have_mind:
+            metric_mind = mind_featuresdict_to_metric(featuresdict_1, featuresdict_2, feature_layer_mind, **kwargs)
+            metrics.update(metric_mind)
+
     if have_ppl:
         metric_ppl = calculate_ppl(1, **kwargs)
         metrics.update(metric_ppl)
@@ -118,6 +127,7 @@ def calculate_metrics(**kwargs):
     .. _KID: https://arxiv.org/pdf/1801.01401.pdf
     .. _PPL: https://arxiv.org/pdf/1812.04948.pdf
     .. _PRC: https://arxiv.org/pdf/1904.06991.pdf
+    .. _MIND: https://arxiv.org/abs/2605.06797
 
     Args:
 
@@ -184,6 +194,10 @@ def calculate_metrics(**kwargs):
 
         ppl (bool): Calculate PPL_ (Perceptual Path Length). Default: `False`.
 
+        mind (bool): Calculate MIND_ (Monge Inception Distance), a sliced 2-Wasserstein distance between feature
+            distributions. Like FID/KID, ``input1`` is treated as generated and ``input2`` as real, but the metric is
+            symmetric in its arguments. Default: `False`.
+
         feature_extractor (str): Name of the feature extractor (see :ref:`registry <Registry>`). Default: `None`
             (defined by the chosen set of metrics to compute).
 
@@ -197,6 +211,9 @@ def calculate_metrics(**kwargs):
             chosen feature extractor).
 
         feature_layer_prc (str): Name of the feature layer to use with PRC metric. Default: `None` (defined by the
+            chosen feature extractor).
+
+        feature_layer_mind (str): Name of the feature layer to use with MIND metric. Default: `None` (defined by the
             chosen feature extractor).
 
         feature_extractor_weights_path (str): Path to feature extractor weights (downloaded if `None`). Default: `None`.
@@ -245,6 +262,9 @@ def calculate_metrics(**kwargs):
         prc_neighborhood (int): Number of nearest neighbours to consider in PRC. Default: `3`.
 
         prc_batch_size (int): Batch size in PRC. Default: `10000`.
+
+        mind_num_projections (int): Number of random projection directions used to estimate the sliced Wasserstein
+            distance in MIND. The paper recommends a value in :math:`[100, 1000]`. Default: `1000`.
 
         samples_shuffle (bool): Perform random samples shuffling before computing splits. Default: `True`.
 
@@ -320,6 +340,7 @@ def calculate_metrics(**kwargs):
             - :const:`torch_fidelity.KEY_METRIC_PRECISION`
             - :const:`torch_fidelity.KEY_METRIC_RECALL`
             - :const:`torch_fidelity.KEY_METRIC_F_SCORE`
+            - :const:`torch_fidelity.KEY_METRIC_MIND`
     """
 
     process_deprecations(kwargs)
@@ -328,9 +349,10 @@ def calculate_metrics(**kwargs):
     have_fid = get_kwarg("fid", kwargs)
     have_kid = get_kwarg("kid", kwargs)
     have_prc = get_kwarg("prc", kwargs)
+    have_mind = get_kwarg("mind", kwargs)
     fe_name = get_kwarg("feature_extractor", kwargs)
 
-    have_default_fe_inception = have_isc or have_fid or have_kid
+    have_default_fe_inception = have_isc or have_fid or have_kid or have_mind
     have_default_fe_vgg = have_prc
 
     if fe_name is not None or not (have_default_fe_inception and have_default_fe_vgg):
@@ -345,6 +367,7 @@ def calculate_metrics(**kwargs):
     kwargs_subset["isc"] = False
     kwargs_subset["fid"] = False
     kwargs_subset["kid"] = False
+    kwargs_subset["mind"] = False
     kwargs_subset["ppl"] = False
     out.update(calculate_metrics_one_feature_extractor(**kwargs_subset))
 

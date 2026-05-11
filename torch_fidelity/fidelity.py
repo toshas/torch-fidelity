@@ -50,6 +50,7 @@ def main():
     parser.add_argument("-k", "--kid", action="store_true", help="Calculate KID (Kernel Inception Distance)")
     parser.add_argument("-r", "--prc", action="store_true", help="Calculate PRC (Precision and Recall)")
     parser.add_argument("-p", "--ppl", action="store_true", help="Calculate PPL (Perceptual Path Length)")
+    parser.add_argument("-m", "--mind", action="store_true", help="Calculate MIND (Monge Inception Distance)")
     parser.add_argument(
         "--feature-extractor",
         default=DEFAULTS["feature_extractor"],
@@ -80,6 +81,12 @@ def main():
         default=DEFAULTS["feature_layer_prc"],
         type=str,
         help="Name of the feature layer to use with PRC metrics (default if None)",
+    )
+    parser.add_argument(
+        "--feature-layer-mind",
+        default=DEFAULTS["feature_layer_mind"],
+        type=str,
+        help="Name of the feature layer to use with MIND metric (default if None)",
     )
     parser.add_argument(
         "--feature-extractor-weights-path",
@@ -181,6 +188,12 @@ def main():
         "--prc-neighborhood", default=DEFAULTS["prc_neighborhood"], type=int, help="Number of nearest neighbours in PRC"
     )
     parser.add_argument("--prc-batch-size", default=DEFAULTS["prc_batch_size"], type=int, help="Batch size in PRC")
+    parser.add_argument(
+        "--mind-num-projections",
+        default=DEFAULTS["mind_num_projections"],
+        type=int,
+        help="Number of random projection directions used to estimate the sliced Wasserstein distance in MIND",
+    )
     parser.add_argument(
         "--no-samples-shuffle", action="store_true", help="Do not perform samples shuffling before computing splits"
     )
@@ -303,7 +316,7 @@ def main():
         print(f"Use 'fidelity --help' to see the up-to-date command line options", file=sys.stderr)
         print(f"See https://github.com/toshas/torch-fidelity/blob/master/CHANGELOG.md", file=sys.stderr)
 
-    if not (args["isc"] or args["fid"] or args["kid"] or args["ppl"] or args["prc"]):
+    if not (args["isc"] or args["fid"] or args["kid"] or args["ppl"] or args["prc"] or args["mind"]):
         print(f"No metrics to compute, exiting", file=sys.stderr)
         print(f"Use 'fidelity --help' to see the command line options", file=sys.stderr)
         exit(1)
