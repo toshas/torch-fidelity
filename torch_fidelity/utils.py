@@ -48,7 +48,7 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
     )
     vprint(
         verbose,
-        f'Looking for samples {"recursively" if samples_find_deep else "non-recursivelty"} in "{path}" '
+        f'Looking for samples {"recursively" if samples_find_deep else "non-recursively"} in "{path}" '
         f"with extensions {samples_find_ext}",
     )
     samples_find_ext = [a.strip() for a in samples_find_ext.split(",") if a.strip() != ""]
