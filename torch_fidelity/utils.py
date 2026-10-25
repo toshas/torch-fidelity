@@ -287,6 +287,7 @@ def prepare_input_from_descriptor(input_desc, **kwargs):
         elif os.path.isfile(input) and input.endswith(".pth"):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
+                warnings.filterwarnings("ignore", category=FutureWarning, message=r"`torch\.jit\.load` is deprecated")                
                 input = torch.jit.load(input, map_location="cpu")
             input = GenerativeModelModuleWrapper(
                 input,
