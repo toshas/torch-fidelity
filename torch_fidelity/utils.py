@@ -193,7 +193,7 @@ def get_featuresdict_from_generative_model(gen_model, feat_extractor, num_sample
                 noise = noise.cuda(non_blocking=True)
             gen_args = [noise]
             if gen_model.num_classes > 0:
-                cond_labels = torch.from_numpy(rng.randint(low=0, high=gen_model.num_classes, size=(sz,), dtype=np.int))
+                cond_labels = torch.from_numpy(rng.randint(low=0, high=gen_model.num_classes, size=(sz,), dtype=np.int64))
                 if cuda:
                     cond_labels = cond_labels.cuda(non_blocking=True)
                 gen_args.append(cond_labels)
