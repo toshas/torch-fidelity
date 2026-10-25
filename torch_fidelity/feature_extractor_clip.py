@@ -469,6 +469,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
                     "ignore", message="'torch.load' received a zip file that looks like a TorchScript archive"
                 )
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
+                warnings.filterwarnings("ignore", category=FutureWarning, message=r"`torch\.jit\.load` is deprecated")                
                 for attempt in range(10):
                     try:
                         model_jit = load_state_dict_from_url(
@@ -488,6 +489,7 @@ class FeatureExtractorCLIP(FeatureExtractorBase):
         else:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
+                warnings.filterwarnings("ignore", category=FutureWarning, message=r"`torch\.jit\.load` is deprecated")                
                 model_jit = torch.jit.load(feature_extractor_weights_path, map_location="cpu")
 
         self.model = build_model(model_jit.state_dict(), self.feature_extractor_internal_dtype)
